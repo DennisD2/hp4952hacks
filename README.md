@@ -10,3 +10,13 @@ This is Z80 code for HP495x platform.
 make disassemble
 ```
 This will create a file vt100.dasm.
+
+# Check that code stays the same after changes
+Just execute ```make``` with no arguments. This will assemble the application and compare it
+against the original binary. It will complain if these are not equal.
+```shell
+make 
+```
+
+# State of analysis
+Check file ```vt100.asm```. 
