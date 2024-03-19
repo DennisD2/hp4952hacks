@@ -1662,40 +1662,50 @@
 	call 0abb2h		;abeb	cd b2 ab 	. . . 
 	ret			;abee	c9 	. 
 
-	ld b,e			;abef	43 	C 
-	xor e			;abf0	ab 	. 
-	ld h,c			;abf1	61 	a 
-	xor e			;abf2	ab 	. 
-	ld (hl),b			;abf3	70 	p 
-	xor e			;abf4	ab 	. 
-	jr nz,$-83		;abf5	20 ab 	  . 
-	jr nz,$-123		;abf7	20 83 	  . 
-	ld b,e			;abf9	43 	C 
-	xor e			;abfa	ab 	. 
-	ld l,h			;abfb	6c 	l 
-	xor e			;abfc	ab 	. 
-	ld (hl),d			;abfd	72 	r 
-	xor e			;abfe	ab 	. 
-	jr nz,$-83		;abff	20 ab 	  . 
-	jr nz,$-123		;ac01	20 83 	  . 
-	jr nz,$-83		;ac03	20 ab 	  . 
-	ld b,h			;ac05	44 	D 
-	xor e			;ac06	ab 	. 
-	ld l,c			;ac07	69 	i 
-	xor e			;ac08	ab 	. 
-	ld (hl),e			;ac09	73 	s 
-	xor e			;ac0a	ab 	. 
-	ld (hl),b			;ac0b	70 	p 
-	xor e			;ac0c	ab 	. 
-	ld l,h			;ac0d	6c 	l 
-	xor e			;ac0e	ab 	. 
-	ld h,c			;ac0f	61 	a 
-	xor e			;ac10	ab 	. 
-	ld a,c			;ac11	79 	y 
-	xor e			;ac12	ab 	. 
-	jr nz,$-83		;ac13	20 ab 	  . 
-	jr nz,$-83		;ac15	20 ab 	  . 
-	jr nz,$-123		;ac17	20 83 	  . 
+    ;; "Cap  "
+    defb "C",0abh,"a",0abh, "p", 0abh, " ", 0abh, " ", 083h
+	;ld b,e			;abef	43 	C
+	;xor e			;abf0	ab 	.
+	;ld h,c			;abf1	61 	a
+	;xor e			;abf2	ab 	.
+	;ld (hl),b			;abf3	70 	p
+	;xor e			;abf4	ab 	.
+	;jr nz,$-83		;abf5	20 ab 	  .
+	;jr nz,$-123		;abf7	20 83 	  .
+
+    ;; "Clr   "
+	defb "C", 0abh, "l", 0abh, "r", 0abh, " ", 0abh, " ", 083h, " ", 0abh
+	;ld b,e			;abf9	43 	C
+	;xor e			;abfa	ab 	.
+	;ld l,h			;abfb	6c 	l
+	;xor e			;abfc	ab 	.
+	;ld (hl),d			;abfd	72 	r
+	;xor e			;abfe	ab 	.
+	;jr nz,$-83		;abff	20 ab 	  .
+	;jr nz,$-123		;ac01	20 83 	  .
+	;jr nz,$-83		;ac03	20 ab 	  .
+
+    ;; "Display   "
+	defb "D", 0abh, "i", 0abh, "s", 0abh, "p", 0abh, "l",0abh, "a", 0abh, "y", 0abh, " ", 0abh, " ", 0abh, " ", 083h
+	;ld b,h			;ac05	44 	D
+	;xor e			;ac06	ab 	.
+	;ld l,c			;ac07	69 	i
+	;xor e			;ac08	ab 	.
+	;ld (hl),e			;ac09	73 	s
+	;xor e			;ac0a	ab 	.
+	;ld (hl),b			;ac0b	70 	p
+	;xor e			;ac0c	ab 	.
+	;ld l,h			;ac0d	6c 	l
+	;xor e			;ac0e	ab 	.
+	;ld h,c			;ac0f	61 	a
+	;xor e			;ac10	ab 	.
+	;ld a,c			;ac11	79 	y
+	;xor e			;ac12	ab 	.
+	;jr nz,$-83		;ac13	20 ab 	  .
+	;jr nz,$-83		;ac15	20 ab 	  .
+	;jr nz,$-123		;ac17	20 83 	  .
+
+    ;; Hex Break Lock
 	ld c,b			;ac19	48 	H 
 	xor e			;ac1a	ab 	. 
 	ld h,l			;ac1b	65 	e 
@@ -1723,7 +1733,9 @@
 	xor e			;ac34	ab 	. 
 	ld l,e			;ac35	6b 	k 
 	xor e			;ac36	ab 	. 
-	jr nz,$-123		;ac37	20 83 	  . 
+	jr nz,$-123		;ac37	20 83 	  .
+
+	;; Scrn Top Bottom
 	ld d,e			;ac39	53 	S 
 	xor e			;ac3a	ab 	. 
 	ld h,e			;ac3b	63 	c 
@@ -1752,7 +1764,9 @@
 	xor e			;ac54	ab 	. 
 	ld l,l			;ac55	6d 	m 
 	xor e			;ac56	ab 	. 
-	jr nz,$-123		;ac57	20 83 	  . 
+	jr nz,$-123		;ac57	20 83 	  .
+
+	;; "Entr "
 	ld b,l			;ac59	45 	E 
 	xor e			;ac5a	ab 	. 
 	ld l,(hl)			;ac5b	6e 	n 
@@ -4660,6 +4674,13 @@
 	org 0e800h
 	seek 04800h
 
+;; from following line to file end, we have the pattern "20 83"
+;; so from e800/e801  to f8fe/f8ff
+;;
+;; I like to replace these lines with some assembler directive.
+;; The following does NOT work:
+;;    org 0f8ffh
+;;    seek 058ffh
 
 	jr nz,$-123		;e800	20 83 	  . 
 	jr nz,$-123		;e802	20 83 	  . 
