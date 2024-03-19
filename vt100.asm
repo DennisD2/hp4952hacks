@@ -4676,7 +4676,7 @@
 
 ;; from here to file end, we have, in original app, the pattern "20 83"
 ;; so from e800/e801  to f8fe/f8ff
-;; For unknown reason, we need to have this space, can be fille with e.g. nops.
+;; For unknown reason, we need to have this space, can be filled with e.g. nops.
 ;; Fill to end of file
         org 0f8ffh
         seek 058ffh
