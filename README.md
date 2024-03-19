@@ -5,7 +5,7 @@ It was extracted with lifutils, patched version 1.7.11, without LIF headers.
 
 This is Z80 code for HP495x platform.
 
-# Dissassemble the code
+# Disassemble the code
 ```shell
 make disassemble
 ```
