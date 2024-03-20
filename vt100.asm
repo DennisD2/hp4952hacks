@@ -993,7 +993,10 @@ var_byte_a9c2:
     defb 000h
 	;nop			;a9c2	00 	.
 
-	ret pe			;a9c3	e8 	.
+    ; next byte seems not to be used
+    ; i just define it to keep it equal to original
+	;ret pe			;a9c3	e8 	.
+    defb 0e8h
 
 var_byte_a9c4:
     ; byte variable used at numerous places, initialized with 8
@@ -1029,8 +1032,11 @@ set_var_byte_a9c6:
 	ld (var_byte_a9c6),a		;a9d3	32 c6 a9 	2 . .
 	ret			            ;a9d6	c9 	.
 
+    ; a:=1
 	ld a,001h		;a9d7	3e 01 	> .
+	; (var_byte_a9c5):=a
 	ld (var_byte_a9c5),a		;a9d9	32 c5 a9 	2 . .
+	; some call
 	call 0aa9ah		;a9dc	cd 9a aa 	. . .
 	ret			;a9df	c9 	.
 
@@ -1124,10 +1130,20 @@ set_var_byte_a9c6:
 	ld h,d			;aa94	62 	b
 	ret			;aa95	c9 	.
 
-	nop			;aa96	00 	.
-	nop			;aa97	00 	.
-	nop			;aa98	00 	.
-	nop			;aa99	00 	.
+var_byte_aa96:
+    defb 000h
+	;nop			;aa96	00 	.
+var_byte_aa97:
+    defb 000h
+	;nop			;aa97	00 	.
+var_byte_aa98:
+    defb 000h
+	;nop			;aa98	00 	.
+var_byte_aa99:
+    defb 000h
+	;nop			;aa99	00 	.
+
+	;; fun_aa9a this is large function...
 	ld hl,(var_byte_a9bf)		;aa9a	2a bf a9 	* . .
 	call 0ace8h		;aa9d	cd e8 ac 	. . .
 	ld a,(var_byte_a9c0)		;aaa0	3a c0 a9 	: . .
@@ -1142,13 +1158,13 @@ set_var_byte_a9c6:
 	sub 010h		;aab1	d6 10 	. .
 	inc l			;aab3	2c 	,
 	jr $-7		;aab4	18 f7 	. .
-	ld (0aa96h),a		;aab6	32 96 aa 	2 . .
+	ld (var_byte_aa96),a		;aab6	32 96 aa 	2 . .
 	ld a,l			;aab9	7d 	}
 	rlca			;aaba	07 	.
 	rlca			;aabb	07 	.
 	rlca			;aabc	07 	.
 	rlca			;aabd	07 	.
-	ld (0aa99h),a		;aabe	32 99 aa 	2 . .
+	ld (var_byte_aa99),a		;aabe	32 99 aa 	2 . .
 	ld a,(var_byte_a9bf)		;aac1	3a bf a9 	: . .
 	ld l,013h		;aac4	2e 13 	. .
 	cp 015h		;aac6	fe 15 	. .
@@ -1158,34 +1174,34 @@ set_var_byte_a9c6:
 	jr c,$+5		;aace	38 03 	8 .
 	ld hl,(var_byte_a9c4)		;aad0	2a c4 a9 	* . .
 	sub l			;aad3	95 	.
-	ld (0aa97h),a		;aad4	32 97 aa 	2 . .
+	ld (var_byte_aa97),a		;aad4	32 97 aa 	2 . .
 	ld a,l			;aad7	7d 	}
-	ld (0aa98h),a		;aad8	32 98 aa 	2 . .
+	ld (var_byte_aa98),a		;aad8	32 98 aa 	2 . .
 	ld a,(var_byte_a9c5)		;aadb	3a c5 a9 	: . .
 	or a			;aade	b7 	.
 	jr nz,$+17		;aadf	20 0f 	  .
 	ld a,(var_byte_a9c4)		;aae1	3a c4 a9 	: . .
 	cp l			;aae4	bd 	.
 	jr nz,$+11		;aae5	20 09 	  .
-	ld hl,(0aa99h)		;aae7	2a 99 aa 	* . .
+	ld hl,(var_byte_aa99)		;aae7	2a 99 aa 	* . .
 	ld a,(var_byte_a9c1)		;aaea	3a c1 a9 	: . .
 	cp l			;aaed	bd 	.
 	jr z,$+31		;aaee	28 1d 	( .
-	ld a,(0aa99h)		;aaf0	3a 99 aa 	: . .
+	ld a,(var_byte_aa99)		;aaf0	3a 99 aa 	: . .
 	ld (var_byte_a9c1),a		;aaf3	32 c1 a9 	2 . .
-	ld a,(0aa98h)		;aaf6	3a 98 aa 	: . .
+	ld a,(var_byte_aa98)		;aaf6	3a 98 aa 	: . .
 	ld (var_byte_a9c4),a		;aaf9	32 c4 a9 	2 . .
 	ld l,a			;aafc	6f 	o
 	call 0ace8h		;aafd	cd e8 ac 	. . .
-	ld (0a9c2h),de		;ab00	ed 53 c2 a9 	. S . .
+	ld (var_byte_a9c2),de		;ab00	ed 53 c2 a9 	. S . .
 	call 0abbah		;ab04	cd ba ab 	. . .
 	call 0abcdh		;ab07	cd cd ab 	. . .
 	call 0ab59h		;ab0a	cd 59 ab 	. Y .
 	xor a			;ab0d	af 	.
 	ld (var_byte_a9c5),a		;ab0e	32 c5 a9 	2 . .
-	ld a,(0aa97h)		;ab11	3a 97 aa 	: . .
+	ld a,(var_byte_aa97)		;ab11	3a 97 aa 	: . .
 	call 0a96ah		;ab14	cd 6a a9 	. j .
-	ld a,(0aa96h)		;ab17	3a 96 aa 	: . .
+	ld a,(var_byte_aa96)		;ab17	3a 96 aa 	: . .
 	call 0a965h		;ab1a	cd 65 a9 	. e .
 	ld a,(var_byte_a9bf)		;ab1d	3a bf a9 	: . .
 	sub 007h		;ab20	d6 07 	. .
@@ -1514,7 +1530,7 @@ set_var_byte_a9c6:
 	ld d,000h		;acd7	16 00 	. .
 	add hl,de			;acd9	19 	.
 	add hl,de			;acda	19 	.
-	ld de,(0a9c2h)		;acdb	ed 5b c2 a9 	. [ . .
+	ld de,(var_byte_a9c2)		;acdb	ed 5b c2 a9 	. [ . .
 	add hl,de			;acdf	19 	.
 	set 7,h		;ace0	cb fc 	. .
 	set 6,h		;ace2	cb f4 	. .
@@ -1679,7 +1695,7 @@ fun_add6:
 	ld l,a			;adde	6f 	o
 	call 0ace8h		;addf	cd e8 ac 	. . .
 	ld (0a9bdh),de		;ade2	ed 53 bd a9 	. S . .
-	ld (0a9c2h),de		;ade6	ed 53 c2 a9 	. S . .
+	ld (var_byte_a9c2),de		;ade6	ed 53 c2 a9 	. S . .
 	xor a			;adea	af 	.
 	ld (var_byte_a9c0),a		;adeb	32 c0 a9 	2 . .
 	ld (var_byte_a9c1),a		;adee	32 c1 a9 	2 . .
