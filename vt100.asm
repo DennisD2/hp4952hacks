@@ -73,7 +73,25 @@ __dll_fixups:
 	;nop			;a193	00 	.
 	;ld (hl),0c1h		;a194	36 c1 	6 .
 
-    ; dllfixup table offset 0x190 - converted with small go routine
+    ; dll-fixup table offset 0x190 - converted with small go routine
+    ; Table meaning: Each entry describes a replacement of an address.
+    ;   <new target address>, <?>, <location, in this file, of address word to patch>
+    ;
+    ; Example 1:
+    ; This entry:
+    ;   defw 02d32h, 00000h, 0a49ch ; entry 50, offset 700
+    ; refers to word at address 0a49ch. The related assembler line is:
+    ;   call 01543h		;a49b	cd 43 15 	. C .
+    ; So, at a49c, we have bytes "43 15", which is word 01543h.
+    ; This value is now replaced by 02d32h .
+    ;
+    ; Example 2:
+    ;   defw 02e6eh, 00000h, 0a49fh ; entry 51, offset 706
+    ; refers to word at address 0a49fh. The related assembler line is:
+    ;	call 00fe9h		;a49e	cd e9 0f
+    ; So, at a49f we have bytes "e9 0f", which is word 00fe9h.
+    ; This value is now replaced by 02e6eh
+
     defw 02d02h, 00000h, 0c136h ; entry 0, offset 400
     defw 02d02h, 00000h, 0c170h ; entry 1, offset 406
     defw 02d02h, 00000h, 0c196h ; entry 2, offset 412
@@ -275,9 +293,9 @@ __init:
 ;; 0a410 -> _load_dll_stub
 	call _load_dll_stub		;a498	cd 10 a4 	. . .
 ;; next call is to location 1543 in PAGE ROM
-	call 01543h		;a49b	cd 43 15 	. C .
+	call 01543h		;a49b	cd 43 15 	. C . ; Patched to 2d32 -> 01543h
 ;; next call is to location fe9 in PAGE ROM		
-	call 00fe9h		;a49e	cd e9 0f 	
+	call 00fe9h		;a49e	cd e9 0f 	      ; Patched to 2e6e -> 00fe9h
 ;; a:=(fd4)	. . . 
 	ld a,(00fd4h)		;a4a1	3a d4 0f 	: . . 
 ;; isolate highest bit
@@ -339,7 +357,7 @@ __init:
 	jr z,$+33		;a4fd	28 1f 	( . 
 	call 0a53fh		;a4ff	cd 3f a5 	. ? . 
 	call 02b23h		;a502	cd 23 2b 	. # + 
-	call 0007eh		;a505	cd 7e 00 	. ~ . 
+	call 0007eh		;a505	cd 7e 00 	. ~ . ; Patched to 02d6ch
 ;; a:=(496)	
 	ld a,(0a496h)		;a508	3a 96 a4 	: . . 
 ;; (110c) := a	
@@ -353,7 +371,7 @@ __init:
 ;; save hl
 	push hl			;a517	e5 	. 
 ;; call main menu handler	
-	call 01109h		;a518	cd 09 11 	. . . 
+	call 01109h		;a518	cd 09 11 	. . . ; Patched to 02eceh
 ;; restore hl
 	pop hl			;a51b	e1 	. 
 	jr $+11		;a51c	18 09 	. . 
@@ -363,8 +381,10 @@ __init:
 	ld hl,0761ch		;a527	21 1c 76 	! . v 
 	ld (0a4cbh),hl		;a52a	22 cb a4 	" . . 
 
-	jp 0a4d4h		;a52d	c3 d4 a4 	. . . 
-	call 00000h		;a530	cd 00 00 	. . . 
+	jp 0a4d4h		;a52d	c3 d4 a4 	. . .
+	;; What does a call to 0 mean?
+	call 00000h		;a530	cd 00 00 	. . .
+
 	ld hl,0dbe0h		;a533	21 e0 db 	! . . 
 	ld de,03f00h		;a536	11 00 3f 	. . ? 
 	ld bc,00020h		;a539	01 20 00 	.   . 
@@ -518,7 +538,7 @@ __init:
 	ld (016e2h),a		;a683	32 e2 16 	2 . . 
 	ld hl,(0a60ch)		;a686	2a 0c a6 	* . . 
 	ld (016e3h),hl		;a689	22 e3 16 	" . . 
-	call 016e2h		;a68c	cd e2 16 	. . . 
+	call 016e2h		;a68c	cd e2 16 	. . . ; Patched to e1ch
 	ld a,(0a60ah)		;a68f	3a 0a a6 	: . . 
 	ld (01106h),a		;a692	32 06 11 	2 . . 
 	ld hl,016e2h		;a695	21 e2 16 	! . . 
@@ -541,10 +561,10 @@ __init:
 	pop hl			;a6cb	e1 	. 
 	pop af			;a6cc	f1 	. 
 	pop ix		;a6cd	dd e1 	. . 
-	jp 01103h		;a6cf	c3 03 11 	. . . 
+	jp 01103h		;a6cf	c3 03 11 	. . . ; Patched to ecch
 	jr nz,$+34		;a6d2	20 20 	    
-	call 01961h		;a6d4	cd 61 19 	. a . 
-	call 01982h		;a6d7	cd 82 19 	. . . 
+	call 01961h		;a6d4	cd 61 19 	. a . ; Patched to d9ch
+	call 01982h		;a6d7	cd 82 19 	. . . ; Patched to d06h
 	xor a			;a6da	af 	. 
 	ld (07e00h),a		;a6db	32 00 7e 	2 . ~ 
 	ld a,020h		;a6de	3e 20 	>   
@@ -658,7 +678,7 @@ __init:
 	ret m			;a792	f8 	. 
 	rst 38h			;a793	ff 	. 
 	cp 0fdh		;a794	fe fd 	. . 
-	call m,0fafbh		;a796	fc fb fa 	. . . 
+	call m,0fafbh		;a796	fc fb fa 	. . .
 	ld sp,hl			;a799	f9 	. 
 	rst 18h			;a79a	df 	. 
 	dec c			;a79b	0d 	. 
@@ -674,6 +694,7 @@ __init:
 	defb "[\\]^_"
 	ret m			;a7d2	f8 	. 
 
+    ; next lines until defb do not look like code
 	rst 38h			;a7d3	ff 	. 
 	cp 0fdh		;a7d4	fe fd 	. . 
 	call m,0fafbh		;a7d6	fc fb fa 	. . . 
@@ -692,6 +713,7 @@ __init:
 	ret m			;a812	f8 	. 
 ;; line above seems to be end of character array
 
+; lines below still do not look like code, but data
 	rst 38h			;a813	ff 	. 
 	cp 0fdh		;a814	fe fd 	. . 
 	call m,0fafbh		;a816	fc fb fa 	. . . 
@@ -699,19 +721,22 @@ __init:
 	rst 30h			;a81a	f7 	. 
 	or 0f5h		;a81b	f6 f5 	. . 
 	call p,00d0dh		;a81d	f4 0d 0d 	. . . 
-	dec c			;a820	0d 	. 
+	dec c			;a820	0d 	.
+	;; 1,2,3,4,5..
 	jr nz,$+129		;a821	20 7f 	   
 	ld sp,03332h		;a823	31 32 33 	1 2 3 
 	inc (hl)			;a826	34 	4 
 	dec (hl)			;a827	35 	5 
 	ld (hl),037h		;a828	36 37 	6 7 
-	jr c,$+59		;a82a	38 39 	8 9 
+	jr c,$+59		;a82a	38 39 	8 9
+	;; some ascii codes?
 	ld a,(de)			;a82c	1a 	. 
 	dec de			;a82d	1b 	. 
 	inc e			;a82e	1c 	. 
 	dec e			;a82f	1d 	. 
 	ld e,01fh		;a830	1e 1f 	. . 
-	nop			;a832	00 	. 
+	nop			;a832	00 	.
+	;; 01..1f
 	ld bc,00302h		;a833	01 02 03 	. . . 
 	inc b			;a836	04 	. 
 	dec b			;a837	05 	. 
@@ -734,7 +759,8 @@ __init:
 	dec de			;a84d	1b 	. 
 	inc e			;a84e	1c 	. 
 	dec e			;a84f	1d 	. 
-	ld e,01fh		;a850	1e 1f 	. . 
+	ld e,01fh		;a850	1e 1f 	. .
+
 	ld a,(07e00h)		;a852	3a 00 7e 	: . ~ 
 	or a			;a855	b7 	. 
 	ret z			;a856	c8 	. 
@@ -757,12 +783,13 @@ __init:
 	cp 0dfh		;a878	fe df 	. . 
 	ret			;a87a	c9 	. 
 
+    ;; next lines look like code, because it has a patch
 	ld a,(03f12h)		;a87b	3a 12 3f 	: . ? 
 	or a			;a87e	b7 	. 
 	jr nz,$+115		;a87f	20 71 	  q 
 	ld a,0aah		;a881	3e aa 	> . 
 	ld (01df8h),a		;a883	32 f8 1d 	2 . . 
-	call 0112dh		;a886	cd 2d 11 	. - . 
+	call 0112dh		;a886	cd 2d 11 	. - .   ; Patched to edah
 	call 0a89fh		;a889	cd 9f a8 	. . . 
 	ld a,001h		;a88c	3e 01 	> . 
 	ld (0dff0h),a		;a88e	32 f0 df 	2 . . 
@@ -770,6 +797,7 @@ __init:
 	ld (03f12h),a		;a893	32 12 3f 	2 . ? 
 	ret			;a896	c9 	. 
 
+    ;; looks like a loop that waits for (0dff0h)==0
 	ld a,(0dff0h)		;a897	3a f0 df 	: . . 
 	cp 000h		;a89a	fe 00 	. . 
 	jr nz,$-5		;a89c	20 f9 	  . 
@@ -777,8 +805,8 @@ __init:
 
 	ld a,0ffh		;a89f	3e ff 	> . 
 	ld (01df8h),a		;a8a1	32 f8 1d 	2 . . 
-	call 01067h		;a8a4	cd 67 10 	. g . 
-	call 016e2h		;a8a7	cd e2 16 	. . . 
+	call 01067h		;a8a4	cd 67 10 	. g . ; Patched to e98h
+	call 016e2h		;a8a7	cd e2 16 	. . . ; Patched to e1ch
 	ld hl,0d400h		;a8aa	21 00 d4 	! . . 
 	ld (01dfah),hl		;a8ad	22 fa 1d 	" . . 
 	ld hl,07800h		;a8b0	21 00 78 	! . x 
@@ -790,7 +818,7 @@ __init:
 	ld a,000h		;a8c1	3e 00 	> . 
 	ld (01df8h),a		;a8c3	32 f8 1d 	2 . . 
 	out (080h),a		;a8c6	d3 80 	. . 
-	call 016e2h		;a8c8	cd e2 16 	. . . 
+	call 016e2h		;a8c8	cd e2 16 	. . . ; Patched to e1ch
 	ld a,000h		;a8cb	3e 00 	> . 
 	ld (0dff0h),a		;a8cd	32 f0 df 	2 . . 
 	ld hl,07800h		;a8d0	21 00 78 	! . x 
@@ -3388,56 +3416,56 @@ __init:
 	push hl			;c9f7	e5 	. 
 	ld hl,02e6eh		;c9f8	21 6e 2e 	! n . 
 	push hl			;c9fb	e5 	. 
-	call 00fbfh		;c9fc	cd bf 0f 	. . . 
+	call 00fbfh		;c9fc	cd bf 0f 	. . . ; Patched to 02e60h
 	
 	pop hl			;c9ff	e1 	. 
 	ld hl,00033h		;ca00	21 33 00 	! 3 . 
 	ex (sp),hl			;ca03	e3 	. 
 	ld hl,02edeh		;ca04	21 de 2e 	! . . 
 	push hl			;ca07	e5 	. 
-	call 00fbfh		;ca08	cd bf 0f 	. . . 
+	call 00fbfh		;ca08	cd bf 0f 	. . . ; Patched to 02e60h
 	pop hl			;ca0b	e1 	. 
 	ld hl,00034h		;ca0c	21 34 00 	! 4 . 
 	ex (sp),hl			;ca0f	e3 	. 
 	ld hl,02f88h		;ca10	21 88 2f 	! . / 
 	push hl			;ca13	e5 	. 
-	call 00fbfh		;ca14	cd bf 0f 	. . . 
+	call 00fbfh		;ca14	cd bf 0f 	. . . ; Patched to 02e60h
 	pop hl			;ca17	e1 	. 
 	ld hl,00035h		;ca18	21 35 00 	! 5 . 
 	ex (sp),hl			;ca1b	e3 	. 
 	ld hl,03174h		;ca1c	21 74 31 	! t 1 
 	push hl			;ca1f	e5 	. 
-	call 00fbfh		;ca20	cd bf 0f 	. . . 
+	call 00fbfh		;ca20	cd bf 0f 	. . . ; Patched to 02e60h
 	pop hl			;ca23	e1 	. 
 	ld hl,00036h		;ca24	21 36 00 	! 6 . 
 	ex (sp),hl			;ca27	e3 	. 
 	ld hl,031e4h		;ca28	21 e4 31 	! . 1 
 	push hl			;ca2b	e5 	. 
-	call 00fbfh		;ca2c	cd bf 0f 	. . . 
+	call 00fbfh		;ca2c	cd bf 0f 	. . . ; Patched to 02e60h
 	pop hl			;ca2f	e1 	. 
 	ld hl,00037h		;ca30	21 37 00 	! 7 . 
 	ex (sp),hl			;ca33	e3 	. 
 	ld hl,0324ch		;ca34	21 4c 32 	! L 2 
 	push hl			;ca37	e5 	. 
-	call 00fbfh		;ca38	cd bf 0f 	. . . 
+	call 00fbfh		;ca38	cd bf 0f 	. . . ; Patched to 02e60h
 	pop hl			;ca3b	e1 	. 
 	ld hl,00038h		;ca3c	21 38 00 	! 8 . 
 	ex (sp),hl			;ca3f	e3 	. 
 	ld hl,0326ch		;ca40	21 6c 32 	! l 2 
 	push hl			;ca43	e5 	. 
-	call 00fbfh		;ca44	cd bf 0f 	. . . 
+	call 00fbfh		;ca44	cd bf 0f 	. . . ; Patched to 02e60h
 	pop hl			;ca47	e1 	. 
 	ld hl,00039h		;ca48	21 39 00 	! 9 . 
 	ex (sp),hl			;ca4b	e3 	. 
 	ld hl,0326ch		;ca4c	21 6c 32 	! l 2 
 	push hl			;ca4f	e5 	. 
-	call 00fbfh		;ca50	cd bf 0f 	. . . 
+	call 00fbfh		;ca50	cd bf 0f 	. . . ; Patched to 02e60h
 	pop hl			;ca53	e1 	. 
 	ld hl,0003ah		;ca54	21 3a 00 	! : . 
 	ex (sp),hl			;ca57	e3 	. 
 	ld hl,0326ch		;ca58	21 6c 32 	! l 2 
 	push hl			;ca5b	e5 	. 
-	call 00fbfh		;ca5c	cd bf 0f 	. . . 
+	call 00fbfh		;ca5c	cd bf 0f 	. . . ; Patched to 02e60h
 	pop hl			;ca5f	e1 	. 
 	pop hl			;ca60	e1 	. 
 	ret			;ca61	c9 	. 
@@ -3507,7 +3535,7 @@ __init:
 	dec a			;caf2	3d 	= 
 	push af			;caf3	f5 	. 
 	jr nz,$+8		;caf4	20 06 	  . 
-	call 00ebbh		;caf6	cd bb 0e 	. . . 
+	call 00ebbh		;caf6	cd bb 0e 	. . . ; Patched to 02df8h
 	call 00e94h		;caf9	cd 94 0e 	. . . 
 	ld ix,(0498ah)		;cafc	dd 2a 8a 49 	. * . I 
 	ld a,(ix+00ah)		;cb00	dd 7e 0a 	. ~ . 
