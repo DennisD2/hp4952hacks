@@ -46,10 +46,16 @@ _entryaddr:
     org 0a17dh
     seek 0017dh
 
-    ;; for next 4 bytes, meaning is unknown
+    ;; for next 3 bytes, meaning is unknown
+    ;	ld (bc),a			;a17d	02 	.
+    ;	cp d			;a17e	ba 	.
+    ;	rst 30h			;a17f	f7 	.
     ;; sequence is 02,ba,f7
     defb 002h, 0bah, 0f7h
 
+    org 0a180h
+    seek 00180h
+_dyn_linker_data:
     ;defb 061h
     defw (__dll_fixups_end - __dll_fixups) / 6 ; Number of patches
 
@@ -179,9 +185,11 @@ __dll_fixups_end:
 	ldir		;a419	ed b0 	. . 
 	call 02a00h		;a41b	cd 00 2a 	. . * 
 
-;; unknown part follows
-	ld ix,0a190h		;a41e	dd 21 90 a1 	. ! . . 
-	ld bc,(0a180h)		;a422	ed 4b 80 a1 	. K . . 
+;; Following code uses the dll_fixups table
+;; 0a190h -> __dll_fixups
+;; 0a180h -> _dyn_linker_data
+	ld ix,__dll_fixups		        ;a41e	dd 21 90 a1 	. ! . .
+	ld bc,(_dyn_linker_data)		;a422	ed 4b 80 a1 	. K . .
 	ld l,(ix+000h)		;a426	dd 6e 00 	. n . 
 	ld h,(ix+001h)		;a429	dd 66 01 	. f . 
 	ld e,(hl)			;a42c	5e 	^ 
@@ -195,7 +203,8 @@ __dll_fixups_end:
 	ld h,(ix+005h)		;a43a	dd 66 05 	. f . 
 	ld (hl),e			;a43d	73 	s 
 	inc hl			;a43e	23 	# 
-	ld (hl),d			;a43f	72 	r 
+	ld (hl),d			;a43f	72 	r
+	;; 6 is byte offset for one table entry
 	ld de,00006h		;a440	11 06 00 	. . . 
 	add ix,de		;a443	dd 19 	. . 
 	dec bc			;a445	0b 	. 
