@@ -38,20 +38,18 @@ _fileflags:
     org 0a147h
     seek 00147h
 
-    ;; next byte is 0 in lib/strap.asm, here its different. Meaning unknown.
-    defb 0c3h
-
+;; see lib/strap.asm
 _entryaddr:
 	;jp 0a497h		;a147	c3 97 a4 	. . .
-    defw __init
+    jp __init
 
     org 0a17dh
     seek 0017dh
 
-	ld (bc),a			;a17d	02 	. 
-	cp d			;a17e	ba 	. 
-	rst 30h			;a17f	f7 	. 
-	ld h,c			;a180	61 	a
+    ;; for next 4 bytes, meaning is unknown
+    ;; in lib/* , this is not mentioned or used anywhere.
+    ;; sequence is 02,ba,f7,61
+    defb 002h, 0bah, 0f7h, 061h
 
     org 0a190h
     seek 00190h
