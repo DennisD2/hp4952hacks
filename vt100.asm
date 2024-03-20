@@ -79,85 +79,37 @@ __dll_fixups:
 	defw 02e3ch, 00000h, 0c41bh
     defw 02e3ch, 00000h, 0c41dh
     defw 02e3ch, 00000h, 0c41fh
-
     defw 02e3ch, 00000h, 0c421h
     defw 02e3ch, 00000h, 0c423h
     defw 02e3ch, 00000h, 0c425h
     defw 02e3ch, 00000h, 0c427h
-	defw 02e3ch, 00000h
+	defw 02e3ch, 00000h, 0c429h
+	defw 02e3ch, 00000h, 0c42bh
+	defw 02e42h, 00000h, 0c42dh
+	defw 02e42h, 00000h, 0c42fh
+	defw 02e42h, 00000h, 0c431h
+	defw 02e42h, 00000h, 0c433h
+	defw 02e42h, 00000h, 0c435h
+	defw 02e42h, 00000h, 0c437h
+	defw 02e42h, 00000h, 0c439h
+	defw 02e42h, 00000h, 0c43bh
+	defw 02e42h, 00000h, 0c43dh
+	defw 02d02h, 00000h, 0c8d7h
+    defw 02e3ah, 00000h, 0c8f4h
+	defw 02d02h, 00000h, 0c932h
+	defw 02d02h, 00000h, 0c93bh
 
-	add hl,hl			;a206	29 	) 
-	call nz,02e3ch		;a207	c4 3c 2e 	. < . 
-	nop			;a20a	00 	. 
-	nop			;a20b	00 	. 
-	dec hl			;a20c	2b 	+ 
-	call nz,02e42h		;a20d	c4 42 2e 	. B . 
-	nop			;a210	00 	. 
-	nop			;a211	00 	. 
-	dec l			;a212	2d 	- 
-	call nz,02e42h		;a213	c4 42 2e 	. B . 
-	nop			;a216	00 	. 
-	nop			;a217	00 	. 
-	cpl			;a218	2f 	/ 
-	call nz,02e42h		;a219	c4 42 2e 	. B . 
-	nop			;a21c	00 	. 
-	nop			;a21d	00 	. 
-	ld sp,042c4h		;a21e	31 c4 42 	1 . B 
-	ld l,000h		;a221	2e 00 	. . 
-	nop			;a223	00 	. 
-	inc sp			;a224	33 	3 
-	call nz,02e42h		;a225	c4 42 2e 	. B . 
-	nop			;a228	00 	. 
-	nop			;a229	00 	. 
-	dec (hl)			;a22a	35 	5 
-	call nz,02e42h		;a22b	c4 42 2e 	. B . 
-	nop			;a22e	00 	. 
-	nop			;a22f	00 	. 
-	scf			;a230	37 	7 
-	call nz,02e42h		;a231	c4 42 2e 	. B . 
-	nop			;a234	00 	. 
-	nop			;a235	00 	. 
-	add hl,sp			;a236	39 	9 
-	call nz,02e42h		;a237	c4 42 2e 	. B . 
-	nop			;a23a	00 	. 
-	nop			;a23b	00 	. 
-	dec sp			;a23c	3b 	; 
-	call nz,02e42h		;a23d	c4 42 2e 	. B . 
-	nop			;a240	00 	. 
-	nop			;a241	00 	. 
-	dec a			;a242	3d 	= 
-	call nz,02d02h		;a243	c4 02 2d 	. . - 
-	nop			;a246	00 	. 
-	nop			;a247	00 	. 
-	rst 10h			;a248	d7 	. 
-	ret z			;a249	c8 	. 
-
-	ld a,(0002eh)		;a24a	3a 2e 00 	: . . 
-	nop			;a24d	00 	. 
-	call p,002c8h		;a24e	f4 c8 02 	. . . 
-	dec l			;a251	2d 	- 
-	nop			;a252	00 	. 
-	nop			;a253	00 	. 
-	ld (002c9h),a		;a254	32 c9 02 	2 . . 
-	dec l			;a257	2d 	- 
-	nop			;a258	00 	. 
-	nop			;a259	00 	. 
-	dec sp			;a25a	3b 	; 
-	ret			;a25b	c9 	. 
-	jr c,$+47		;a25c	38 2d 	8 - 
-	nop			;a25e	00 	. 
-	nop			;a25f	00 	. 
+	jr c,$+47		;a25c	38 2d 	8 -
+	defw 00000h
 	ld a,0c9h		;a260	3e c9 	> . 
 	ld (bc),a			;a262	02 	. 
 	dec l			;a263	2d 	- 
-	nop			;a264	00 	. 
-	nop			;a265	00 	. 
+	defw 00000h
 	ld c,b			;a266	48 	H 
 	ret			;a267	c9 	. 
 	ld d,b			;a268	50 	P 
 	dec l			;a269	2d 	- 
-	nop			;a26a	00 	. 
-	nop			;a26b	00 	. 
+	defw 00000h
 	ld d,h			;a26c	54 	T 
 	ret			;a26d	c9 	. 
 	ld h,b			;a26e	60 	` 
@@ -168,47 +120,38 @@ __dll_fixups:
 	nop			;a277	00 	. 
 	add hl,bc			;a278	09 	. 
 	jp z,02e60h		;a279	ca 60 2e 	. ` . 
-	nop			;a27c	00 	. 
-	nop			;a27d	00 	. 
+	defw 00000h
 	dec d			;a27e	15 	. 
 	jp z,02e60h		;a27f	ca 60 2e 	. ` . 
-	nop			;a282	00 	. 
-	nop			;a283	00 	. 
+	defw 00000h
 	ld hl,060cah		;a284	21 ca 60 	! . ` 
 	ld l,000h		;a287	2e 00 	. . 
 	nop			;a289	00 	. 
 	dec l			;a28a	2d 	- 
 	jp z,02e60h		;a28b	ca 60 2e 	. ` . 
-	nop			;a28e	00 	. 
-	nop			;a28f	00 	. 
+	defw 00000h
 	add hl,sp			;a290	39 	9 
 	jp z,02e60h		;a291	ca 60 2e 	. ` . 
-	nop			;a294	00 	. 
-	nop			;a295	00 	. 
+	defw 00000h
 	ld b,l			;a296	45 	E 
 	jp z,02e60h		;a297	ca 60 2e 	. ` . 
-	nop			;a29a	00 	. 
-	nop			;a29b	00 	. 
+	defw 00000h
 	ld d,c			;a29c	51 	Q 
 	jp z,02e60h		;a29d	ca 60 2e 	. ` . 
-	nop			;a2a0	00 	. 
-	nop			;a2a1	00 	. 
+	defw 00000h
 	ld e,l			;a2a2	5d 	] 
 	jp z,02df8h		;a2a3	ca f8 2d 	. . - 
-	nop			;a2a6	00 	. 
-	nop			;a2a7	00 	. 
+	defw 00000h
 	rst 30h			;a2a8	f7 	. 
 	jp z,02deah		;a2a9	ca ea 2d 	. . - 
-	nop			;a2ac	00 	. 
-	nop			;a2ad	00 	. 
+	defw 00000h
 	jp m,002cah		;a2ae	fa ca 02 	. . . 
 	ld l,000h		;a2b1	2e 00 	. . 
 	nop			;a2b3	00 	. 
 	dec e			;a2b4	1d 	. 
 	set 2,b		;a2b5	cb d0 	. . 
 	dec l			;a2b7	2d 	- 
-	nop			;a2b8	00 	. 
-	nop			;a2b9	00 	. 
+	defw 00000h
 	jr nz,$-51		;a2ba	20 cb 	  . 
 	ld (0002dh),a		;a2bc	32 2d 00 	2 - . 
 	nop			;a2bf	00 	. 
@@ -254,8 +197,7 @@ __dll_fixups:
 	nop			;a2f5	00 	. 
 	jp po,06ca4h		;a2f6	e2 a4 6c 	. . l 
 	dec l			;a2f9	2d 	- 
-	nop			;a2fa	00 	. 
-	nop			;a2fb	00 	. 
+	defw 00000h
 	ld b,0a5h		;a2fc	06 a5 	. . 
 	adc a,02eh		;a2fe	ce 2e 	. . 
 	inc bc			;a300	03 	. 
@@ -273,8 +215,7 @@ __dll_fixups:
 	ld (de),a			;a30e	12 	. 
 	and l			;a30f	a5 	. 
 	adc a,02eh		;a310	ce 2e 	. . 
-	nop			;a312	00 	. 
-	nop			;a313	00 	. 
+	defw 00000h
 	add hl,de			;a314	19 	. 
 	and l			;a315	a5 	. 
 	or d			;a316	b2 	. 
@@ -398,13 +339,11 @@ __dll_fixups:
 	and (hl)			;a3b1	a6 	. 
 	sbc a,h			;a3b2	9c 	. 
 	dec l			;a3b3	2d 	- 
-	nop			;a3b4	00 	. 
-	nop			;a3b5	00 	. 
+	defw 00000h
 	push de			;a3b6	d5 	. 
 	and (hl)			;a3b7	a6 	. 
 	ld b,02dh		;a3b8	06 2d 	. - 
-	nop			;a3ba	00 	. 
-	nop			;a3bb	00 	. 
+	defw 00000h
 	ret c			;a3bc	d8 	. 
 	and (hl)			;a3bd	a6 	. 
 	jp c,0002eh		;a3be	da 2e 00 	. . . 
