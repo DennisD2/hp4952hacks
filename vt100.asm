@@ -2,30 +2,36 @@
 ; command line: z80dasm -t -a -g 0xa000 -o x.asm VT100.no_header
 
 	org	0a000h
+	seek 00000h
 
+_file_start:
 	defb "4952 Protocol Analyzer"
 	
 	org 0a016h
 	seek 00016h
 	defw 003c4h
 	defw 00800h
-	defb 000h
 
 	org 0a01ah
 	seek 0001ah
 	defb "VT100 ASYNC TERMINAL EMULATOR   ", 000h
-	
+
+_filesize:
 	org 0a102h
 	seek 00102h
- 
-	defb "X"
-	defb 000h
-	defb "        TERMINAL  4952  ", 000h
-	
-	ex af,af'			;a11d	08 	. 
-	nop			;a11e	00 	. 
-	   
-	defb 001h
+
+	;defb "X"
+    ;defb 000h
+    defw ((_file_end - _file_start) / 256)-1        ; Blocks in file - 1
+
+	defb "        TERMINAL  4952  "
+	defw 00800h
+
+_fileflags:
+	;defb 000h, 001h
+	defw 00100h                                     ; Flags 0200h is copy protect
+
+
 	defb "Async Terminal Emulator - DUMB  ", 000h
 	 
 	nop			;a141	00 	. 
@@ -4678,6 +4684,11 @@
 ;; so from e800/e801  to f8fe/f8ff
 ;; For unknown reason, we need to have this space, can be filled with e.g. nops.
 ;; Fill to end of file
-        org 0f8ffh
-        seek 058ffh
-        defb 000h
+        ;org 0f8ffh
+        ;seek 058ffh
+        ;defb 000h
+
+;; to allow "cmp" to work, we use original file tail. This is the only reason for include.
+;; it is safe to use the directives commented above, but then cmp will fail.
+    include "origtail.asm"
+_file_end:
