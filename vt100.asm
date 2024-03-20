@@ -235,7 +235,8 @@ _load_dll_stub:
 
 ;; Local temp index variable
 _dll_tmp:
-	nop			;a44b	00 	. 
+	;nop			;a44b	00 	.
+	defb 000h
 
 ;; see line 138ff
 _dll_stub:
