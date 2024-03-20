@@ -166,64 +166,8 @@ __dll_fixups:
     ; dllfixup table has 97 (0x61) entries.
 __dll_fixups_end:
 
-	nop			;a3d6	00 	. 
-	nop			;a3d7	00 	. 
-	nop			;a3d8	00 	. 
-	nop			;a3d9	00 	. 
-	nop			;a3da	00 	. 
-	nop			;a3db	00 	. 
-	nop			;a3dc	00 	. 
-	nop			;a3dd	00 	. 
-	nop			;a3de	00 	. 
-	nop			;a3df	00 	. 
-	nop			;a3e0	00 	. 
-	nop			;a3e1	00 	. 
-	nop			;a3e2	00 	. 
-	nop			;a3e3	00 	. 
-	nop			;a3e4	00 	. 
-	nop			;a3e5	00 	. 
-	nop			;a3e6	00 	. 
-	nop			;a3e7	00 	. 
-	nop			;a3e8	00 	. 
-	nop			;a3e9	00 	. 
-	nop			;a3ea	00 	. 
-	nop			;a3eb	00 	. 
-	nop			;a3ec	00 	. 
-	nop			;a3ed	00 	. 
-	nop			;a3ee	00 	. 
-	nop			;a3ef	00 	. 
-	nop			;a3f0	00 	. 
-	nop			;a3f1	00 	. 
-	nop			;a3f2	00 	. 
-	nop			;a3f3	00 	. 
-	nop			;a3f4	00 	. 
-	nop			;a3f5	00 	. 
-	nop			;a3f6	00 	. 
-	nop			;a3f7	00 	. 
-	nop			;a3f8	00 	. 
-	nop			;a3f9	00 	. 
-	nop			;a3fa	00 	. 
-	nop			;a3fb	00 	. 
-	nop			;a3fc	00 	. 
-	nop			;a3fd	00 	. 
-	nop			;a3fe	00 	. 
-	nop			;a3ff	00 	. 
-	nop			;a400	00 	. 
-	nop			;a401	00 	. 
-	nop			;a402	00 	. 
-	nop			;a403	00 	. 
-	nop			;a404	00 	. 
-	nop			;a405	00 	. 
-	nop			;a406	00 	. 
-	nop			;a407	00 	. 
-	nop			;a408	00 	. 
-	nop			;a409	00 	. 
-	nop			;a40a	00 	. 
-	nop			;a40b	00 	. 
-	nop			;a40c	00 	. 
-	nop			;a40d	00 	. 
-	nop			;a40e	00 	. 
-	nop			;a40f	00 	. 
+    org 0a410h
+    seek 00410h
 
 ;; PO-002	
 ;; see tetris.asm, line 52ff
