@@ -47,323 +47,125 @@ _entryaddr:
     seek 0017dh
 
     ;; for next 4 bytes, meaning is unknown
-    ;; in lib/* , this is not mentioned or used anywhere.
-    ;; sequence is 02,ba,f7,61
-    defb 002h, 0bah, 0f7h, 061h
+    ;; sequence is 02,ba,f7
+    defb 002h, 0bah, 0f7h
+
+    ;defb 061h
+    defw (__dll_fixups_end - __dll_fixups) / 6 ; Number of patches
 
     org 0a190h
     seek 00190h
 
 __dll_fixups:
-    defw 02d02h, 00000h, 0c136h
+    ; Example of conversion step per 6 bytes
+    ;defw 02d02h, 00000h, 0c136h
 	;ld (bc),a			;a190	02 	.
 	;dec l			;a191	2d 	-
 	;nop			;a192	00 	.
 	;nop			;a193	00 	.
 	;ld (hl),0c1h		;a194	36 c1 	6 .
 
-    ;defw 02d02h, 00000h
-    defw 02d02h, 00000h, 0c170h
-    defw 02d02h, 00000h, 0c196h
-    defw 02d50h, 00000h, 0c19dh
-    defw 02d02h, 00000h, 0c307h
-	defw 02d02h, 00000h, 0c30dh
-	defw 02e54h, 00000h, 0c314h
-	defw 02d02h, 00000h, 0c31ah
-	defw 02d02h, 00000h, 0c339h
-	defw 02d02h, 00000h, 0c347h
-	defw 02d02h, 00000h, 0c350h
-	defw 02d02h, 00000h, 0c35eh
-	defw 02e3ch, 00000h, 0c41bh
-    defw 02e3ch, 00000h, 0c41dh
-    defw 02e3ch, 00000h, 0c41fh
-    defw 02e3ch, 00000h, 0c421h
-    defw 02e3ch, 00000h, 0c423h
-    defw 02e3ch, 00000h, 0c425h
-    defw 02e3ch, 00000h, 0c427h
-	defw 02e3ch, 00000h, 0c429h
-	defw 02e3ch, 00000h, 0c42bh
-	defw 02e42h, 00000h, 0c42dh
-	defw 02e42h, 00000h, 0c42fh
-	defw 02e42h, 00000h, 0c431h
-	defw 02e42h, 00000h, 0c433h
-	defw 02e42h, 00000h, 0c435h
-	defw 02e42h, 00000h, 0c437h
-	defw 02e42h, 00000h, 0c439h
-	defw 02e42h, 00000h, 0c43bh
-	defw 02e42h, 00000h, 0c43dh
-	defw 02d02h, 00000h, 0c8d7h
-    defw 02e3ah, 00000h, 0c8f4h
-	defw 02d02h, 00000h, 0c932h
-	defw 02d02h, 00000h, 0c93bh
+    ; dllfixup table offset 0x190 - converted with small go routine
+    defw 02d02h, 00000h, 0c136h ; entry 0, offset 400
+    defw 02d02h, 00000h, 0c170h ; entry 1, offset 406
+    defw 02d02h, 00000h, 0c196h ; entry 2, offset 412
+    defw 02d50h, 00000h, 0c19dh ; entry 3, offset 418
+    defw 02d02h, 00000h, 0c307h ; entry 4, offset 424
+    defw 02d02h, 00000h, 0c30dh ; entry 5, offset 430
+    defw 02e54h, 00000h, 0c314h ; entry 6, offset 436
+    defw 02d02h, 00000h, 0c31ah ; entry 7, offset 442
+    defw 02d02h, 00000h, 0c339h ; entry 8, offset 448
+    defw 02d02h, 00000h, 0c347h ; entry 9, offset 454
+    defw 02d02h, 00000h, 0c350h ; entry 10, offset 460
+    defw 02d02h, 00000h, 0c35eh ; entry 11, offset 466
+    defw 02e3ch, 00000h, 0c41bh ; entry 12, offset 472
+    defw 02e3ch, 00000h, 0c41dh ; entry 13, offset 478
+    defw 02e3ch, 00000h, 0c41fh ; entry 14, offset 484
+    defw 02e3ch, 00000h, 0c421h ; entry 15, offset 490
+    defw 02e3ch, 00000h, 0c423h ; entry 16, offset 496
+    defw 02e3ch, 00000h, 0c425h ; entry 17, offset 502
+    defw 02e3ch, 00000h, 0c427h ; entry 18, offset 508
+    defw 02e3ch, 00000h, 0c429h ; entry 19, offset 514
+    defw 02e3ch, 00000h, 0c42bh ; entry 20, offset 520
+    defw 02e42h, 00000h, 0c42dh ; entry 21, offset 526
+    defw 02e42h, 00000h, 0c42fh ; entry 22, offset 532
+    defw 02e42h, 00000h, 0c431h ; entry 23, offset 538
+    defw 02e42h, 00000h, 0c433h ; entry 24, offset 544
+    defw 02e42h, 00000h, 0c435h ; entry 25, offset 550
+    defw 02e42h, 00000h, 0c437h ; entry 26, offset 556
+    defw 02e42h, 00000h, 0c439h ; entry 27, offset 562
+    defw 02e42h, 00000h, 0c43bh ; entry 28, offset 568
+    defw 02e42h, 00000h, 0c43dh ; entry 29, offset 574
+    defw 02d02h, 00000h, 0c8d7h ; entry 30, offset 580
+    defw 02e3ah, 00000h, 0c8f4h ; entry 31, offset 586
+    defw 02d02h, 00000h, 0c932h ; entry 32, offset 592
+    defw 02d02h, 00000h, 0c93bh ; entry 33, offset 598
+    defw 02d38h, 00000h, 0c93eh ; entry 34, offset 604
+    defw 02d02h, 00000h, 0c948h ; entry 35, offset 610
+    defw 02d50h, 00000h, 0c954h ; entry 36, offset 616
+    defw 02e60h, 00000h, 0c9fdh ; entry 37, offset 622
+    defw 02e60h, 00000h, 0ca09h ; entry 38, offset 628
+    defw 02e60h, 00000h, 0ca15h ; entry 39, offset 634
+    defw 02e60h, 00000h, 0ca21h ; entry 40, offset 640
+    defw 02e60h, 00000h, 0ca2dh ; entry 41, offset 646
+    defw 02e60h, 00000h, 0ca39h ; entry 42, offset 652
+    defw 02e60h, 00000h, 0ca45h ; entry 43, offset 658
+    defw 02e60h, 00000h, 0ca51h ; entry 44, offset 664
+    defw 02e60h, 00000h, 0ca5dh ; entry 45, offset 670
+    defw 02df8h, 00000h, 0caf7h ; entry 46, offset 676
+    defw 02deah, 00000h, 0cafah ; entry 47, offset 682
+    defw 02e02h, 00000h, 0cb1dh ; entry 48, offset 688
+    defw 02dd0h, 00000h, 0cb20h ; entry 49, offset 694
+    defw 02d32h, 00000h, 0a49ch ; entry 50, offset 700
+    defw 02e6eh, 00000h, 0a49fh ; entry 51, offset 706
+    defw 02e66h, 00003h, 0a4a2h ; entry 52, offset 712
+    defw 02e66h, 00003h, 0a4ach ; entry 53, offset 718
+    defw 02e66h, 00004h, 0a4b2h ; entry 54, offset 724
+    defw 02e32h, 00000h, 0a4c9h ; entry 55, offset 730
+    defw 02eb2h, 00000h, 0a4d9h ; entry 56, offset 736
+    defw 02edah, 00000h, 0a4dch ; entry 57, offset 742
+    defw 02e98h, 00000h, 0a4dfh ; entry 58, offset 748
+    defw 02edch, 00000h, 0a4e2h ; entry 59, offset 754
+    defw 02d6ch, 00000h, 0a506h ; entry 60, offset 760
+    defw 02eceh, 00003h, 0a50ch ; entry 61, offset 766
+    defw 02e54h, 00000h, 0a50fh ; entry 62, offset 772
+    defw 02eceh, 00004h, 0a512h ; entry 63, offset 778
+    defw 02eceh, 00000h, 0a519h ; entry 64, offset 784
+    defw 02eb2h, 00000h, 0a621h ; entry 65, offset 790
+    defw 02edah, 00000h, 0a624h ; entry 66, offset 796
+    defw 02e98h, 00000h, 0a627h ; entry 67, offset 802
+    defw 02edch, 00000h, 0a62ah ; entry 68, offset 808
+    defw 02e92h, 00003h, 0a62dh ; entry 69, offset 814
+    defw 02e92h, 00004h, 0a633h ; entry 70, offset 820
+    defw 02e92h, 00003h, 0a63bh ; entry 71, offset 826
+    defw 02e92h, 00004h, 0a641h ; entry 72, offset 832
+    defw 02e2ch, 00000h, 0a644h ; entry 73, offset 838
+    defw 02e92h, 00003h, 0a64ch ; entry 74, offset 844
+    defw 02e92h, 00004h, 0a652h ; entry 75, offset 850
+    defw 02e1ch, 00000h, 0a655h ; entry 76, offset 856
+    defw 02e1ch, 00001h, 0a65bh ; entry 77, offset 862
+    defw 02e1ch, 00000h, 0a664h ; entry 78, offset 868
+    defw 02ecch, 00000h, 0a667h ; entry 79, offset 874
+    defw 02e1ch, 00001h, 0a66ah ; entry 80, offset 880
+    defw 02ecch, 00003h, 0a66fh ; entry 81, offset 886
+    defw 02ecch, 00004h, 0a675h ; entry 82, offset 892
+    defw 02e92h, 00000h, 0a67ah ; entry 83, offset 898
+    defw 02e1ch, 00000h, 0a684h ; entry 84, offset 904
+    defw 02e1ch, 00001h, 0a68ah ; entry 85, offset 910
+    defw 02e1ch, 00000h, 0a68dh ; entry 86, offset 916
+    defw 02ecch, 00003h, 0a693h ; entry 87, offset 922
+    defw 02e1ch, 00000h, 0a696h ; entry 88, offset 928
+    defw 02ecch, 00004h, 0a699h ; entry 89, offset 934
+    defw 02ecch, 00000h, 0a6d0h ; entry 90, offset 940
+    defw 02d9ch, 00000h, 0a6d5h ; entry 91, offset 946
+    defw 02d06h, 00000h, 0a6d8h ; entry 92, offset 952
+    defw 02edah, 00000h, 0a887h ; entry 93, offset 958
+    defw 02e98h, 00000h, 0a8a5h ; entry 94, offset 964
+    defw 02e1ch, 00000h, 0a8a8h ; entry 95, offset 970
+    defw 02e1ch, 00000h, 0a8c9h ; entry 96, offset 976
+    ; dllfixup table has 97 (0x61) entries.
+__dll_fixups_end:
 
-	jr c,$+47		;a25c	38 2d 	8 -
-	defw 00000h
-	ld a,0c9h		;a260	3e c9 	> . 
-	ld (bc),a			;a262	02 	. 
-	dec l			;a263	2d 	- 
-	defw 00000h
-	ld c,b			;a266	48 	H 
-	ret			;a267	c9 	. 
-	ld d,b			;a268	50 	P 
-	dec l			;a269	2d 	- 
-	defw 00000h
-	ld d,h			;a26c	54 	T 
-	ret			;a26d	c9 	. 
-	ld h,b			;a26e	60 	` 
-	ld l,000h		;a26f	2e 00 	. . 
-	nop			;a271	00 	. 
-	defb 0fdh,0c9h,060h	;illegal sequence		;a272	fd c9 60 	. . ` 
-	ld l,000h		;a275	2e 00 	. . 
-	nop			;a277	00 	. 
-	add hl,bc			;a278	09 	. 
-	jp z,02e60h		;a279	ca 60 2e 	. ` . 
-	defw 00000h
-	dec d			;a27e	15 	. 
-	jp z,02e60h		;a27f	ca 60 2e 	. ` . 
-	defw 00000h
-	ld hl,060cah		;a284	21 ca 60 	! . ` 
-	ld l,000h		;a287	2e 00 	. . 
-	nop			;a289	00 	. 
-	dec l			;a28a	2d 	- 
-	jp z,02e60h		;a28b	ca 60 2e 	. ` . 
-	defw 00000h
-	add hl,sp			;a290	39 	9 
-	jp z,02e60h		;a291	ca 60 2e 	. ` . 
-	defw 00000h
-	ld b,l			;a296	45 	E 
-	jp z,02e60h		;a297	ca 60 2e 	. ` . 
-	defw 00000h
-	ld d,c			;a29c	51 	Q 
-	jp z,02e60h		;a29d	ca 60 2e 	. ` . 
-	defw 00000h
-	ld e,l			;a2a2	5d 	] 
-	jp z,02df8h		;a2a3	ca f8 2d 	. . - 
-	defw 00000h
-	rst 30h			;a2a8	f7 	. 
-	jp z,02deah		;a2a9	ca ea 2d 	. . - 
-	defw 00000h
-	jp m,002cah		;a2ae	fa ca 02 	. . . 
-	ld l,000h		;a2b1	2e 00 	. . 
-	nop			;a2b3	00 	. 
-	dec e			;a2b4	1d 	. 
-	set 2,b		;a2b5	cb d0 	. . 
-	dec l			;a2b7	2d 	- 
-	defw 00000h
-	jr nz,$-51		;a2ba	20 cb 	  . 
-	ld (0002dh),a		;a2bc	32 2d 00 	2 - . 
-	nop			;a2bf	00 	. 
-	sbc a,h			;a2c0	9c 	. 
-	and h			;a2c1	a4 	. 
-	ld l,(hl)			;a2c2	6e 	n 
-	ld l,000h		;a2c3	2e 00 	. . 
-	nop			;a2c5	00 	. 
-	sbc a,a			;a2c6	9f 	. 
-	and h			;a2c7	a4 	. 
-	ld h,(hl)			;a2c8	66 	f 
-	ld l,003h		;a2c9	2e 03 	. . 
-	nop			;a2cb	00 	. 
-	and d			;a2cc	a2 	. 
-	and h			;a2cd	a4 	. 
-	ld h,(hl)			;a2ce	66 	f 
-	ld l,003h		;a2cf	2e 03 	. . 
-	nop			;a2d1	00 	. 
-	xor h			;a2d2	ac 	. 
-	and h			;a2d3	a4 	. 
-	ld h,(hl)			;a2d4	66 	f 
-	ld l,004h		;a2d5	2e 04 	. . 
-	nop			;a2d7	00 	. 
-	or d			;a2d8	b2 	. 
-	and h			;a2d9	a4 	. 
-	ld (0002eh),a		;a2da	32 2e 00 	2 . . 
-	nop			;a2dd	00 	. 
-	ret			;a2de	c9 	. 
-	and h			;a2df	a4 	. 
-	or d			;a2e0	b2 	. 
-	ld l,000h		;a2e1	2e 00 	. . 
-	nop			;a2e3	00 	. 
-	exx			;a2e4	d9 	. 
-	and h			;a2e5	a4 	. 
-	jp c,0002eh		;a2e6	da 2e 00 	. . . 
-	nop			;a2e9	00 	. 
-	call c,098a4h		;a2ea	dc a4 98 	. . . 
-	ld l,000h		;a2ed	2e 00 	. . 
-	nop			;a2ef	00 	. 
-	rst 18h			;a2f0	df 	. 
-	and h			;a2f1	a4 	. 
-	call c,0002eh		;a2f2	dc 2e 00 	. . . 
-	nop			;a2f5	00 	. 
-	jp po,06ca4h		;a2f6	e2 a4 6c 	. . l 
-	dec l			;a2f9	2d 	- 
-	defw 00000h
-	ld b,0a5h		;a2fc	06 a5 	. . 
-	adc a,02eh		;a2fe	ce 2e 	. . 
-	inc bc			;a300	03 	. 
-	nop			;a301	00 	. 
-	inc c			;a302	0c 	. 
-	and l			;a303	a5 	. 
-	ld d,h			;a304	54 	T 
-	ld l,000h		;a305	2e 00 	. . 
-	nop			;a307	00 	. 
-	rrca			;a308	0f 	. 
-	and l			;a309	a5 	. 
-	adc a,02eh		;a30a	ce 2e 	. . 
-	inc b			;a30c	04 	. 
-	nop			;a30d	00 	. 
-	ld (de),a			;a30e	12 	. 
-	and l			;a30f	a5 	. 
-	adc a,02eh		;a310	ce 2e 	. . 
-	defw 00000h
-	add hl,de			;a314	19 	. 
-	and l			;a315	a5 	. 
-	or d			;a316	b2 	. 
-	ld l,000h		;a317	2e 00 	. . 
-	nop			;a319	00 	. 
-	ld hl,0daa6h		;a31a	21 a6 da 	! . . 
-	ld l,000h		;a31d	2e 00 	. . 
-	nop			;a31f	00 	. 
-	inc h			;a320	24 	$ 
-	and (hl)			;a321	a6 	. 
-	sbc a,b			;a322	98 	. 
-	ld l,000h		;a323	2e 00 	. . 
-	nop			;a325	00 	. 
-	daa			;a326	27 	' 
-	and (hl)			;a327	a6 	. 
-	call c,0002eh		;a328	dc 2e 00 	. . . 
-	nop			;a32b	00 	. 
-	ld hl,(092a6h)		;a32c	2a a6 92 	* . . 
-	ld l,003h		;a32f	2e 03 	. . 
-	nop			;a331	00 	. 
-	dec l			;a332	2d 	- 
-	and (hl)			;a333	a6 	. 
-	sub d			;a334	92 	. 
-	ld l,004h		;a335	2e 04 	. . 
-	nop			;a337	00 	. 
-	inc sp			;a338	33 	3 
-	and (hl)			;a339	a6 	. 
-	sub d			;a33a	92 	. 
-	ld l,003h		;a33b	2e 03 	. . 
-	nop			;a33d	00 	. 
-	dec sp			;a33e	3b 	; 
-	and (hl)			;a33f	a6 	. 
-	sub d			;a340	92 	. 
-	ld l,004h		;a341	2e 04 	. . 
-	nop			;a343	00 	. 
-	ld b,c			;a344	41 	A 
-	and (hl)			;a345	a6 	. 
-	inc l			;a346	2c 	, 
-	ld l,000h		;a347	2e 00 	. . 
-	nop			;a349	00 	. 
-	ld b,h			;a34a	44 	D 
-	and (hl)			;a34b	a6 	. 
-	sub d			;a34c	92 	. 
-	ld l,003h		;a34d	2e 03 	. . 
-	nop			;a34f	00 	. 
-	ld c,h			;a350	4c 	L 
-	and (hl)			;a351	a6 	. 
-	sub d			;a352	92 	. 
-	ld l,004h		;a353	2e 04 	. . 
-	nop			;a355	00 	. 
-	ld d,d			;a356	52 	R 
-	and (hl)			;a357	a6 	. 
-	inc e			;a358	1c 	. 
-	ld l,000h		;a359	2e 00 	. . 
-	nop			;a35b	00 	. 
-	ld d,l			;a35c	55 	U 
-	and (hl)			;a35d	a6 	. 
-	inc e			;a35e	1c 	. 
-	ld l,001h		;a35f	2e 01 	. . 
-	nop			;a361	00 	. 
-	ld e,e			;a362	5b 	[ 
-	and (hl)			;a363	a6 	. 
-	inc e			;a364	1c 	. 
-	ld l,000h		;a365	2e 00 	. . 
-	nop			;a367	00 	. 
-	ld h,h			;a368	64 	d 
-	and (hl)			;a369	a6 	. 
-	call z,0002eh		;a36a	cc 2e 00 	. . . 
-	nop			;a36d	00 	. 
-	ld h,a			;a36e	67 	g 
-	and (hl)			;a36f	a6 	. 
-	inc e			;a370	1c 	. 
-	ld l,001h		;a371	2e 01 	. . 
-	nop			;a373	00 	. 
-	ld l,d			;a374	6a 	j 
-	and (hl)			;a375	a6 	. 
-	call z,0032eh		;a376	cc 2e 03 	. . . 
-	nop			;a379	00 	. 
-	ld l,a			;a37a	6f 	o 
-	and (hl)			;a37b	a6 	. 
-	call z,0042eh		;a37c	cc 2e 04 	. . . 
-	nop			;a37f	00 	. 
-	ld (hl),l			;a380	75 	u 
-	and (hl)			;a381	a6 	. 
-	sub d			;a382	92 	. 
-	ld l,000h		;a383	2e 00 	. . 
-	nop			;a385	00 	. 
-	ld a,d			;a386	7a 	z 
-	and (hl)			;a387	a6 	. 
-	inc e			;a388	1c 	. 
-	ld l,000h		;a389	2e 00 	. . 
-	nop			;a38b	00 	. 
-	add a,h			;a38c	84 	. 
-	and (hl)			;a38d	a6 	. 
-	inc e			;a38e	1c 	. 
-	ld l,001h		;a38f	2e 01 	. . 
-	nop			;a391	00 	. 
-	adc a,d			;a392	8a 	. 
-	and (hl)			;a393	a6 	. 
-	inc e			;a394	1c 	. 
-	ld l,000h		;a395	2e 00 	. . 
-	nop			;a397	00 	. 
-	adc a,l			;a398	8d 	. 
-	and (hl)			;a399	a6 	. 
-	call z,0032eh		;a39a	cc 2e 03 	. . . 
-	nop			;a39d	00 	. 
-	sub e			;a39e	93 	. 
-	and (hl)			;a39f	a6 	. 
-	inc e			;a3a0	1c 	. 
-	ld l,000h		;a3a1	2e 00 	. . 
-	nop			;a3a3	00 	. 
-	sub (hl)			;a3a4	96 	. 
-	and (hl)			;a3a5	a6 	. 
-	call z,0042eh		;a3a6	cc 2e 04 	. . . 
-	nop			;a3a9	00 	. 
-	sbc a,c			;a3aa	99 	. 
-	and (hl)			;a3ab	a6 	. 
-	call z,0002eh		;a3ac	cc 2e 00 	. . . 
-	nop			;a3af	00 	. 
-	ret nc			;a3b0	d0 	. 
-	and (hl)			;a3b1	a6 	. 
-	sbc a,h			;a3b2	9c 	. 
-	dec l			;a3b3	2d 	- 
-	defw 00000h
-	push de			;a3b6	d5 	. 
-	and (hl)			;a3b7	a6 	. 
-	ld b,02dh		;a3b8	06 2d 	. - 
-	defw 00000h
-	ret c			;a3bc	d8 	. 
-	and (hl)			;a3bd	a6 	. 
-	jp c,0002eh		;a3be	da 2e 00 	. . . 
-	nop			;a3c1	00 	. 
-	add a,a			;a3c2	87 	. 
-	xor b			;a3c3	a8 	. 
-	sbc a,b			;a3c4	98 	. 
-	ld l,000h		;a3c5	2e 00 	. . 
-	nop			;a3c7	00 	. 
-	and l			;a3c8	a5 	. 
-	xor b			;a3c9	a8 	. 
-	inc e			;a3ca	1c 	. 
-	ld l,000h		;a3cb	2e 00 	. . 
-	nop			;a3cd	00 	. 
-	xor b			;a3ce	a8 	. 
-	xor b			;a3cf	a8 	. 
-	inc e			;a3d0	1c 	. 
-	ld l,000h		;a3d1	2e 00 	. . 
-	nop			;a3d3	00 	. 
-	ret			;a3d4	c9 	. 
-	xor b			;a3d5	a8 	. 
-	
 	nop			;a3d6	00 	. 
 	nop			;a3d7	00 	. 
 	nop			;a3d8	00 	. 
