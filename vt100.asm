@@ -245,7 +245,7 @@ _dll_stub:
 	ld de,02d00h		;a453	11 00 2d 	. . -
 	ld bc,00134h		;a456	01 34 01 	. 4 .
 	ldir		;a459	ed b0 	. .
-	ld a,002h		;a45b	3e 02 	> .             ; Access Page 2 - Application "ROM"
+	ld a,002h		;a45b	3e 02 	> .             ; Load Page 2 - Application "ROM"
 	out (020h),a		;a45d	d3 20 	.
 	ld hl,(02d0ch)		;a45f	2a 0c 2d 	* . -   ; Generate 17 more for 02e34h = 0d9f0h...0da20h
 	ld bc,00003h		;a462	01 03 00 	. . .
@@ -284,7 +284,11 @@ la246h:
     jr nz,$-10                      ;
     ret                             ;
 
-	ld (bc),a			;a496	02 	. 
+_tmp_page:
+    ; This looks like a variable for the current page, initialized with 2
+	;ld (bc),a			;a496	02 	.
+	; a496 -> _tmp_page
+	defb 002h
 
 ;; POI-001 We have "di" here, looks like main entry point... 
 ;; Check that POI-000, at a147, does a jump to "here"
@@ -303,7 +307,7 @@ __init:
 ;; (496) is 2h, so this line 496 looks like a defb 02h	
 ;; so we save highest bit in (496), i.e. in 2
 ;; (a496):=a
-	ld (0a496h),a		;a4a6	32 96 a4 	2 . .
+	ld (_tmp_page),a		;a4a6	32 96 a4 	2 . .
 ;; a:=6
 	ld a,006h		;a4a9	3e 06 	> . 
 ;; (fd4):=a	
@@ -315,7 +319,8 @@ __init:
 ;; so (fd5) now points to the data just mentioned
 	ld (00fd5h),hl		;a4b1	22 d5 0f 	" . . 
 ;; call to a9c7h, see POI-003
-	call 0a9c7h		;a4b4	cd c7 a9 	. . . 
+	call 0a9c7h		;a4b4	cd c7 a9 	. . .
+
 ;; hl:=c000, which is start of mass store ROM	
 	ld hl,0c000h		;a4b7	21 00 c0 	! . .
 ;; de:=2a00, points to Applic.RAM	
@@ -323,14 +328,15 @@ __init:
 ;; bc:=1400, which is in page ROM	
 	ld bc,01400h		;a4bd	01 00 14 	. . . 
 	ldir		;a4c0	ed b0 	. .
+
 ;; unknown call to Applic.RAM	
 	call 02b23h		;a4c2	cd 23 2b 	. # + 
 ;; unknown call to Applic.RAM	
 	call 02b8fh		;a4c5	cd 8f 2b 	. . + 
 
-;; POI-999 return to main menu, means we leave this app
-;; see 14d5 in gfxdemo.asm	
-	jp 014d5h		;a4c8	c3 d5 14 	. . . 
+    ;; return to main menu, means we leave this app
+    ;; see lib/strap.asm
+	jp 014d5h		;a4c8	c3 d5 14 	. . . ; Patched to 02e32h
 	
 	
 ;; POI-011, somes to be table or data, used by POI-10 line	
@@ -359,7 +365,7 @@ __init:
 	call 02b23h		;a502	cd 23 2b 	. # + 
 	call 0007eh		;a505	cd 7e 00 	. ~ . ; Patched to 02d6ch
 ;; a:=(496)	
-	ld a,(0a496h)		;a508	3a 96 a4 	: . . 
+	ld a,(_tmp_page)		;a508	3a 96 a4 	: . .
 ;; (110c) := a	
 	ld (0110ch),a		;a50b	32 0c 11 	2 . . 
 ;; hl:=da20
@@ -972,25 +978,42 @@ __init:
 	nop			;a9c2	00 	. 
 	ret pe			;a9c3	e8 	. 
 
-	ex af,af'			;a9c4	08 	.
-	
-;; 0a9c7h POI-003
-;; bc:=cd83
-	ld bc,0cd83h		;a9c5	01 83 cd 	. . . 
-;; ? - adh
-	sub 0adh		;a9c8	d6 ad 	. . 
+var_byte_001:
+    ; byte variable used at numerous places, initialized with 8
+    ; a9c4 -> var_byte_001
+    defb 008h
+	;;ex af,af'			;a9c4	08 	.
 
+	; ld bc,0cd83h		;a9c5	01 83 cd 	. . .
+var_byte_002:
+    ; byte variable , initialized with 1
+    ; a9c5 -> var_byte_002
+    defb 001h
+var_byte_003:
+    ; byte variable, initialized with 83
+    ; a9c6 -> var_byte_3
+    defb 083h
+
+    ; a9c7 is called as function, so it is not a byte or word value, but an op code
+    defb 0cdh
+    ;; ? - adh
+	sub 0adh		;a9c8	d6 ad 	. .
 	call 0adf7h		;a9ca	cd f7 ad 	. . .
-;; a:=83h	
+    ;; a:=83h
 	ld a,083h		;a9cd	3e 83 	> . 
-	call 0a9d3h		;a9cf	cd d3 a9 	. . . 
+	call set_var_byte_003		;a9cf	cd d3 a9 	. . .
 	ret			;a9d2	c9 	. 
 
-	ld (0a9c6h),a		;a9d3	32 c6 a9 	2 . . 
+    ; 0a9d3h -> set_var_byte_003
+    ; it looks like these ar character-like values, like "83"
+set_var_byte_003:
+    ; load a into var_byte_3
+    ;; a9c6h := a
+	ld (var_byte_003),a		;a9d3	32 c6 a9 	2 . .
 	ret			;a9d6	c9 	. 
 
 	ld a,001h		;a9d7	3e 01 	> . 
-	ld (0a9c5h),a		;a9d9	32 c5 a9 	2 . . 
+	ld (var_byte_002),a		;a9d9	32 c5 a9 	2 . .
 	call 0aa9ah		;a9dc	cd 9a aa 	. . . 
 	ret			;a9df	c9 	. 
 
@@ -1116,15 +1139,15 @@ __init:
 	ld l,008h		;aaca	2e 08 	. . 
 	cp 013h		;aacc	fe 13 	. . 
 	jr c,$+5		;aace	38 03 	8 . 
-	ld hl,(0a9c4h)		;aad0	2a c4 a9 	* . . 
+	ld hl,(var_byte_001)		;aad0	2a c4 a9 	* . .
 	sub l			;aad3	95 	. 
 	ld (0aa97h),a		;aad4	32 97 aa 	2 . . 
 	ld a,l			;aad7	7d 	} 
 	ld (0aa98h),a		;aad8	32 98 aa 	2 . . 
-	ld a,(0a9c5h)		;aadb	3a c5 a9 	: . . 
+	ld a,(var_byte_002)		;aadb	3a c5 a9 	: . .
 	or a			;aade	b7 	. 
 	jr nz,$+17		;aadf	20 0f 	  . 
-	ld a,(0a9c4h)		;aae1	3a c4 a9 	: . . 
+	ld a,(var_byte_001)		;aae1	3a c4 a9 	: . .
 	cp l			;aae4	bd 	. 
 	jr nz,$+11		;aae5	20 09 	  . 
 	ld hl,(0aa99h)		;aae7	2a 99 aa 	* . . 
@@ -1134,7 +1157,7 @@ __init:
 	ld a,(0aa99h)		;aaf0	3a 99 aa 	: . . 
 	ld (0a9c1h),a		;aaf3	32 c1 a9 	2 . . 
 	ld a,(0aa98h)		;aaf6	3a 98 aa 	: . . 
-	ld (0a9c4h),a		;aaf9	32 c4 a9 	2 . . 
+	ld (var_byte_001),a		;aaf9	32 c4 a9 	2 . .
 	ld l,a			;aafc	6f 	o 
 	call 0ace8h		;aafd	cd e8 ac 	. . . 
 	ld (0a9c2h),de		;ab00	ed 53 c2 a9 	. S . . 
@@ -1142,7 +1165,7 @@ __init:
 	call 0abcdh		;ab07	cd cd ab 	. . . 
 	call 0ab59h		;ab0a	cd 59 ab 	. Y . 
 	xor a			;ab0d	af 	. 
-	ld (0a9c5h),a		;ab0e	32 c5 a9 	2 . . 
+	ld (var_byte_002),a		;ab0e	32 c5 a9 	2 . .
 	ld a,(0aa97h)		;ab11	3a 97 aa 	: . . 
 	call 0a96ah		;ab14	cd 6a a9 	. j . 
 	ld a,(0aa96h)		;ab17	3a 96 aa 	: . . 
@@ -1182,7 +1205,7 @@ __init:
 	ld d,000h		;ab62	16 00 	. . 
 	ld hl,0ab82h		;ab64	21 82 ab 	! . . 
 	add hl,de			;ab67	19 	. 
-	ld a,(0a9c4h)		;ab68	3a c4 a9 	: . . 
+	ld a,(var_byte_001)		;ab68	3a c4 a9 	: . .
 	cp 008h		;ab6b	fe 08 	. . 
 	jr z,$+6		;ab6d	28 04 	( . 
 	ld de,0000eh		;ab6f	11 0e 00 	. . . 
@@ -1506,7 +1529,7 @@ __init:
 	ld l,000h		;acf9	2e 00 	. . 
 	ret			;acfb	c9 	. 
 
-	ld a,(0a9c6h)		;acfc	3a c6 a9 	: . . 
+	ld a,(var_byte_003)		;acfc	3a c6 a9 	: . .
 	ld b,a			;acff	47 	G 
 	push bc			;ad00	c5 	. 
 	call 0a95eh		;ad01	cd 5e a9 	. ^ . 
@@ -1514,7 +1537,7 @@ __init:
 	ld hl,(0a9bdh)		;ad05	2a bd a9 	* . . 
 	ld (hl),c			;ad08	71 	q 
 	inc l			;ad09	2c 	, 
-	ld a,(0a9c6h)		;ad0a	3a c6 a9 	: . . 
+	ld a,(var_byte_003)		;ad0a	3a c6 a9 	: . .
 	ld (hl),b			;ad0d	70 	p 
 	call 0ad70h		;ad0e	cd 70 ad 	. p . 
 	ret nz			;ad11	c0 	. 
@@ -1551,7 +1574,7 @@ __init:
 	ld (0a9bbh),hl		;ad47	22 bb a9 	" . . 
 	call 0ae9ah		;ad4a	cd 9a ae 	. . . 
 	ld a,001h		;ad4d	3e 01 	> . 
-	ld (0a9c5h),a		;ad4f	32 c5 a9 	2 . . 
+	ld (var_byte_002),a		;ad4f	32 c5 a9 	2 . .
 	ret			;ad52	c9 	. 
 
 	ld a,(0a9bfh)		;ad53	3a bf a9 	: . . 
@@ -1619,7 +1642,7 @@ __init:
 	ld bc,000feh		;adbb	01 fe 00 	. . . 
 	ldir		;adbe	ed b0 	. . 
 	ld a,001h		;adc0	3e 01 	> . 
-	ld (0a9c5h),a		;adc2	32 c5 a9 	2 . . 
+	ld (var_byte_002),a		;adc2	32 c5 a9 	2 . .
 	ex de,hl			;adc5	eb 	. 
 	set 7,h		;adc6	cb fc 	. . 
 	set 6,h		;adc8	cb f4 	. . 
@@ -1632,7 +1655,7 @@ __init:
 
 	ld a,008h		;add6	3e 08 	> . 
 	ld (0a9bfh),a		;add8	32 bf a9 	2 . . 
-	ld (0a9c4h),a		;addb	32 c4 a9 	2 . . 
+	ld (var_byte_001),a		;addb	32 c4 a9 	2 . .
 	ld l,a			;adde	6f 	o 
 	call 0ace8h		;addf	cd e8 ac 	. . . 
 	ld (0a9bdh),de		;ade2	ed 53 bd a9 	. S . . 
@@ -1641,7 +1664,7 @@ __init:
 	ld (0a9c0h),a		;adeb	32 c0 a9 	2 . . 
 	ld (0a9c1h),a		;adee	32 c1 a9 	2 . . 
 	ld a,001h		;adf1	3e 01 	> . 
-	ld (0a9c5h),a		;adf3	32 c5 a9 	2 . . 
+	ld (var_byte_002),a		;adf3	32 c5 a9 	2 . .
 	ret			;adf6	c9 	. 
 
 ;; POI-12 adf7h	
@@ -1664,7 +1687,7 @@ __init:
 	 cp d			;ae0f	ba 	. 
 	 jr nz,$-18		;ae10	20 ec 	  . 
 	ld a,001h		;ae12	3e 01 	> . 
-	ld (0a9c5h),a		;ae14	32 c5 a9 	2 . . 
+	ld (var_byte_002),a		;ae14	32 c5 a9 	2 . .
 	ret			;ae17	c9 	. 
 
 ;; lines below looks like character key checks for 0x13, 0x15
@@ -1673,7 +1696,7 @@ __init:
 ;; until ret, it looks like <CR) = 0x13 handling
 ;;
 ;; a:=(a9c4)
-	ld a,(0a9c4h)		;ae18	3a c4 a9 	: . .
+	ld a,(var_byte_001)		;ae18	3a c4 a9 	: . .
 ;; a==13 ?
 	cp 013h		;ae1b	fe 13 	. . 
 ;; return if not equal	
@@ -1681,7 +1704,7 @@ __init:
 ;; a:=13
 	ld a,013h		;ae1e	3e 13 	> . 
 ;; (a9c4):=a	
-	ld (0a9c4h),a		;ae20	32 c4 a9 	2 . . 
+	ld (var_byte_001),a		;ae20	32 c4 a9 	2 . .
 ;; a:=15	
 	ld a,015h		;ae23	3e 15 	> . 
 ;; (a9bf):=a	
@@ -1701,16 +1724,16 @@ __init:
 ;; a++	
 	inc a			;ae37	3c 	< 
 ;; (a9c5):=a	
-	ld (0a9c5h),a		;ae38	32 c5 a9 	2 . . 
+	ld (var_byte_002),a		;ae38	32 c5 a9 	2 . .
 	ret			;ae3b	c9 	. 
 
 ;; 0x08 = Backspace handling (?)	
-	ld a,(0a9c4h)		;ae3c	3a c4 a9 	: . . 
+	ld a,(var_byte_001)		;ae3c	3a c4 a9 	: . .
 	cp 008h		;ae3f	fe 08 	. . 
 	ret z			;ae41	c8 	. 
 
 	ld a,008h		;ae42	3e 08 	> . 
-	ld (0a9c4h),a		;ae44	32 c4 a9 	2 . . 
+	ld (var_byte_001),a		;ae44	32 c4 a9 	2 . .
 	ld (0a9bfh),a		;ae47	32 bf a9 	2 . . 
 	ld l,a			;ae4a	6f 	o 
 	call 0ace8h		;ae4b	cd e8 ac 	. . . 
@@ -1719,7 +1742,7 @@ __init:
 	ld (0a9c0h),a		;ae53	32 c0 a9 	2 . . 
 	ld (0a9c1h),a		;ae56	32 c1 a9 	2 . . 
 	inc a			;ae59	3c 	< 
-	ld (0a9c5h),a		;ae5a	32 c5 a9 	2 . . 
+	ld (var_byte_002),a		;ae5a	32 c5 a9 	2 . .
 	ret			;ae5d	c9 	. 
 
 ;; '0' handling 0x30	
@@ -2183,8 +2206,9 @@ __init:
 	ld (0afe8h),a		;b155	32 e8 af 	2 . . 
 	ld (0afe7h),a		;b158	32 e7 af 	2 . . 
 	ld a,(0afe8h)		;b15b	3a e8 af 	: . . 
-	ld (0afe7h),a		;b15e	32 e7 af 	2 . . 
-	call 0a9d3h		;b161	cd d3 a9 	. . . 
+	ld (0afe7h),a		;b15e	32 e7 af 	2 . .
+	; 0a9d3h -> set_var_byte_003
+	call set_var_byte_003		;b161	cd d3 a9 	. . .
 	ld de,(0afeah)		;b164	ed 5b ea af 	. [ . . 
 	ld hl,(0afe9h)		;b168	2a e9 af 	* . . 
 	call 0aa6bh		;b16b	cd 6b aa 	. k . 
@@ -2219,7 +2243,7 @@ __init:
 	djnz $-25		;b1a3	10 e5 	. . 
 	ld a,c			;b1a5	79 	y 
 	ld (0afe7h),a		;b1a6	32 e7 af 	2 . . 
-	call 0a9d3h		;b1a9	cd d3 a9 	. . . 
+	call set_var_byte_003		;b1a9	cd d3 a9 	. . .
 	ret			;b1ac	c9 	. 
 
 	ld c,083h		;b1ad	0e 83 	. . 
@@ -2471,8 +2495,8 @@ __init:
 	ld hl,02a7bh		;c129	21 7b 2a 	! { * 
 	ld (0761fh),hl		;c12c	22 1f 76 	" . v 
 	ld (07624h),hl		;c12f	22 24 76 	" $ v 
-	ld a,(0a496h)		;c132	3a 96 a4 	: . . 
-	call 00e60h		;c135	cd 60 0e 	. ` . 
+	ld a,(_tmp_page)		;c132	3a 96 a4 	: . .
+	call 00e60h		;c135	cd 60 0e 	. ` . ; Patched to 02d02h
 	ld hl,08326h		;c138	21 26 83 	! & . 
 	ld e,(hl)			;c13b	5e 	^ 
 	inc hl			;c13c	23 	# 
@@ -2504,8 +2528,8 @@ __init:
 	ld de,02acdh		;c165	11 cd 2a 	. . * 
 	ld bc,0000ch		;c168	01 0c 00 	. . . 
 	ldir		;c16b	ed b0 	. . 
-	ld a,006h		;c16d	3e 06 	> . 
-	call 00e60h		;c16f	cd 60 0e 	. ` . 
+	ld a,006h		;c16d	3e 06 	> .; Load Page 6 (Application RAM)
+	call 00e60h		;c16f	cd 60 0e 	. ` . ; Patched to 02d02h
 	ld hl,02cfch		;c172	21 fc 2c 	! . , 
 	ld (02ad5h),hl		;c175	22 d5 2a 	" . * 
 	ld hl,02b1bh		;c178	21 1b 2b 	! . + 
@@ -2521,8 +2545,8 @@ __init:
 ;; POI-27, in+out	
 	in a,(020h)		;c18f	db 20 	.   
 	push af			;c191	f5 	. 
-	ld a,(0a496h)		;c192	3a 96 a4 	: . . 
-	call 00e60h		;c195	cd 60 0e 	. ` . 
+	ld a,(_tmp_page)		;c192	3a 96 a4 	: . .
+	call 00e60h		;c195	cd 60 0e 	. ` . ; Patched to 02d02h
 	ld hl,02a00h		;c198	21 00 2a 	! . * 
 	push hl			;c19b	e5 	. 
 	call 01cf8h		;c19c	cd f8 1c 	. . . 
@@ -2625,16 +2649,16 @@ __init:
 	push af			;c2fe	f5 	. 
 	ld a,022h		;c2ff	3e 22 	> " 
 	ld (07501h),a		;c301	32 01 75 	2 . u 
-	ld a,006h		;c304	3e 06 	> . 
-	call 00e60h		;c306	cd 60 0e 	. ` . 
-	ld a,(0a496h)		;c309	3a 96 a4 	: . . 
-	call 00e60h		;c30c	cd 60 0e 	. ` . 
+	ld a,006h		;c304	3e 06 	> . ; Load Page 6 (Application RAM)
+	call 00e60h		;c306	cd 60 0e 	. ` . ; Patched to 02d02h
+	ld a,(_tmp_page)		;c309	3a 96 a4 	: . .
+	call 00e60h		;c30c	cd 60 0e 	. ` . ; Patched to 02d02h
 	ld hl,02ba4h		;c30f	21 a4 2b 	! . + 
 	push hl			;c312	e5 	. 
 	call 0da20h		;c313	cd 20 da 	.   . 
 	pop hl			;c316	e1 	. 
-	ld a,006h		;c317	3e 06 	> . 
-	call 00e60h		;c319	cd 60 0e 	. ` . 
+	ld a,006h		;c317	3e 06 	> . ; Load Page 6 (Application RAM)
+	call 00e60h		;c319	cd 60 0e 	. ` . ; Patched to 02d02h
 	call 0a533h		;c31c	cd 33 a5 	. 3 . 
 	call 0a900h		;c31f	cd 00 a9 	. . . 
 	call 0a53fh		;c322	cd 3f a5 	. ? . 
@@ -2647,23 +2671,23 @@ __init:
 
 	ld a,062h		;c331	3e 62 	> b 
 	ld (07501h),a		;c333	32 01 75 	2 . u 
-	ld a,006h		;c336	3e 06 	> . 
-	call 00e60h		;c338	cd 60 0e 	. ` . 
+	ld a,006h		;c336	3e 06 	> . ; Load Page 6 (Application RAM)
+	call 00e60h		;c338	cd 60 0e 	. ` . ; Patched to 02d02h
 	call 0a54bh		;c33b	cd 4b a5 	. K . 
 	ld a,022h		;c33e	3e 22 	> " 
 	ld (07501h),a		;c340	32 01 75 	2 . u 
-	ld a,(0a496h)		;c343	3a 96 a4 	: . . 
-	call 00e60h		;c346	cd 60 0e 	. ` . 
+	ld a,(_tmp_page)		;c343	3a 96 a4 	: . .
+	call 00e60h		;c346	cd 60 0e 	. ` . ; Patched to 02d02h
 	ld hl,00001h		;c349	21 01 00 	! . . 
 	ret			;c34c	c9 	. 
 
-	ld a,006h		;c34d	3e 06 	> . 
-	call 00e60h		;c34f	cd 60 0e 	. ` . 
+	ld a,006h		;c34d	3e 06 	> . ; Load Page 6 (Application RAM)
+	call 00e60h		;c34f	cd 60 0e 	. ` . ; Patched to 02d02h
 	call 0a60eh		;c352	cd 0e a6 	. . . 
 	ld a,022h		;c355	3e 22 	> " 
 	ld (07501h),a		;c357	32 01 75 	2 . u 
-	ld a,(0a496h)		;c35a	3a 96 a4 	: . . 
-	call 00e60h		;c35d	cd 60 0e 	. ` . 
+	ld a,(_tmp_page)		;c35a	3a 96 a4 	: . .
+	call 00e60h		;c35d	cd 60 0e 	. ` . ; Patched to 02d02h
 	ld hl,00001h		;c360	21 01 00 	! . . 
 	ret			;c363	c9 	. 
 
@@ -3282,8 +3306,8 @@ __init:
 	;; "Off"	
 	defb "Off", 000h
 
-	ld a,006h		;c8d4	3e 06 	> . 
-	call 00e60h		;c8d6	cd 60 0e 	. ` . 
+	ld a,006h		;c8d4	3e 06 	> . ; Load Page 6 (Application RAM)
+	call 00e60h		;c8d6	cd 60 0e 	. ` . ; Patched to 02d02h
 	call 0a533h		;c8d9	cd 33 a5 	. 3 . 
 	ld hl,(03f00h)		;c8dc	2a 00 3f 	* . ? 
 	push hl			;c8df	e5 	. 
@@ -3331,18 +3355,18 @@ __init:
 	jr nz,$+3		;c929	20 01 	  . 
 	ld a,c			;c92b	79 	y 
 	ld (03f12h),a		;c92c	32 12 3f 	2 . ? 
-	ld a,006h		;c92f	3e 06 	> . 
-	call 00e60h		;c931	cd 60 0e 	. ` . 
+	ld a,006h		;c92f	3e 06 	> . ; Load Page 6 (Application RAM)
+	call 00e60h		;c931	cd 60 0e 	. ` . ; Patched to 02d02h
 	call 0a53fh		;c934	cd 3f a5 	. ? . 
-	ld a,(0a496h)		;c937	3a 96 a4 	: . . 
-	call 00e60h		;c93a	cd 60 0e 	. ` . 
+	ld a,(_tmp_page)		;c937	3a 96 a4 	: . .
+	call 00e60h		;c93a	cd 60 0e 	. ` . ; Patched to 02d02h
 	call 01c47h		;c93d	cd 47 1c 	. G . 
 	ld hl,00001h		;c940	21 01 00 	! . . 
 	ret			;c943	c9 	. 
 
 ;; POI-010 below could be config steps for serial parameters	
-	ld a,(0a496h)		;c944	3a 96 a4 	: . . 
-	call 00e60h		;c947	cd 60 0e 	. ` . 
+	ld a,(_tmp_page)		;c944	3a 96 a4 	: . .
+	call 00e60h		;c947	cd 60 0e 	. ` . ; Patched to 02d02h
 	
 	ld a,022h		;c94a	3e 22 	> " 
 	ld (07501h),a		;c94c	32 01 75 	2 . u 
