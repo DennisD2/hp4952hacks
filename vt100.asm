@@ -64,89 +64,28 @@ __dll_fixups:
 	;nop			;a193	00 	.
 	;ld (hl),0c1h		;a194	36 c1 	6 .
 
+    ;defw 02d02h, 00000h
     defw 02d02h, 00000h, 0c170h
-	;ld (bc),a			;a196	02 	.
-	;dec l			;a197	2d 	-
-	;nop			;a198	00 	.
-	;nop			;a199	00 	.
-	;ld (hl),b			;a19a	70 	p
-	;pop bc			;a19b	c1 	.
+    defw 02d02h, 00000h, 0c196h
+    defw 02d50h, 00000h, 0c19dh
+    defw 02d02h, 00000h, 0c307h
+	defw 02d02h, 00000h, 0c30dh
+	defw 02e54h, 00000h, 0c314h
+	defw 02d02h, 00000h, 0c31ah
+	defw 02d02h, 00000h, 0c339h
+	defw 02d02h, 00000h, 0c347h
+	defw 02d02h, 00000h, 0c350h
+	defw 02d02h, 00000h, 0c35eh
+	defw 02e3ch, 00000h, 0c41bh
+    defw 02e3ch, 00000h, 0c41dh
+    defw 02e3ch, 00000h, 0c41fh
 
-	ld (bc),a			;a19c	02 	. 
-	dec l			;a19d	2d 	- 
-	nop			;a19e	00 	. 
-	nop			;a19f	00 	. 
-	sub (hl)			;a1a0	96 	. 
-	pop bc			;a1a1	c1 	. 
-	ld d,b			;a1a2	50 	P 
-	dec l			;a1a3	2d 	- 
-	nop			;a1a4	00 	. 
-	nop			;a1a5	00 	. 
-	sbc a,l			;a1a6	9d 	. 
-	pop bc			;a1a7	c1 	. 
-	ld (bc),a			;a1a8	02 	. 
-	dec l			;a1a9	2d 	- 
-	nop			;a1aa	00 	. 
-	nop			;a1ab	00 	. 
-	rlca			;a1ac	07 	. 
-	jp 02d02h		;a1ad	c3 02 2d 	. . - 
-	nop			;a1b0	00 	. 
-	nop			;a1b1	00 	. 
-	dec c			;a1b2	0d 	. 
-	jp 02e54h		;a1b3	c3 54 2e 	. T . 
-	nop			;a1b6	00 	. 
-	nop			;a1b7	00 	. 
-	inc d			;a1b8	14 	. 
-	jp 02d02h		;a1b9	c3 02 2d 	. . - 
-	nop			;a1bc	00 	. 
-	nop			;a1bd	00 	. 
-	ld a,(de)			;a1be	1a 	. 
-	jp 02d02h		;a1bf	c3 02 2d 	. . - 
-	nop			;a1c2	00 	. 
-	nop			;a1c3	00 	. 
-	add hl,sp			;a1c4	39 	9 
-	jp 02d02h		;a1c5	c3 02 2d 	. . - 
-	nop			;a1c8	00 	. 
-	nop			;a1c9	00 	. 
-	ld b,a			;a1ca	47 	G 
-	jp 02d02h		;a1cb	c3 02 2d 	. . - 
-	nop			;a1ce	00 	. 
-	nop			;a1cf	00 	. 
-	ld d,b			;a1d0	50 	P 
-	jp 02d02h		;a1d1	c3 02 2d 	. . - 
-	nop			;a1d4	00 	. 
-	nop			;a1d5	00 	. 
-	ld e,(hl)			;a1d6	5e 	^ 
-	jp 02e3ch		;a1d7	c3 3c 2e 	. < . 
-	nop			;a1da	00 	. 
-	nop			;a1db	00 	. 
-	dec de			;a1dc	1b 	. 
-	call nz,02e3ch		;a1dd	c4 3c 2e 	. < . 
-	nop			;a1e0	00 	. 
-	nop			;a1e1	00 	. 
-	dec e			;a1e2	1d 	. 
-	call nz,02e3ch		;a1e3	c4 3c 2e 	. < . 
-	nop			;a1e6	00 	. 
-	nop			;a1e7	00 	. 
-	rra			;a1e8	1f 	. 
-	call nz,02e3ch		;a1e9	c4 3c 2e 	. < . 
-	nop			;a1ec	00 	. 
-	nop			;a1ed	00 	. 
-	ld hl,03cc4h		;a1ee	21 c4 3c 	! . < 
-	ld l,000h		;a1f1	2e 00 	. . 
-	nop			;a1f3	00 	. 
-	inc hl			;a1f4	23 	# 
-	call nz,02e3ch		;a1f5	c4 3c 2e 	. < . 
-	nop			;a1f8	00 	. 
-	nop			;a1f9	00 	. 
-	dec h			;a1fa	25 	% 
-	call nz,02e3ch		;a1fb	c4 3c 2e 	. < . 
-	nop			;a1fe	00 	. 
-	nop			;a1ff	00 	. 
-	daa			;a200	27 	' 
-	call nz,02e3ch		;a201	c4 3c 2e 	. < . 
-	nop			;a204	00 	. 
-	nop			;a205	00 	. 
+    defw 02e3ch, 00000h, 0c421h
+    defw 02e3ch, 00000h, 0c423h
+    defw 02e3ch, 00000h, 0c425h
+    defw 02e3ch, 00000h, 0c427h
+	defw 02e3ch, 00000h
+
 	add hl,hl			;a206	29 	) 
 	call nz,02e3ch		;a207	c4 3c 2e 	. < . 
 	nop			;a20a	00 	. 
