@@ -271,9 +271,9 @@ la246h:
 ;; POI-001 We have "di" here, looks like main entry point... 
 ;; Check that POI-000, at a147, does a jump to "here"
 __init:
-	di			;a497	f3 	. 
-;; call to __init see POI-002	
-	call 0a410h		;a498	cd 10 a4 	. . . 
+	di			;a497	f3 	.
+;; 0a410 -> _load_dll_stub
+	call _load_dll_stub		;a498	cd 10 a4 	. . .
 ;; next call is to location 1543 in PAGE ROM
 	call 01543h		;a49b	cd 43 15 	. C .
 ;; next call is to location fe9 in PAGE ROM		
