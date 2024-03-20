@@ -53,6 +53,8 @@ _entryaddr:
     ;; sequence is 02,ba,f7
     defb 002h, 0bah, 0f7h
 
+;; Dynamic link loader data pointer & size (text from lib/splash.asm)
+;; I see only data size entry in the code
     org 0a180h
     seek 00180h
 _dyn_linker_data:
@@ -175,89 +177,94 @@ __dll_fixups_end:
     org 0a410h
     seek 00410h
 
-;; PO-002	
-;; see tetris.asm, line 52ff
-;; this is some entry point
-;;
+;; This is a dynamic linker, at runtime it loads a copy of the
+;; ROM vector table into RAM and fixes up all the stubbed
+;; ROM references in the executable
+
+;; Load and execute ordinal patching stub from a safe location
+_load_dll_stub:
 	ld hl,0a44ch		;a410	21 4c a4 	! L .
 	ld de,02a00h		;a413	11 00 2a 	. . * 
 	ld bc,00036h		;a416	01 36 00 	. 6 . 
 	ldir		;a419	ed b0 	. . 
 	call 02a00h		;a41b	cd 00 2a 	. . * 
 
-;; Following code uses the dll_fixups table
-;; 0a190h -> __dll_fixups
-;; 0a180h -> _dyn_linker_data
+    ;; 0a190h -> __dll_fixups
+    ;; 0a180h -> _dyn_linker_data
 	ld ix,__dll_fixups		        ;a41e	dd 21 90 a1 	. ! . .
 	ld bc,(_dyn_linker_data)		;a422	ed 4b 80 a1 	. K . .
-	ld l,(ix+000h)		;a426	dd 6e 00 	. n . 
-	ld h,(ix+001h)		;a429	dd 66 01 	. f . 
-	ld e,(hl)			;a42c	5e 	^ 
-	inc hl			;a42d	23 	# 
-	ld d,(hl)			;a42e	56 	V 
-	ld l,(ix+002h)		;a42f	dd 6e 02 	. n . 
-	ld h,(ix+003h)		;a432	dd 66 03 	. f . 
-	add hl,de			;a435	19 	. 
-	ex de,hl			;a436	eb 	. 
-	ld l,(ix+004h)		;a437	dd 6e 04 	. n . 
-	ld h,(ix+005h)		;a43a	dd 66 05 	. f . 
-	ld (hl),e			;a43d	73 	s 
-	inc hl			;a43e	23 	# 
-	ld (hl),d			;a43f	72 	r
-	;; 6 is byte offset for one table entry
-	ld de,00006h		;a440	11 06 00 	. . . 
-	add ix,de		;a443	dd 19 	. . 
-	dec bc			;a445	0b 	. 
-	ld a,b			;a446	78 	x 
-	or c			;a447	b1 	. 
-	jr nz,$-34		;a448	20 dc 	  . 
-	ret			;a44a	c9 	. 
+    ld l,(ix+000h)                  ;
+    ld h,(ix+001h)                  ;
+    ld e,(hl)                       ; Read L Byte
+    inc hl                          ;
+    ld d,(hl)                       ; Read H Byte
+    ld l,(ix+002h)                  ; Get Patch Value
+    ld h,(ix+003h)                  ;
+    add hl,de                       ; Patch the pointer
+    ex de,hl                        ;
+    ld l,(ix+004h)                  ; Dest Address
+    ld h,(ix+005h)                  ;
+    ld (hl),e                       ; Write L Byte
+    inc hl                          ;
+    ld (hl),d                       ; Write H Byte
+    ld de,00006h                    ;
+    add ix,de                       ; Next Entry
+    dec bc                          ;
+    ld a,b                          ;
+    or c                            ;
+    jr nz,$-34                      ; More entries?
+    ret                             ;
 
+;; Local temp index variable
+_dll_tmp:
 	nop			;a44b	00 	. 
 
 ;; see line 138ff
-;; this is: _dll_stub 
-;;
-;; _dll_stub
-	ld a,004h		;a44c	3e 04 	> . 
-	out (020h),a		;a44e	d3 20 	.   
-	ld hl,08000h		;a450	21 00 80 	! . . 
-	ld de,02d00h		;a453	11 00 2d 	. . - 
-	ld bc,00134h		;a456	01 34 01 	. 4 . 
-	ldir		;a459	ed b0 	. . 
-	ld a,002h		;a45b	3e 02 	> . 
-	out (020h),a		;a45d	d3 20 	.   
-	ld hl,(02d0ch)		;a45f	2a 0c 2d 	* . - 
-	ld bc,00003h		;a462	01 03 00 	. . . 
-	ld a,011h		;a465	3e 11 	> . 
-	call 0a482h		;a467	cd 82 a4 	. . . 
-	ld hl,(02e16h)		;a46a	2a 16 2e 	* . . 
-	ld a,(hl)			;a46d	7e 	~ 
-	inc hl			;a46e	23 	# 
-	ld h,(hl)			;a46f	66 	f 
-	ld l,a			;a470	6f 	o 
-	ld bc,00006h		;a471	01 06 00 	. . . 
-	ld a,044h		;a474	3e 44 	> D 
-	call 0a482h		;a476	cd 82 a4 	. . . 
+_dll_stub:
+	ld a,004h		;a44c	3e 04 	> .             ; Access Page 4 - 10046 ROM Lower Page
+	out (020h),a		;a44e	d3 20 	.           ;
+	ld hl,08000h		;a450	21 00 80 	! . .   ; Copy system ordinals from 10046 ROM
+	ld de,02d00h		;a453	11 00 2d 	. . -
+	ld bc,00134h		;a456	01 34 01 	. 4 .
+	ldir		;a459	ed b0 	. .
+	ld a,002h		;a45b	3e 02 	> .             ; Access Page 2 - Application "ROM"
+	out (020h),a		;a45d	d3 20 	.
+	ld hl,(02d0ch)		;a45f	2a 0c 2d 	* . -   ; Generate 17 more for 02e34h = 0d9f0h...0da20h
+	ld bc,00003h		;a462	01 03 00 	. . .
+	ld a,011h		;a465	3e 11 	> .             ; .. Source appears to be a jump table
+	;; 0a482h --> la246h
+	call la246h		;a467	cd 82 a4 	. . .
 
-	ld bc,00002h		;a479	01 02 00 	. . . 
-	ld a,01dh		;a47c	3e 1d 	> . 
-	call 0a482h		;a47e	cd 82 a4 	. . . 
-	ret			;a481	c9 	. 
+	ld hl,(02e16h)		;a46a	2a 16 2e 	* . .   ; Generate 68 more for 02e56h =
+	ld a,(hl)			;a46d	7e 	~
+	inc hl			;a46e	23 	#
+	ld h,(hl)			;a46f	66 	f
+	ld l,a			;a470	6f 	o
+	ld bc,00006h		;a471	01 06 00 	. . .
+	ld a,044h		;a474	3e 44 	> D
+	;; 0a482h --> la246h
+	call la246h		;a476	cd 82 a4 	. . .
 
-;; la246h: label
-	ld ix,0a44bh		;a482	dd 21 4b a4 	. ! K . 
-	ld (ix+000h),a		;a486	dd 77 00 	. w . 
-	ld a,l			;a489	7d 	} 
-	ld (de),a			;a48a	12 	. 
-	inc de			;a48b	13 	. 
-	ld a,h			;a48c	7c 	| 
-	ld (de),a			;a48d	12 	. 
-	inc de			;a48e	13 	. 
-	add hl,bc			;a48f	09 	. 
-	dec (ix+000h)		;a490	dd 35 00 	. 5 . 
-	jr nz,$-10		;a493	20 f4 	  . 
-	ret			;a495	c9 	. 
+	ld bc,00002h		;a479	01 02 00 	. . .   ; Generate 30 more for 02edeh = 0eb98h..
+	;; STRANGE, LIB/STRAP.ASM HAS 01EH AS VALUE FOR NEXT LINE
+	ld a,01dh		;a47c	3e 1d 	> .
+	;; 0a482h --> la246h
+	call la246h		;a47e	cd 82 a4 	. . .
+	ret			;a481	c9 	.
+
+la246h:
+    ld ix,_dll_tmp                  ;
+    ld (ix+000h),a                  ;
+    ld a,l                          ; do {
+    ld (de),a                       ;   *DE = L
+    inc de                          ;   DE++
+    ld a,h                          ;
+    ld (de),a                       ;   *DE = H
+    inc de                          ;   DE++
+    add hl,bc                       ;   HL+=BC
+    dec (ix+000h)                   ; } while(TMP-- != 0)
+    jr nz,$-10                      ;
+    ret                             ;
 
 	ld (bc),a			;a496	02 	. 
 
