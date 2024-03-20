@@ -33,99 +33,45 @@ _fileflags:
 
 
 	defb "Async Terminal Emulator - DUMB  ", 000h
-	 
-	nop			;a141	00 	. 
-	nop			;a142	00 	. 
-	nop			;a143	00 	. 
-	nop			;a144	00 	. 
-	nop			;a145	00 	. 
-	nop			;a146	00 	.
 
-;; POI-000; we have here a jump to a497.
-;; Check that location=POI-001, this starts with a "di" which looks
-;; like being entry for this app
-	jp 0a497h		;a147	c3 97 a4 	. . . 
-	nop			;a14a	00 	. 
-	nop			;a14b	00 	. 
-	nop			;a14c	00 	. 
-	nop			;a14d	00 	. 
-	nop			;a14e	00 	. 
-	nop			;a14f	00 	. 
-	nop			;a150	00 	. 
-	nop			;a151	00 	. 
-	nop			;a152	00 	. 
-	nop			;a153	00 	. 
-	nop			;a154	00 	. 
-	nop			;a155	00 	. 
-	nop			;a156	00 	. 
-	nop			;a157	00 	. 
-	nop			;a158	00 	. 
-	nop			;a159	00 	. 
-	nop			;a15a	00 	. 
-	nop			;a15b	00 	. 
-	nop			;a15c	00 	. 
-	nop			;a15d	00 	. 
-	nop			;a15e	00 	. 
-	nop			;a15f	00 	. 
-	nop			;a160	00 	. 
-	nop			;a161	00 	. 
-	nop			;a162	00 	. 
-	nop			;a163	00 	. 
-	nop			;a164	00 	. 
-	nop			;a165	00 	. 
-	nop			;a166	00 	. 
-	nop			;a167	00 	. 
-	nop			;a168	00 	. 
-	nop			;a169	00 	. 
-	nop			;a16a	00 	. 
-	nop			;a16b	00 	. 
-	nop			;a16c	00 	. 
-	nop			;a16d	00 	. 
-	nop			;a16e	00 	. 
-	nop			;a16f	00 	. 
-	nop			;a170	00 	. 
-	nop			;a171	00 	. 
-	nop			;a172	00 	. 
-	nop			;a173	00 	. 
-	nop			;a174	00 	. 
-	nop			;a175	00 	. 
-	nop			;a176	00 	. 
-	nop			;a177	00 	. 
-	nop			;a178	00 	. 
-	nop			;a179	00 	. 
-	nop			;a17a	00 	. 
-	nop			;a17b	00 	. 
-	nop			;a17c	00 	. 
+;; Entry Point
+    org 0a147h
+    seek 00147h
+
+    ;; next byte is 0 in lib/strap.asm, here its different. Meaning unknown.
+    defb 0c3h
+
+_entryaddr:
+	;jp 0a497h		;a147	c3 97 a4 	. . .
+    defw __init
+
+    org 0a17dh
+    seek 0017dh
+
 	ld (bc),a			;a17d	02 	. 
 	cp d			;a17e	ba 	. 
 	rst 30h			;a17f	f7 	. 
-	ld h,c			;a180	61 	a 
-	nop			;a181	00 	. 
-	nop			;a182	00 	. 
-	nop			;a183	00 	. 
-	nop			;a184	00 	. 
-	nop			;a185	00 	. 
-	nop			;a186	00 	. 
-	nop			;a187	00 	. 
-	nop			;a188	00 	. 
-	nop			;a189	00 	. 
-	nop			;a18a	00 	. 
-	nop			;a18b	00 	. 
-	nop			;a18c	00 	. 
-	nop			;a18d	00 	. 
-	nop			;a18e	00 	. 
-	nop			;a18f	00 	. 
-	ld (bc),a			;a190	02 	. 
-	dec l			;a191	2d 	- 
-	nop			;a192	00 	. 
-	nop			;a193	00 	. 
-	ld (hl),0c1h		;a194	36 c1 	6 . 
-	ld (bc),a			;a196	02 	. 
-	dec l			;a197	2d 	- 
-	nop			;a198	00 	. 
-	nop			;a199	00 	. 
-	ld (hl),b			;a19a	70 	p 
-	pop bc			;a19b	c1 	. 
+	ld h,c			;a180	61 	a
+
+    org 0a190h
+    seek 00190h
+
+__dll_fixups:
+    defw 02d02h, 00000h, 0c136h
+	;ld (bc),a			;a190	02 	.
+	;dec l			;a191	2d 	-
+	;nop			;a192	00 	.
+	;nop			;a193	00 	.
+	;ld (hl),0c1h		;a194	36 c1 	6 .
+
+    defw 02d02h, 00000h, 0c170h
+	;ld (bc),a			;a196	02 	.
+	;dec l			;a197	2d 	-
+	;nop			;a198	00 	.
+	;nop			;a199	00 	.
+	;ld (hl),b			;a19a	70 	p
+	;pop bc			;a19b	c1 	.
+
 	ld (bc),a			;a19c	02 	. 
 	dec l			;a19d	2d 	- 
 	nop			;a19e	00 	. 
@@ -603,10 +549,9 @@ _fileflags:
 
 ;; PO-002	
 ;; see tetris.asm, line 52ff
-;; this is __init entry point
+;; this is some entry point
 ;;
-;; __init
-	ld hl,0a44ch		;a410	21 4c a4 	! L . 
+	ld hl,0a44ch		;a410	21 4c a4 	! L .
 	ld de,02a00h		;a413	11 00 2a 	. . * 
 	ld bc,00036h		;a416	01 36 00 	. 6 . 
 	ldir		;a419	ed b0 	. . 
@@ -687,6 +632,7 @@ _fileflags:
 
 ;; POI-001 We have "di" here, looks like main entry point... 
 ;; Check that POI-000, at a147, does a jump to "here"
+__init:
 	di			;a497	f3 	. 
 ;; call to __init see POI-002	
 	call 0a410h		;a498	cd 10 a4 	. . . 
