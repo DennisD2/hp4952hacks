@@ -981,40 +981,37 @@ var_word_a9bd:
 
 var_byte_a9bf:
     ; a9bf -> var_byte_a9bf
-	defb 008h
 	;ex af,af'			;a9bf	08 	.
+	defb 008h
 
 var_byte_a9c0:
     ; a9c0 -> var_byte_a9c0
-    defb 000h
 	;nop			;a9c0	00 	.
+    defb 000h
 
 var_byte_a9c1:
     ; a9c1 -> var_byte_a9c1
-    defb 000h
 	;nop			;a9c1	00 	.
-
-var_byte_a9c2:
-    ; a9c2 -> var_byte_a9c2
     defb 000h
-	;nop			;a9c2	00 	.
 
-    ; next byte seems not to be used
-    ; i just define it to keep it equal to original
+var_word_a9c2:
+    ; a9c2 -> var_word_a9c2
+	;nop			;a9c2	00 	.
 	;ret pe			;a9c3	e8 	.
-    defb 0e8h
+    defw 0e800h
 
 var_byte_a9c4:
     ; byte variable used at numerous places, initialized with 8
     ; a9c4 -> var_byte_a9c4
-    defb 008h
 	;;ex af,af'			;a9c4	08 	.
+    defb 008h
 
-	; ld bc,0cd83h		;a9c5	01 83 cd 	. . .
 var_byte_a9c5:
     ; byte variable , initialized with 1
     ; a9c5 -> var_byte_a9c5
+	; ld bc,0cd83h		;a9c5	01 83 cd 	. . .
     defb 001h
+
 var_byte_a9c6:
     ; byte variable, initialized with 83
     ; a9c6 -> var_byte_a9c6
@@ -1199,7 +1196,7 @@ var_byte_aa99:
 	ld (var_byte_a9c4),a		;aaf9	32 c4 a9 	2 . .
 	ld l,a			;aafc	6f 	o
 	call 0ace8h		;aafd	cd e8 ac 	. . .
-	ld (var_byte_a9c2),de		;ab00	ed 53 c2 a9 	. S . .
+	ld (var_word_a9c2),de		;ab00	ed 53 c2 a9 	. S . .
 	call 0abbah		;ab04	cd ba ab 	. . .
 	call 0abcdh		;ab07	cd cd ab 	. . .
 	call 0ab59h		;ab0a	cd 59 ab 	. Y .
@@ -1536,7 +1533,7 @@ var_byte_aa99:
 	ld d,000h		;acd7	16 00 	. .
 	add hl,de			;acd9	19 	.
 	add hl,de			;acda	19 	.
-	ld de,(var_byte_a9c2)		;acdb	ed 5b c2 a9 	. [ . .
+	ld de,(var_word_a9c2)		;acdb	ed 5b c2 a9 	. [ . .
 	add hl,de			;acdf	19 	.
 	set 7,h		;ace0	cb fc 	. .
 	set 6,h		;ace2	cb f4 	. .
@@ -1701,7 +1698,7 @@ fun_add6:
 	ld l,a			;adde	6f 	o                                   ;
 	call 0ace8h		;addf	cd e8 ac 	. . .
 	ld (var_word_a9bd),de		;ade2	ed 53 bd a9 	. S . .
-	ld (var_byte_a9c2),de		;ade6	ed 53 c2 a9 	. S . .
+	ld (var_word_a9c2),de		;ade6	ed 53 c2 a9 	. S . .
 	xor a			;adea	af 	.
 	ld (var_byte_a9c0),a		;adeb	32 c0 a9 	2 . .
 	ld (var_byte_a9c1),a		;adee	32 c1 a9 	2 . .
