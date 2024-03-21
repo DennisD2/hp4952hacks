@@ -2393,55 +2393,36 @@ loop_clear_screen_memory:
 	org 0c000h
 	seek 02000h
 
-;_splash_screen_data: ?? see lib/splash.asm
+_splash_screen_data: ; see lib/splash.asm
 	;rst 38h			;c000	ff 	.
     defb 0ffh
 
-	;inc b			;c001	04 	.
-	;add hl,bc			;c002	09 	.
-	;xor e			;c003	ab 	.
     defb 004h, 009h, 0abh
 	defb "VT100  Emulator", 000h
 
-	;dec b			;c014	05 	.
-	;dec bc			;c015	0b 	.
-	;add a,e			;c016	83 	.
 	defb 005h, 00bh, 083h
 	defb "Rev A.00.03", 000h
-	;nop			;c022	00 	.
 
 ;; "Copyright 1989 Hewlett-Packard Company for the HP4952"
     defb 007h, 009h, 083h
-	;rlca			;c023	07 	.
-	;add hl,bc			;c024	09 	.
-	;add a,e			;c025	83 	.
-	;xor e			;c026	ab 	.
 	defb 0abh ; seems copyright (c) char, stange is official 0xa9
 	defb " Copyright 1989", 000h
 
     defb 008h, 005h, 083h
-	;ex af,af'			;c037	08 	.
-	;dec b			;c038	05 	.
-	;add a,e			;c039	83 	.
 	defb "Hewlett-Packard Company", 000h
 
     defb 00bh, 009h, 083h
-	;dec bc			;c052	0b 	.
-	;add hl,bc			;c053	09 	.
-	;add a,e			;c054	83 	.
-	;ld (00c00h),a		;c063	32 00 0c 	2 . .
 	defb "for the HP 4952", 000h
 
 	defb 00ch, 008h, 083h
-	;ex af,af'			;c066	08 	.
-	;add a,e			;c067	83 	.
 	defb "Protocol Analyzer", 000h
 
     defb 000h
-	;nop			;c07a	00 	.
+; end of _splash_screen_data
 
-	adc a,e			;c07b	8b 	. 
-	ld hl,(00000h)		;c07c	2a 00 00 	* . . 
+    defb 08bh, 02ah, 000h, 000h
+	;adc a,e			;c07b	8b 	.
+	;ld hl,(00000h)		;c07c	2a 00 00 	* . .
 	nop			;c07f	00 	. 
 	nop			;c080	00 	. 
 	nop			;c081	00 	. 
@@ -2549,7 +2530,8 @@ loop_clear_screen_memory:
 	; (07624) := 2a7b
 	ld (07624h),hl		;c12f	22 24 76 	" $ v 
 	ld a,(_tmp_page)		;c132	3a 96 a4 	: . .
-	call 00e60h		;c135	cd 60 0e 	. ` . ; Patched to 02d02h
+	call 00e60h		;c135	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
+
 	ld hl,08326h		;c138	21 26 83 	! & . 
 	ld e,(hl)			;c13b	5e 	^ 
 	inc hl			;c13c	23 	# 
@@ -2582,7 +2564,7 @@ loop_clear_screen_memory:
 	ld bc,0000ch		;c168	01 0c 00 	. . . 
 	ldir		;c16b	ed b0 	. . 
 	ld a,006h		;c16d	3e 06 	> .; Load Page 6 (Application RAM)
-	call 00e60h		;c16f	cd 60 0e 	. ` . ; Patched to 02d02h
+	call 00e60h		;c16f	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
 	ld hl,02cfch		;c172	21 fc 2c 	! . , 
 	ld (02ad5h),hl		;c175	22 d5 2a 	" . * 
 	ld hl,02b1bh		;c178	21 1b 2b 	! . + 
@@ -2599,7 +2581,7 @@ loop_clear_screen_memory:
 	in a,(020h)		;c18f	db 20 	.   
 	push af			;c191	f5 	. 
 	ld a,(_tmp_page)		;c192	3a 96 a4 	: . .
-	call 00e60h		;c195	cd 60 0e 	. ` . ; Patched to 02d02h
+	call 00e60h		;c195	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
 	ld hl,02a00h		;c198	21 00 2a 	! . * 
 	push hl			;c19b	e5 	. 
 	call 01cf8h		;c19c	cd f8 1c 	. . . 
@@ -2611,9 +2593,13 @@ loop_clear_screen_memory:
 	ld bc,02ba9h		;c1a4	01 a9 2b 	. . + 
 	xor h			;c1a7	ac 	. 
 	inc l			;c1a8	2c 	, 
-	rst 38h			;c1a9	ff 	. 
-	ld bc,08306h		;c1aa	01 06 83 	. . . 
-	
+
+vt100_start_screen:
+	defb 0ffh
+	;rst 38h			;c1a9	ff 	.
+
+    defb 001h, 006h, 083h
+	;ld bc,08306h		;c1aa	01 06 83 	. . .
 	defb "Terminal Emulator Menu", 000h
 
 	inc bc			;c1c4	03 	. 
@@ -2703,15 +2689,15 @@ loop_clear_screen_memory:
 	ld a,022h		;c2ff	3e 22 	> " 
 	ld (07501h),a		;c301	32 01 75 	2 . u 
 	ld a,006h		;c304	3e 06 	> . ; Load Page 6 (Application RAM)
-	call 00e60h		;c306	cd 60 0e 	. ` . ; Patched to 02d02h
+	call 00e60h		;c306	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
 	ld a,(_tmp_page)		;c309	3a 96 a4 	: . .
-	call 00e60h		;c30c	cd 60 0e 	. ` . ; Patched to 02d02h
+	call 00e60h		;c30c	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
 	ld hl,02ba4h		;c30f	21 a4 2b 	! . + 
 	push hl			;c312	e5 	. 
 	call 0da20h		;c313	cd 20 da 	.   . 
 	pop hl			;c316	e1 	. 
 	ld a,006h		;c317	3e 06 	> . ; Load Page 6 (Application RAM)
-	call 00e60h		;c319	cd 60 0e 	. ` . ; Patched to 02d02h
+	call 00e60h		;c319	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
 	call 0a533h		;c31c	cd 33 a5 	. 3 . 
 	call 0a900h		;c31f	cd 00 a9 	. . . 
 	call 0a53fh		;c322	cd 3f a5 	. ? . 
@@ -2725,22 +2711,22 @@ loop_clear_screen_memory:
 	ld a,062h		;c331	3e 62 	> b 
 	ld (07501h),a		;c333	32 01 75 	2 . u 
 	ld a,006h		;c336	3e 06 	> . ; Load Page 6 (Application RAM)
-	call 00e60h		;c338	cd 60 0e 	. ` . ; Patched to 02d02h
+	call 00e60h		;c338	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
 	call 0a54bh		;c33b	cd 4b a5 	. K . 
 	ld a,022h		;c33e	3e 22 	> " 
 	ld (07501h),a		;c340	32 01 75 	2 . u 
 	ld a,(_tmp_page)		;c343	3a 96 a4 	: . .
-	call 00e60h		;c346	cd 60 0e 	. ` . ; Patched to 02d02h
+	call 00e60h		;c346	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
 	ld hl,00001h		;c349	21 01 00 	! . . 
 	ret			;c34c	c9 	. 
 
 	ld a,006h		;c34d	3e 06 	> . ; Load Page 6 (Application RAM)
-	call 00e60h		;c34f	cd 60 0e 	. ` . ; Patched to 02d02h
+	call 00e60h		;c34f	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
 	call 0a60eh		;c352	cd 0e a6 	. . . 
 	ld a,022h		;c355	3e 22 	> " 
 	ld (07501h),a		;c357	32 01 75 	2 . u 
 	ld a,(_tmp_page)		;c35a	3a 96 a4 	: . .
-	call 00e60h		;c35d	cd 60 0e 	. ` . ; Patched to 02d02h
+	call 00e60h		;c35d	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
 	ld hl,00001h		;c360	21 01 00 	! . . 
 	ret			;c363	c9 	. 
 
@@ -3360,7 +3346,7 @@ loop_clear_screen_memory:
 	defb "Off", 000h
 
 	ld a,006h		;c8d4	3e 06 	> . ; Load Page 6 (Application RAM)
-	call 00e60h		;c8d6	cd 60 0e 	. ` . ; Patched to 02d02h
+	call 00e60h		;c8d6	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
 	call 0a533h		;c8d9	cd 33 a5 	. 3 . 
 	ld hl,(03f00h)		;c8dc	2a 00 3f 	* . ? 
 	push hl			;c8df	e5 	. 
@@ -3409,17 +3395,17 @@ loop_clear_screen_memory:
 	ld a,c			;c92b	79 	y 
 	ld (03f12h),a		;c92c	32 12 3f 	2 . ? 
 	ld a,006h		;c92f	3e 06 	> . ; Load Page 6 (Application RAM)
-	call 00e60h		;c931	cd 60 0e 	. ` . ; Patched to 02d02h
+	call 00e60h		;c931	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
 	call 0a53fh		;c934	cd 3f a5 	. ? . 
 	ld a,(_tmp_page)		;c937	3a 96 a4 	: . .
-	call 00e60h		;c93a	cd 60 0e 	. ` . ; Patched to 02d02h
+	call 00e60h		;c93a	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
 	call 01c47h		;c93d	cd 47 1c 	. G . 
 	ld hl,00001h		;c940	21 01 00 	! . . 
 	ret			;c943	c9 	. 
 
 ;; POI-010 below could be config steps for serial parameters	
 	ld a,(_tmp_page)		;c944	3a 96 a4 	: . .
-	call 00e60h		;c947	cd 60 0e 	. ` . ; Patched to 02d02h
+	call 00e60h		;c947	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
 	
 	ld a,022h		;c94a	3e 22 	> " 
 	ld (07501h),a		;c94c	32 01 75 	2 . u 
