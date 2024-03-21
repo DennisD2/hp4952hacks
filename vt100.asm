@@ -2726,41 +2726,32 @@ term_setup_screen:
 	;rst 38h			;c364	ff 	.
 
 	defb 001h,006h, 083h
-	;ld bc,08306h		;c365	01 06 83 	. . .
 	defb "Terminal Setup Menu", 000h
 
-	;inc bc			;c37c	03 	.
 	defb 003h, 001h, 083h
 	defb "Data Code", 000h	
 
-	;inc b			;c389	04 	.
 	defb 004h, 001h, 083h
 	defb "Parity", 000h
 
-	;dec b			;c393	05 	.
 	defb 005h, 001h, 083h
 	defb "Bits/sec", 000h
 
-	;ex af,af'			;c39f	08 	.
 	defb 008h, 001h, 083h
 	defb "Handshake", 000h
 	
 	defb 006h, 001h, 083h
 	defb "Mode", 000h
 
-	;ld a,(bc)			;c3b4	0a 	.
 	defb 00ah, 001h, 083h
 	defb "Echo", 000h
 
-	;dec bc			;c3bc	0b 	.
 	defb 00bh, 001h, 083h
 	defb "Bell", 000h
 ; 
-	;inc c			;c3c4	0c 	.
 	defb 00ch, 001h, 083h
 	defb "Display Functions", 000h	
 
-	;dec c			;c3d9	0d 	.
 	defb 00dh, 001h, 083h
 	defb "Auto LF after CR", 000h
 
