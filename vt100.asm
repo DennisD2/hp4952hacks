@@ -1020,7 +1020,7 @@ var_byte_a9c6:
 fun_a9c7:
     ; fun_a9c7 is called 1x only, during __init
     call fun_add6           ;a9c7	cd d6 ad 	. .
-	call fun_adf7	        ;a9ca	cd f7 ad 	. . .
+	call clear_screen_memory	        ;a9ca	cd f7 ad 	. . .
     ;; a:=83h
 	ld a,083h		        ;a9cd	3e 83 	> .
 	; call will save content of a to var_byte_a9c6
@@ -1069,7 +1069,7 @@ set_var_byte_a9c6:
 	jr $+9		;aa14	18 07 	. .
 	cp 0feh		;aa16	fe fe 	. .
 	jr nz,$+8		;aa18	20 06 	  .
-	call fun_adf7		;aa1a	cd f7 ad 	. . .
+	call clear_screen_memory		;aa1a	cd f7 ad 	. . .
 	call 0aa9ah		;aa1d	cd 9a aa 	. . .
 	ret			;aa20	c9 	.
 
@@ -1706,17 +1706,16 @@ fun_add6:
 	ld (var_byte_a9c5),a		;adf3	32 c5 a9 	2 . .
 	ret			;adf6	c9 	.
 
-;; POI-12 adf7h
 ;; loads 0x20 (SPACE) and then 0x83 (ASCII Normal attribute) to (h1)
+;; between memory positions var_word_a9bd (lower start) .. var_word_a9bb (higher end)
 ;; this looks like a "clear screen" routine
-;;
-fun_adf7:
-    ; adf7 -> fun_adf7
+clear_screen_memory:
+    ; adf7 -> clear_screen_memory
     ; var_word_a9bd -> hl seems to be some start value for loop (but initially, it is e800)
 	ld hl,(var_word_a9bd)		;adf7	2a bd a9 	* . .           ; hl:= ...
 	; var_word_a9bb -> de seems to be some end value for loop (but initially, it is e000)
 	ld de,(var_word_a9bb)		;adfa	ed 5b bb a9 	. [ . .     ; de:= ...
-loop_fun_adf7:
+loop_clear_screen_memory:
 	  ld (hl),020h		;adfe	36 20 	6                           ; (h1):=20h, a SPACE
 	  inc l			;ae00	2c 	,                                   ; l++
 	  ld (hl),083h		;ae01	36 83 	6 .                         ; (h1):=83, normal text attribute
@@ -1726,10 +1725,10 @@ loop_fun_adf7:
 	  set 5,h		;ae08	cb ec 	. .                             ;
 	  ld a,l			;ae0a	7d 	}                               ; a:=l
 	  cp e			;ae0b	bb 	.                                   ; a== reg e ? (calc "a-e", set z flag according to result)
-	  jr nz,$-14		;ae0c	20 f0 	  .                         ; if nz (a!=e), jump back to loop_fun_adf7 (not sure)
+	  jr nz,$-14		;ae0c	20 f0 	  .                         ; if nz (a!=e), jump back to loop_clear_screen_memory
 	 ld a,h			;ae0e	7c 	|                                   ; a:=h
 	 cp d			;ae0f	ba 	.                                   ; a== reg d ?
-	 jr nz,$-18		;ae10	20 ec 	  .                             ; if nz (a!=d), jump back to loop_fun_adf7 (not sure)
+	 jr nz,$-18		;ae10	20 ec 	  .                             ; if nz (a!=d), jump back to loop_clear_screen_memory
 	ld a,001h		;ae12	3e 01 	> .                             ; a:=1
 	ld (var_byte_a9c5),a		;ae14	32 c5 a9 	2 . .           ; var_byte_a9c5:=a
 	ret			;ae17	c9 	.
@@ -1843,7 +1842,7 @@ loop_fun_adf7:
 	jr z,$+6		;aeb6	28 04 	( .
 	cp 030h		    ;aeb8	fe 30 	. 0
 	jr nz,$+6		;aeba	20 04 	  .
-	call fun_adf7	;aebc	cd f7 ad 	. . .
+	call clear_screen_memory	;aebc	cd f7 ad 	. . .
 	ret			    ;aebf	c9 	.
 
 ;; again, '1' handling???
