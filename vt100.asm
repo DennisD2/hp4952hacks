@@ -2602,71 +2602,69 @@ vt100_start_screen:
 	;ld bc,08306h		;c1aa	01 06 83 	. . .
 	defb "Terminal Emulator Menu", 000h
 
-	inc bc			;c1c4	03 	. 
-
-	defb 001h, 0abh
+	;inc bc			;c1c4	03 	.
+	defb 003h, 001h, 0abh
 	defb "Setup Menu", 000h
 
-	inc bc			;c1d2	03 	. 
-	dec c			;c1d3	0d 	. 
-	add a,e			;c1d4	83 	. 
-	
+    defb 003h, 00dh, 083h
+	;inc bc			;c1d2	03 	.
+	;dec c			;c1d3	0d 	.
+	;add a,e			;c1d4	83 	.
 	defb "Set communication", 000h 
-	
-	inc b			;c1e7	04 	. 
-	inc b			;c1e8	04 	. 
-	add a,e			;c1e9	83 	. 
-	
+
+	defb 004h, 004h, 083h
+	;inc b			;c1e7	04 	.
+	;inc b			;c1e8	04 	.
+	;add a,e			;c1e9	83 	.
 	defb "parameters for terminal.", 000h
 
-	dec b			;c203	05 	. 
-
-	defb 001h, 0abh
+	defb 005h, 001h, 0abh
+	;dec b			;c203	05 	.
 	defb "Setup=Sim.", 000h
 
-	dec b			;c211	05 	. 
-	dec c			;c212	0d 	. 
-
-	add a,e			;c213	83 	. 
-	
+    defb 005h, 00dh, 083h
+	;dec b			;c211	05 	.
+	;dec c			;c212	0d 	.
+	;add a,e			;c213	83 	.
 	;; fixme paramaters -> parameters
 	defb "Copy paramaters from", 000h
-	
-	ld b,004h		;c229	06 04 	. . 
-	add a,e			;c22b	83 	. 
-	
-	defb "simulate setup to terminal.", 000h
- 
-	rlca			;c248	07 	. 
 
-	defb 001h, 0abh
+	defb 006h, 004h, 083h
+	;ld b,004h		;c229	06 04 	. .
+	;add a,e			;c22b	83 	.
+	defb "simulate setup to terminal.", 000h
+
+	defb 007h, 001h, 0abh
+	;rlca			;c248	07 	.
 	defb "Simulate", 000h
 
-	rlca			;c254	07 	. 
-	dec c			;c255	0d 	. 
-	add a,e			;c256	83 	. 
-	
+    defb 007h, 00dh, 083h
+	;rlca			;c254	07 	.
+	;dec c			;c255	0d 	.
+	;add a,e			;c256	83 	.
 	defb "Run simulate menu &", 000h
 
-	ex af,af'			;c26b	08 	. 
-	inc b			;c26c	04 	. 
-	add a,e			;c26d	83 	. 
-	
+    defb 008h, 004h, 083h
+	;ex af,af'			;c26b	08 	.
+	;inc b			;c26c	04 	.
+	;add a,e			;c26d	83 	.
 	defb "return, keeping leads up.", 000h
 
-	add hl,bc			;c288	09 	. 
-	
-	defb 001h, 0abh
+	defb 009h, 001h, 0abh
+	;add hl,bc			;c288	09 	.
 	defb "Execute", 000h
 
-	add hl,bc			;c293	09 	. 
-	dec c			;c294	0d 	. 
-	add a,e			;c295	83 	. 
-	
+    defb 009h, 00dh, 083h
+	;add hl,bc			;c293	09 	.
+	;dec c			;c294	0d 	.
+	;add a,e			;c295	83 	.
 	defb "Enter terminal mode.", 000h
 
-	nop			;c2ab	00 	. 
-	cp h			;c2ac	bc 	. 
+    defb 000h
+	;nop			;c2ab	00 	.
+; end of vt100_start_screen
+
+	cp h			;c2ac	bc 	.
 	inc l			;c2ad	2c 	, 
 	call nc,00032h		;c2ae	d4 32 00 	. 2 . 
 	nop			;c2b1	00 	. 
