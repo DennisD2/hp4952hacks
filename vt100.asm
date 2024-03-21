@@ -309,26 +309,23 @@ __init:
 	ld a,(00fd4h)		;a4a1	3a d4 0f 	: . . 
 ;; drop highest bit
 	and 07fh		;a4a4	e6 7f 	.  
-;; save result in (a496)
+;; save result in _tmp_page (a496)
 ;; (a496):=a
 	ld (_tmp_page),a		;a4a6	32 96 a4 	2 . .
-;; a:=6
-	ld a,006h		;a4a9	3e 06 	> . 
-;; (fd4):=a	
-	ld (00fd4h),a		;a4ab	32 d4 0f 	2 . .
-;; hl:=a4cd
+l2065h:
+    ; comment from lib/strap.asm: "Patch 00fd4h -> our menu display function"
+	ld a,006h		;a4a9	3e 06 	> .             ; a:=6
+	ld (00fd4h),a		;a4ab	32 d4 0f 	2 . .   ; (fd4h):=a
 ;; POI-010 a4cd seems to be some data or table section see POI-011
-	ld hl,0a4cdh		;a4ae	21 cd a4 	! . . 
-;; (fd5):=hl
-;; so (fd5) now points to the data just mentioned
-	ld (00fd5h),hl		;a4b1	22 d5 0f 	" . . 
-	call fun_a9c7		;a4b4	cd c7 a9 	. . .
+	ld hl,0a4cdh		;a4ae	21 cd a4 	! . .   ; h1:=a4cdh
+	ld (00fd5h),hl		;a4b1	22 d5 0f 	" . .   ; (fd5):=hl
+	call fun_a9c7		;a4b4	cd c7 a9 	. . .   ;
 
-;; hl:=c000, which is start of mass store ROM	
-	ld hl,0c000h		;a4b7	21 00 c0 	! . .
-;; de:=2a00, points to Applic.RAM	
+;; hl:=c000
+	ld hl,_splash_screen_data		;a4b7	21 00 c0 	! . .
+;; de:=2a00, points to Applic.RAM
 	ld de,02a00h		;a4ba	11 00 2a 	. . *
-;; bc:=1400, which is in page ROM	
+;; bc:=1400, which is in page ROM
 	ld bc,01400h		;a4bd	01 00 14 	. . . 
 	ldir		;a4c0	ed b0 	. .
 
@@ -345,14 +342,15 @@ __init:
 ;; POI-011, somes to be table or data, used by POI-10 line	
 	ld hl,0f376h		;a4cb	21 76 f3 	! v . 
 	ld hl,07621h		;a4ce	21 21 76 	! ! v 
-	ld (0a4cbh),hl		;a4d1	22 cb a4 	" . . 
+	ld (0a4cbh),hl		;a4d1	22 cb a4 	" . .
+
 	di			;a4d4	f3 	. 
 	ld a,(0a530h)		;a4d5	3a 30 a5 	: 0 . 
 	ld (010b5h),a		;a4d8	32 b5 10 	2 . . 
 	ld (0112dh),a		;a4db	32 2d 11 	2 - . 
 	ld (01067h),a		;a4de	32 67 10 	2 g . 
 	ld (01133h),a		;a4e1	32 33 11 	2 3 . 
-	ld hl,0c000h		;a4e4	21 00 c0 	! . . 
+	ld hl,_splash_screen_data		;a4e4	21 00 c0 	! . .
 	ld de,02a00h		;a4e7	11 00 2a 	. . * 
 	ld bc,01400h		;a4ea	01 00 14 	. . . 
 	ldir		;a4ed	ed b0 	. . 
@@ -488,7 +486,7 @@ __init:
 	jr $+5		;a5f1	18 03 	. . 
 	call 0a9e0h		;a5f3	cd e0 a9 	. . . 
 	jp 0a56fh		;a5f6	c3 6f a5 	. o . 
-	call 0a9d7h		;a5f9	cd d7 a9 	. . . 
+	call fun_a9d7		;a5f9	cd d7 a9 	. . .
 	call 0a6d4h		;a5fc	cd d4 a6 	. . . 
 	call 0aee5h		;a5ff	cd e5 ae 	. . . 
 	call 0a87bh		;a602	cd 7b a8 	. { . 
@@ -1037,12 +1035,13 @@ set_var_byte_a9c6:
 	ld (var_byte_a9c6),a		;a9d3	32 c6 a9 	2 . .
 	ret			            ;a9d6	c9 	.
 
+fun_a9d7:
     ; a:=1
 	ld a,001h		;a9d7	3e 01 	> .
 	; (var_byte_a9c5):=a
 	ld (var_byte_a9c5),a		;a9d9	32 c5 a9 	2 . .
 	; some call
-	call 0aa9ah		;a9dc	cd 9a aa 	. . .
+	call fun_aa9a		;a9dc	cd 9a aa 	. . .
 	ret			;a9df	c9 	.
 
 	cp 0f7h		;a9e0	fe f7 	. .
@@ -1072,7 +1071,7 @@ set_var_byte_a9c6:
 	cp 0feh		;aa16	fe fe 	. .
 	jr nz,$+8		;aa18	20 06 	  .
 	call clear_screen_memory		;aa1a	cd f7 ad 	. . .
-	call 0aa9ah		;aa1d	cd 9a aa 	. . .
+	call fun_aa9a		;aa1d	cd 9a aa 	. . .
 	ret			;aa20	c9 	.
 
 	ld a,(0af9dh)		;aa21	3a 9d af 	: . .
@@ -1093,7 +1092,8 @@ set_var_byte_a9c6:
 	ld a,(03f0ch)		;aa41	3a 0c 3f 	: . ?
 	or a			;aa44	b7 	.
 	jr z,$+34		;aa45	28 20 	(
-	call 0acafh		;aa47	cd af ac 	. . .
+	;; the called routine does 2x an out
+	call fun_acaf		;aa47	cd af ac 	. . .
 	jr $+29		;aa4a	18 1b 	. .
 	cp 00ah		;aa4c	fe 0a 	. .
 	jr nz,$+7		;aa4e	20 05 	  .
@@ -1107,7 +1107,7 @@ set_var_byte_a9c6:
 	jr nz,$+4		;aa60	20 02 	  .
 	ld c,020h		;aa62	0e 20 	.
 	call 0acfch		;aa64	cd fc ac 	. . .
-	call 0aa9ah		;aa67	cd 9a aa 	. . .
+	call fun_aa9a		;aa67	cd 9a aa 	. . .
 	ret			;aa6a	c9 	.
 
 	ld a,e			;aa6b	7b 	{
@@ -1123,7 +1123,7 @@ set_var_byte_a9c6:
 	ld a,000h		;aa7c	3e 00 	> .
 	add a,008h		;aa7e	c6 08 	. .
 	ld (var_byte_a9bf),a		;aa80	32 bf a9 	2 . .
-	call 0aa9ah		;aa83	cd 9a aa 	. . .
+	call fun_aa9a		;aa83	cd 9a aa 	. . .
 	ret			;aa86	c9 	.
 
 	ld de,(var_byte_a9c0)		;aa87	ed 5b c0 a9 	. [ . .
@@ -1148,6 +1148,7 @@ var_byte_aa99:
     defb 000h
 	;nop			;aa99	00 	.
 
+fun_aa9a:
 	;; fun_aa9a this is large function...
 	ld hl,(var_byte_a9bf)		;aa9a	2a bf a9 	* . .
 	call 0ace8h		;aa9d	cd e8 ac 	. . .
@@ -1510,24 +1511,41 @@ var_byte_aa99:
 	jr nz,$-123		;aca9	20 83 	  .
 	jr nz,$-123		;acab	20 83 	  .
 	jr nz,$-123		;acad	20 83 	  .
-	di			;acaf	f3 	.
-	ld a,(00037h)		;acb0	3a 37 00 	: 7 .
-	res 2,a		;acb3	cb 97 	. .
-	ld (00037h),a		;acb5	32 37 00 	2 7 .
-	out (090h),a		;acb8	d3 90 	. .
-	ei			;acba	fb 	.
-	ld hl,02000h		;acbb	21 00 20 	! .
-	dec hl			;acbe	2b 	+
-	ld a,h			;acbf	7c 	|
-	or l			;acc0	b5 	.
-	jr nz,$-3		;acc1	20 fb 	  .
-	di			;acc3	f3 	.
-	ld a,(00037h)		;acc4	3a 37 00 	: 7 .
-	set 2,a		;acc7	cb d7 	. .
-	ld (00037h),a		;acc9	32 37 00 	2 7 .
-	out (090h),a		;accc	d3 90 	. .
-	ei			;acce	fb 	.
+
+	;; 2x di/ei and 2x time out to 090
+	; vars:
+	;  (0037)
+	; ports:
+	;  090
+
+    ; this functions writes out the byte from (0037) to port 090.
+    ; it writes it one time with bit 2 cleared, and one time with bit set.
+    ;
+    ; is this maybe the latch relay switching function for the pods?
+fun_acaf:
+	di			;acaf	f3 	.                       ;
+	ld a,(00037h)		;acb0	3a 37 00 	: 7 .   ; a:=(0037)
+	res 2,a		;acb3	cb 97 	. .                 ; bit 2 of a is CLEARED
+	ld (00037h),a		;acb5	32 37 00 	2 7 .   ; (0037):=0
+	out (090h),a		;acb8	d3 90 	. .         ; a -> 090
+	ei			;acba	fb 	.                       ;
+
+    ; next 6 lines count down from 2000 to 0; seems a delay
+	ld hl,02000h		;acbb	21 00 20 	! .     ; hl:=2000
+fun_acaf_loop:
+	dec hl			;acbe	2b 	+                   ; hl--
+	ld a,h			;acbf	7c 	|                   ;    a:=h
+	or l			;acc0	b5 	.                   ;    a := a|l
+	jr nz,$-3		;acc1	20 fb 	  .             ;    ^ these test for hl==0, back to fun_acaf_loop
+
+	di			;acc3	f3 	.                       ;
+	ld a,(00037h)		;acc4	3a 37 00 	: 7 .   ; a:=(0037)
+	set 2,a		;acc7	cb d7 	. .                 ; bit 2 of a is SET
+	ld (00037h),a		;acc9	32 37 00 	2 7 .   ; (0037):=0
+	out (090h),a		;accc	d3 90 	. .         ; a -> 090
+	ei			;acce	fb 	.                       ;
 	ret			;accf	c9 	.
+; end of fun_acaf
 
 	call 0acf8h		;acd0	cd f8 ac 	. . .
 	ld a,(var_byte_a9c1)		;acd3	3a c1 a9 	: . .
@@ -2258,7 +2276,7 @@ loop_clear_screen_memory:
 	ld de,(0afeah)		;b164	ed 5b ea af 	. [ . . 
 	ld hl,(0afe9h)		;b168	2a e9 af 	* . . 
 	call 0aa6bh		;b16b	cd 6b aa 	. k . 
-	call 0aa9ah		;b16e	cd 9a aa 	. . . 
+	call fun_aa9a		;b16e	cd 9a aa 	. . .
 	ret			;b171	c9 	. 
 
 	call 0b08dh		;b172	cd 8d b0 	. . . 
@@ -2305,13 +2323,13 @@ loop_clear_screen_memory:
 	call 0b08dh		;b1c1	cd 8d b0 	. . . 
 	ld a,(0afa7h)		;b1c4	3a a7 af 	: . . 
 	call 0aeb4h		;b1c7	cd b4 ae 	. . . 
-	call 0aa9ah		;b1ca	cd 9a aa 	. . . 
+	call fun_aa9a		;b1ca	cd 9a aa 	. . .
 	ret			;b1cd	c9 	. 
 
 	call 0b08dh		;b1ce	cd 8d b0 	. . . 
 	ld a,(0afa7h)		;b1d1	3a a7 af 	: . . 
 	call 0ae5eh		;b1d4	cd 5e ae 	. ^ . 
-	call 0aa9ah		;b1d7	cd 9a aa 	. . . 
+	call fun_aa9a		;b1d7	cd 9a aa 	. . .
 	ret			;b1da	c9 	. 
 
 	call 0b08dh		;b1db	cd 8d b0 	. . . 
@@ -2334,7 +2352,7 @@ loop_clear_screen_memory:
 	pop de			;b1fc	d1 	. 
 	pop bc			;b1fd	c1 	. 
 	djnz $-9		;b1fe	10 f5 	. . 
-	call 0aa9ah		;b200	cd 9a aa 	. . . 
+	call fun_aa9a		;b200	cd 9a aa 	. . .
 	ret			;b203	c9 	. 
 
 	jp (hl)			;b204	e9 	. 
@@ -2357,7 +2375,7 @@ loop_clear_screen_memory:
 	ret			;b228	c9 	. 
 
 	call 0ad36h		;b229	cd 36 ad 	. 6 . 
-	call 0aa9ah		;b22c	cd 9a aa 	. . . 
+	call fun_aa9a		;b22c	cd 9a aa 	. . .
 	ret			;b22f	c9 	. 
 
 	call 0b08dh		;b230	cd 8d b0 	. . . 
@@ -2381,7 +2399,7 @@ loop_clear_screen_memory:
 
 	call 0ad88h		;b256	cd 88 ad 	. . . 
 	call 0ad97h		;b259	cd 97 ad 	. . . 
-	call 0aa9ah		;b25c	cd 9a aa 	. . . 
+	call fun_aa9a		;b25c	cd 9a aa 	. . .
 	ret			;b25f	c9 	. 
 
 	ld a,c			;b260	79 	y 
@@ -2654,8 +2672,8 @@ vt100_start_screen:
 	
 	defb "Setup!   !Setup!!Simu-!    !Exe- Menu!   !=Sim.!"
 	defb                 "! late!    !cute"
-	    
-	
+
+
 ;; POI-14, something is read in	
 	in a,(020h)		;c2fc	db 20 	.   
 	push af			;c2fe	f5 	. 
@@ -2703,56 +2721,53 @@ vt100_start_screen:
 	ld hl,00001h		;c360	21 01 00 	! . . 
 	ret			;c363	c9 	. 
 
-	rst 38h			;c364	ff 	. 
-	ld bc,08306h		;c365	01 06 83 	. . . 
-	
+term_setup_screen:
+    defb 0ffh
+	;rst 38h			;c364	ff 	.
+
+	defb 001h,006h, 083h
+	;ld bc,08306h		;c365	01 06 83 	. . .
 	defb "Terminal Setup Menu", 000h
 
-	inc bc			;c37c	03 	. 
-	
-	defb 001h, 083h
+	;inc bc			;c37c	03 	.
+	defb 003h, 001h, 083h
 	defb "Data Code", 000h	
 
-	inc b			;c389	04 	. 
-		
-	defb 001h, 083h
+	;inc b			;c389	04 	.
+	defb 004h, 001h, 083h
 	defb "Parity", 000h
 
-	dec b			;c393	05 	. 
-	
-	defb 001h, 083h	
+	;dec b			;c393	05 	.
+	defb 005h, 001h, 083h
 	defb "Bits/sec", 000h
 
-	ex af,af'			;c39f	08 	. 
-	
-	defb 001h, 083h	
+	;ex af,af'			;c39f	08 	.
+	defb 008h, 001h, 083h
 	defb "Handshake", 000h
 	
-	defb 006h
-	defb 001h, 083h	
+	defb 006h, 001h, 083h
 	defb "Mode", 000h
 
-	ld a,(bc)			;c3b4	0a 	. 
-
-	defb 001h, 083h	
+	;ld a,(bc)			;c3b4	0a 	.
+	defb 00ah, 001h, 083h
 	defb "Echo", 000h
 
-	dec bc			;c3bc	0b 	. 
-	
-	defb 001h, 083h	
+	;dec bc			;c3bc	0b 	.
+	defb 00bh, 001h, 083h
 	defb "Bell", 000h
 ; 
-	inc c			;c3c4	0c 	. 
-	
-	defb 001h, 083h	
+	;inc c			;c3c4	0c 	.
+	defb 00ch, 001h, 083h
 	defb "Display Functions", 000h	
 
-	dec c			;c3d9	0d 	. 
-	
-	defb 001h, 083h	
+	;dec c			;c3d9	0d 	.
+	defb 00dh, 001h, 083h
 	defb "Auto LF after CR", 000h
 
-	nop			;c3ed	00 	. 
+    defb 000h
+	;nop			;c3ed	00 	.
+; end of term_setup_screen
+
 	inc bc			;c3ee	03 	. 
 	inc b			;c3ef	04 	. 
 	dec b			;c3f0	05 	. 
