@@ -1725,11 +1725,11 @@ loop_fun_adf7:
 	  set 6,h		;ae06	cb f4 	. .                             ;
 	  set 5,h		;ae08	cb ec 	. .                             ;
 	  ld a,l			;ae0a	7d 	}                               ; a:=l
-	  cp e			;ae0b	bb 	.                                   ; a== reg e ?
-	  jr nz,$-14		;ae0c	20 f0 	  .                         ; if nz, jump back to loop_fun_adf7 (not sure)
+	  cp e			;ae0b	bb 	.                                   ; a== reg e ? (calc "a-e", set z flag according to result)
+	  jr nz,$-14		;ae0c	20 f0 	  .                         ; if nz (a!=e), jump back to loop_fun_adf7 (not sure)
 	 ld a,h			;ae0e	7c 	|                                   ; a:=h
-	 cp d			;ae0f	ba 	.                                   ; a== red d ?
-	 jr nz,$-18		;ae10	20 ec 	  .                             ; if nz, jump back to loop_fun_adf7 (not sure)
+	 cp d			;ae0f	ba 	.                                   ; a== reg d ?
+	 jr nz,$-18		;ae10	20 ec 	  .                             ; if nz (a!=d), jump back to loop_fun_adf7 (not sure)
 	ld a,001h		;ae12	3e 01 	> .                             ; a:=1
 	ld (var_byte_a9c5),a		;ae14	32 c5 a9 	2 . .           ; var_byte_a9c5:=a
 	ret			;ae17	c9 	.
