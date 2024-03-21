@@ -53,11 +53,12 @@ _entryaddr:
     ;; sequence is 02,ba,f7
     defb 002h, 0bah, 0f7h
 
-;; Dynamic link loader data pointer & size (text from lib/splash.asm)
-;; I see only data size entry in the code
+
     org 0a180h
     seek 00180h
-_dyn_linker_data:
+num_fixups:
+    ;; Dynamic link loader data pointer & size (text from lib/splash.asm)
+    ;; I see only "number of patches" entry in the code
     ;defb 061h
     defw (__dll_fixups_end - __dll_fixups) / 6 ; Number of patches
 
@@ -208,9 +209,9 @@ _load_dll_stub:
 	call 02a00h		;a41b	cd 00 2a 	. . * 
 
     ;; 0a190h -> __dll_fixups
-    ;; 0a180h -> _dyn_linker_data
+    ;; 0a180h -> num_fixups
 	ld ix,__dll_fixups		        ;a41e	dd 21 90 a1 	. ! . .
-	ld bc,(_dyn_linker_data)		;a422	ed 4b 80 a1 	. K . .
+	ld bc,(num_fixups)		;a422	ed 4b 80 a1 	. K . .
     ld l,(ix+000h)                  ;
     ld h,(ix+001h)                  ;
     ld e,(hl)                       ; Read L Byte
