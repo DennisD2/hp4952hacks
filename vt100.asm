@@ -235,6 +235,7 @@ _load_dll_stub:
     ret                             ;
 
 ;; Local temp index variable
+;; seems to be read-only.
 _dll_tmp:
 	;nop			;a44b	00 	.
 	defb 000h
