@@ -1719,6 +1719,7 @@ clear_screen_memory:
 	ld de,(var_word_a9bb)		;adfa	ed 5b bb a9 	. [ . .     ; de:= ...
 loop_clear_screen_memory:
 	  ld (hl),020h		;adfe	36 20 	6                           ; (h1):=20h, a SPACE
+	  ;ld (hl),07eh ; tilde
 	  inc l			;ae00	2c 	,                                   ; l++
 	  ld (hl),083h		;ae01	36 83 	6 .                         ; (h1):=83, normal text attribute
 	  inc hl			;ae03	23 	#                               ; hl++
@@ -2392,49 +2393,53 @@ loop_clear_screen_memory:
 	org 0c000h
 	seek 02000h
 
-	;; "VT 100 Emulator"
-	rst 38h			;c000	ff 	. 
-	inc b			;c001	04 	. 
-	add hl,bc			;c002	09 	. 
-	xor e			;c003	ab 	. 
-	
-	defb "VT100  Emulator"
+;_splash_screen_data: ?? see lib/splash.asm
+	;rst 38h			;c000	ff 	.
+    defb 0ffh
 
-	nop			;c013	00 	. 
-	dec b			;c014	05 	. 
-	dec bc			;c015	0b 	. 
-	add a,e			;c016	83 	. 
-	
-	defb "Rev A.00.03"
-	
+	;inc b			;c001	04 	.
+	;add hl,bc			;c002	09 	.
+	;xor e			;c003	ab 	.
+    defb 004h, 009h, 0abh
+	defb "VT100  Emulator", 000h
+
+	;dec b			;c014	05 	.
+	;dec bc			;c015	0b 	.
+	;add a,e			;c016	83 	.
+	defb 005h, 00bh, 083h
+	defb "Rev A.00.03", 000h
+	;nop			;c022	00 	.
+
 ;; "Copyright 1989 Hewlett-Packard Company for the HP4952"
-	nop			;c022	00 	. 
-	rlca			;c023	07 	. 
-	add hl,bc			;c024	09 	. 
-	add a,e			;c025	83 	. 
-	xor e			;c026	ab 	. 
-	
+    defb 007h, 009h, 083h
+	;rlca			;c023	07 	.
+	;add hl,bc			;c024	09 	.
+	;add a,e			;c025	83 	.
+	;xor e			;c026	ab 	.
+	defb 0abh ; seems copyright (c) char, stange is official 0xa9
 	defb " Copyright 1989", 000h
 
-	ex af,af'			;c037	08 	. 
-	dec b			;c038	05 	. 
-	add a,e			;c039	83 	. 
-	
+    defb 008h, 005h, 083h
+	;ex af,af'			;c037	08 	.
+	;dec b			;c038	05 	.
+	;add a,e			;c039	83 	.
 	defb "Hewlett-Packard Company", 000h
- 
-	dec bc			;c052	0b 	. 
-	add hl,bc			;c053	09 	. 
-	add a,e			;c054	83 	. 
-	
-	defb "for the HP 495"
 
-	ld (00c00h),a		;c063	32 00 0c 	2 . . 
-	ex af,af'			;c066	08 	. 
-	add a,e			;c067	83 	. 
-	
+    defb 00bh, 009h, 083h
+	;dec bc			;c052	0b 	.
+	;add hl,bc			;c053	09 	.
+	;add a,e			;c054	83 	.
+	;ld (00c00h),a		;c063	32 00 0c 	2 . .
+	defb "for the HP 4952", 000h
+
+	defb 00ch, 008h, 083h
+	;ex af,af'			;c066	08 	.
+	;add a,e			;c067	83 	.
 	defb "Protocol Analyzer", 000h
 
-	nop			;c07a	00 	. 
+    defb 000h
+	;nop			;c07a	00 	.
+
 	adc a,e			;c07b	8b 	. 
 	ld hl,(00000h)		;c07c	2a 00 00 	* . . 
 	nop			;c07f	00 	. 
@@ -2534,11 +2539,14 @@ loop_clear_screen_memory:
 	;;jr nz,$+34		;c11e	20 20 	    
 	;;ld sp,03030h		;c120	31 30 30 	1 0 0 
 	defb "VT-  100"
-	
+
+	; (0761d) := 2a00
 	ld hl,02a00h		;c123	21 00 2a 	! . * 
-	ld (0761dh),hl		;c126	22 1d 76 	" . v 
+	ld (0761dh),hl		;c126	22 1d 76 	" . v ; Screen Paint Script Location, see lib/strap.asm
+	; (0761f) := 2a7b
 	ld hl,02a7bh		;c129	21 7b 2a 	! { * 
-	ld (0761fh),hl		;c12c	22 1f 76 	" . v 
+	ld (0761fh),hl		;c12c	22 1f 76 	" . v
+	; (07624) := 2a7b
 	ld (07624h),hl		;c12f	22 24 76 	" $ v 
 	ld a,(_tmp_page)		;c132	3a 96 a4 	: . .
 	call 00e60h		;c135	cd 60 0e 	. ` . ; Patched to 02d02h
