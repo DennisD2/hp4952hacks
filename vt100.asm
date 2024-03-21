@@ -1712,10 +1712,10 @@ fun_add6:
 ;;
 fun_adf7:
     ; adf7 -> fun_adf7
-    ; var_word_a9bd -> hl seems to be some start value for loop
-	ld hl,(var_word_a9bd)		;adf7	2a bd a9 	* . .           ; hl:=...
-	; var_word_a9bd -> de seems to be some end value for loop
-	ld de,(var_word_a9bb)		;adfa	ed 5b bb a9 	. [ . .     ; de:=...
+    ; var_word_a9bd -> hl seems to be some start value for loop (but initially, it is e800)
+	ld hl,(var_word_a9bd)		;adf7	2a bd a9 	* . .           ; hl:= ...
+	; var_word_a9bb -> de seems to be some end value for loop (but initially, it is e000)
+	ld de,(var_word_a9bb)		;adfa	ed 5b bb a9 	. [ . .     ; de:= ...
 loop_fun_adf7:
 	  ld (hl),020h		;adfe	36 20 	6                           ; (h1):=20h, a SPACE
 	  inc l			;ae00	2c 	,                                   ; l++
@@ -1725,10 +1725,10 @@ loop_fun_adf7:
 	  set 6,h		;ae06	cb f4 	. .                             ;
 	  set 5,h		;ae08	cb ec 	. .                             ;
 	  ld a,l			;ae0a	7d 	}                               ; a:=l
-	  cp e			;ae0b	bb 	.                                   ; a==e ?
+	  cp e			;ae0b	bb 	.                                   ; a== reg e ?
 	  jr nz,$-14		;ae0c	20 f0 	  .                         ; if nz, jump back to loop_fun_adf7 (not sure)
 	 ld a,h			;ae0e	7c 	|                                   ; a:=h
-	 cp d			;ae0f	ba 	.                                   ; a==d ?
+	 cp d			;ae0f	ba 	.                                   ; a== red d ?
 	 jr nz,$-18		;ae10	20 ec 	  .                             ; if nz, jump back to loop_fun_adf7 (not sure)
 	ld a,001h		;ae12	3e 01 	> .                             ; a:=1
 	ld (var_byte_a9c5),a		;ae14	32 c5 a9 	2 . .           ; var_byte_a9c5:=a
