@@ -968,29 +968,15 @@ __init:
 	ret			;a9ba	c9 	. 
 
 var_word_a9bb:
-    ; var_word_a9bb -> var_byte_var_word_a9bb
-    ;defb 000h
-	;nop			;var_word_a9bb	00 	.
-
-    ; next byte seems not to be used
-    ; i just define it to keep it equal to original
+    ; a9bb -> var_byte_var_word_a9bb
+	;nop			;a9bb	00 	.
     ;ret po			;a9bc	e0 	.
-    ;defb 0e0h
-
-    ; update: looks like a word, not two bytes
     defw 0e000h
 
 var_word_a9bd:
     ; a9bd -> var_word_a9bd
-    ;defb 000h
 	;nop			;a9bd	00 	.
-
-    ; next byte seems not to be used
-    ; i just define it to keep it equal to original
     ;ret pe			;a9be	e8 	.
-    ;defb 0e8h
-
-    ; update: looks like a word, not two bytes
     defw 0e800h
 
 var_byte_a9bf:
