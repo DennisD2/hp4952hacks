@@ -977,15 +977,18 @@ var_byte_a9bb:
     ;ret po			;a9bc	e0 	.
     defb 0e0h
 
-var_byte_a9bd:
-    ; a9bd -> var_byte_a9bd
-    defb 000h
+var_word_a9bb:
+    ; a9bd -> var_word_a9bb
+    ;defb 000h
 	;nop			;a9bd	00 	.
 
     ; next byte seems not to be used
     ; i just define it to keep it equal to original
     ;ret pe			;a9be	e8 	.
-    defb 0e8h
+    ;defb 0e8h
+
+    ;; update: looks like a word, not two bytes
+    defw 0e800h
 
 var_byte_a9bf:
     ; a9bf -> var_byte_a9bf
@@ -1165,7 +1168,7 @@ var_byte_aa99:
 	ld h,000h		;aaa4	26 00 	& .
 	add hl,hl			;aaa6	29 	)
 	add hl,de			;aaa7	19 	.
-	ld (var_byte_a9bd),hl		;aaa8	22 bd a9 	" . .
+	ld (var_word_a9bb),hl		;aaa8	22 bd a9 	" . .
 	ld l,000h		;aaab	2e 00 	. .
 	cp 020h		;aaad	fe 20 	.
 	jr c,$+7		;aaaf	38 05 	8 .
@@ -1581,7 +1584,7 @@ var_byte_aa99:
 	push bc			;ad00	c5 	.
 	call 0a95eh		;ad01	cd 5e a9 	. ^ .
 	pop bc			;ad04	c1 	.
-	ld hl,(var_byte_a9bd)		;ad05	2a bd a9 	* . .
+	ld hl,(var_word_a9bb)		;ad05	2a bd a9 	* . .
 	ld (hl),c			;ad08	71 	q
 	inc l			;ad09	2c 	,
 	ld a,(var_byte_a9c6)		;ad0a	3a c6 a9 	: . .
@@ -1599,13 +1602,13 @@ var_byte_aa99:
 
 	dec a			;ad1f	3d 	=
 	ld (var_byte_a9bf),a		;ad20	32 bf a9 	2 . .
-	ld hl,(var_byte_a9bd)		;ad23	2a bd a9 	* . .
+	ld hl,(var_word_a9bb)		;ad23	2a bd a9 	* . .
 	ld de,0ff00h		;ad26	11 00 ff 	. . .
 	add hl,de			;ad29	19 	.
 	set 7,h		;ad2a	cb fc 	. .
 	set 6,h		;ad2c	cb f4 	. .
 	set 5,h		;ad2e	cb ec 	. .
-	ld (var_byte_a9bd),hl		;ad30	22 bd a9 	" . .
+	ld (var_word_a9bb),hl		;ad30	22 bd a9 	" . .
 	or 0ffh		;ad33	f6 ff 	. .
 	ret			;ad35	c9 	.
 
@@ -1631,7 +1634,7 @@ var_byte_aa99:
 	call 0ad97h		;ad59	cd 97 ad 	. . .
 	ret			;ad5c	c9 	.
 
-	ld hl,(var_byte_a9bd)		;ad5d	2a bd a9 	* . .
+	ld hl,(var_word_a9bb)		;ad5d	2a bd a9 	* . .
 	ld a,(var_byte_a9c0)		;ad60	3a c0 a9 	: . .
 	scf			;ad63	37 	7
 	sbc a,000h		;ad64	de 00 	. .
@@ -1640,7 +1643,7 @@ var_byte_aa99:
 	ld (var_byte_a9c0),a		;ad67	32 c0 a9 	2 . .
 	dec l			;ad6a	2d 	-
 	dec l			;ad6b	2d 	-
-	ld (var_byte_a9bd),hl		;ad6c	22 bd a9 	" . .
+	ld (var_word_a9bb),hl		;ad6c	22 bd a9 	" . .
 	ret			;ad6f	c9 	.
 
 	ld a,(var_byte_a9c0)		;ad70	3a c0 a9 	: . .
@@ -1648,10 +1651,10 @@ var_byte_aa99:
 	cp 080h		;ad74	fe 80 	. .
 	jr nc,$+16		;ad76	30 0e 	0 .
 	ld (var_byte_a9c0),a		;ad78	32 c0 a9 	2 . .
-	ld hl,(var_byte_a9bd)		;ad7b	2a bd a9 	* . .
+	ld hl,(var_word_a9bb)		;ad7b	2a bd a9 	* . .
 	inc l			;ad7e	2c 	,
 	inc l			;ad7f	2c 	,
-	ld (var_byte_a9bd),hl		;ad80	22 bd a9 	" . .
+	ld (var_word_a9bb),hl		;ad80	22 bd a9 	" . .
 	or 0ffh		;ad83	f6 ff 	. .
 	ret			;ad85	c9 	.
 
@@ -1660,20 +1663,20 @@ var_byte_aa99:
 
 	xor a			;ad88	af 	.
 	ld (var_byte_a9c0),a		;ad89	32 c0 a9 	2 . .
-	ld hl,(var_byte_a9bd)		;ad8c	2a bd a9 	* . .
+	ld hl,(var_word_a9bb)		;ad8c	2a bd a9 	* . .
 	ld a,l			;ad8f	7d 	}
 	and 000h		;ad90	e6 00 	. .
 	ld l,a			;ad92	6f 	o
-	ld (var_byte_a9bd),hl		;ad93	22 bd a9 	" . .
+	ld (var_word_a9bb),hl		;ad93	22 bd a9 	" . .
 	ret			;ad96	c9 	.
 
-	ld hl,(var_byte_a9bd)		;ad97	2a bd a9 	* . .
+	ld hl,(var_word_a9bb)		;ad97	2a bd a9 	* . .
 	ld de,00100h		;ad9a	11 00 01 	. . .
 	add hl,de			;ad9d	19 	.
 	set 7,h		;ad9e	cb fc 	. .
 	set 6,h		;ada0	cb f4 	. .
 	set 5,h		;ada2	cb ec 	. .
-	ld (var_byte_a9bd),hl		;ada4	22 bd a9 	" . .
+	ld (var_word_a9bb),hl		;ada4	22 bd a9 	" . .
 	ld a,(var_byte_a9bf)		;ada7	3a bf a9 	: . .
 	inc a			;adaa	3c 	<
 	cp 020h		;adab	fe 20 	.
@@ -1708,7 +1711,7 @@ fun_add6:
 	ld (var_byte_a9c4),a		;addb	32 c4 a9 	2 . .           ;
 	ld l,a			;adde	6f 	o                                   ;
 	call 0ace8h		;addf	cd e8 ac 	. . .
-	ld (var_byte_a9bd),de		;ade2	ed 53 bd a9 	. S . .
+	ld (var_word_a9bb),de		;ade2	ed 53 bd a9 	. S . .
 	ld (var_byte_a9c2),de		;ade6	ed 53 c2 a9 	. S . .
 	xor a			;adea	af 	.
 	ld (var_byte_a9c0),a		;adeb	32 c0 a9 	2 . .
@@ -1723,9 +1726,9 @@ fun_add6:
 ;;
 fun_adf7:
     ; adf7 -> fun_adf7
-    ; var_byte_a9bd -> hl seems to be some start value for loop
-	ld hl,(var_byte_a9bd)		;adf7	2a bd a9 	* . .           ; hl:=...
-	; var_byte_a9bd -> de seems to be some end value for loop
+    ; var_word_a9bb -> hl seems to be some start value for loop
+	ld hl,(var_word_a9bb)		;adf7	2a bd a9 	* . .           ; hl:=...
+	; var_word_a9bb -> de seems to be some end value for loop
 	ld de,(var_byte_a9bb)		;adfa	ed 5b bb a9 	. [ . .     ; de:=...
 loop_fun_adf7:
 	  ld (hl),020h		;adfe	36 20 	6                           ; (h1):=20h, a SPACE
@@ -1769,7 +1772,7 @@ loop_fun_adf7:
 ;; call ace8 = POI-13
 	call 0ace8h		;ae29	cd e8 ac 	. . .
 ;; (a9bd):=de
-	ld (var_byte_a9bd),de		;ae2c	ed 53 bd a9 	. S . .
+	ld (var_word_a9bb),de		;ae2c	ed 53 bd a9 	. S . .
 
 	xor a			;ae30	af 	.
 ;; a9c0:=a
@@ -1792,7 +1795,7 @@ loop_fun_adf7:
 	ld (var_byte_a9bf),a		;ae47	32 bf a9 	2 . .
 	ld l,a			;ae4a	6f 	o
 	call 0ace8h		;ae4b	cd e8 ac 	. . .
-	ld (var_byte_a9bd),de		;ae4e	ed 53 bd a9 	. S . .
+	ld (var_word_a9bb),de		;ae4e	ed 53 bd a9 	. S . .
 	xor a			;ae52	af 	.
 	ld (var_byte_a9c0),a		;ae53	32 c0 a9 	2 . .
 	ld (var_byte_a9c1),a		;ae56	32 c1 a9 	2 . .
@@ -1805,8 +1808,8 @@ loop_fun_adf7:
 	jr z,$+6		;ae60	28 04 	( . 
 	cp 030h		;ae62	fe 30 	. 0 
 	jr nz,$+26		;ae64	20 18 	  . 
-	ld hl,(var_byte_a9bd)		;ae66	2a bd a9 	* . . 
-	ld de,(var_byte_a9bd)		;ae69	ed 5b bd a9 	. [ . . 
+	ld hl,(var_word_a9bb)		;ae66	2a bd a9 	* . . 
+	ld de,(var_word_a9bb)		;ae69	ed 5b bd a9 	. [ . . 
 	ld bc,00100h		;ae6d	01 00 01 	. . . 
 	add hl,bc			;ae70	09 	. 
 	ld l,000h		;ae71	2e 00 	. . 
@@ -1820,14 +1823,14 @@ loop_fun_adf7:
 ;; '1' handling
 	cp 031h		;ae7e	fe 31 	. 1 
 	jr nz,$+23		;ae80	20 15 	  . 
-	ld hl,(var_byte_a9bd)		;ae82	2a bd a9 	* . . 
+	ld hl,(var_word_a9bb)		;ae82	2a bd a9 	* . . 
 	inc hl			;ae85	23 	# 
 	inc hl			;ae86	23 	# 
 	set 7,h		;ae87	cb fc 	. . 
 	set 6,h		;ae89	cb f4 	. . 
 	set 5,h		;ae8b	cb ec 	. . 
 	ex de,hl			;ae8d	eb 	. 
-	ld hl,(var_byte_a9bd)		;ae8e	2a bd a9 	* . . 
+	ld hl,(var_word_a9bb)		;ae8e	2a bd a9 	* . . 
 	ld l,000h		;ae91	2e 00 	. . 
 	call 0adfeh		;ae93	cd fe ad 	. . . 
 	ret			;ae96	c9 	. 
@@ -1836,8 +1839,8 @@ loop_fun_adf7:
 	cp 032h		;ae97	fe 32 	. 2 
 	ret nz			;ae99	c0 	. 
 
-	ld hl,(var_byte_a9bd)		;ae9a	2a bd a9 	* . . 
-	ld de,(var_byte_a9bd)		;ae9d	ed 5b bd a9 	. [ . . 
+	ld hl,(var_word_a9bb)		;ae9a	2a bd a9 	* . . 
+	ld de,(var_word_a9bb)		;ae9d	ed 5b bd a9 	. [ . . 
 	ld bc,00100h		;aea1	01 00 01 	. . . 
 	add hl,bc			;aea4	09 	. 
 	ld l,000h		;aea5	2e 00 	. . 
@@ -1860,7 +1863,7 @@ loop_fun_adf7:
 ;; again, '1' handling???	
 	cp 031h		;aec0	fe 31 	. 1 
 	jr nz,$+21		;aec2	20 13 	  . 
-	ld hl,(var_byte_a9bd)		;aec4	2a bd a9 	* . . 
+	ld hl,(var_word_a9bb)		;aec4	2a bd a9 	* . . 
 	inc hl			;aec7	23 	# 
 	inc hl			;aec8	23 	# 
 	set 7,h		;aec9	cb fc 	. . 
@@ -1875,8 +1878,8 @@ loop_fun_adf7:
 	cp 032h		;aed7	fe 32 	. 2 
 	ret nz			;aed9	c0 	. 
 
-	ld hl,(var_byte_a9bd)		;aeda	2a bd a9 	* . . 
-	ld de,(var_byte_a9bd)		;aedd	ed 5b bd a9 	. [ . . 
+	ld hl,(var_word_a9bb)		;aeda	2a bd a9 	* . . 
+	ld de,(var_word_a9bb)		;aedd	ed 5b bd a9 	. [ . . 
 	call 0adfeh		;aee1	cd fe ad 	. . . 
 	ret			;aee4	c9 	. 
 
