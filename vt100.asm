@@ -3047,11 +3047,10 @@ term_setup_screen:
 	jr nc,$-74		;c633	30 b4 	0 . 
 	jr nc,$-60		;c635	30 c2 	0 . 
 	jr nc,$-46		;c637	30 d0 	0 . 
-	jr nc,$-32		;c639	30 de 	0 . 
-	jr nc,$+53		;c63b	30 33 	0 3 
-	jr c,$+54		;c63d	38 34 	8 4 
-	jr nc,$+50		;c63f	30 30 	0 0 
+	jr nc,$-32		;c639	30 de 	0 .
+    defb "0"
 
+    defb "38400"
 	defb "!200!600!!!1800!!3200!3600"
 
 	ld a,(hl)			;c65b	7e 	~ 
