@@ -5,9 +5,11 @@
 	.org 0x180
 
     .globl la246h
+    .globl __dll_fixups_end
 
     ;; Dynamic link loader data pointer & size
-; TODO POI002
+; TODO POI002 - Error: <r> Arg1 - Arg2, Arg2 must be in same area.
+; see strap6
 ;.word (#__dll_fixups_end - #__dll_fixups) / 6 ; Number of patches
 .word 0x0000
 
@@ -15,21 +17,17 @@
     .globl _dll_tmp
     .globl _dll_stub
 
-; TODO POI003
-.word 0x0000
-;.word #__dll_fixups			; Location of patches
+    .word #__dll_fixups			; Location of patches
 
 __init:
 	di				; Disable Interrupts
 	call _load_dll_stub		; Call our dynamic linker
 
-; TODO POI004
-ld de,#0x0000
-;ld de,#_splash_start		;
+    ld de,#_splash_start		;
 
 	ld hl,#0xa800			; Load menu data & stubs
 
-; TODO POI005
+; TODO POI005 - Error: <r> Arg1 - Arg2, Arg2 must be in same area.
 ld bc,#0x0000
 ;ld bc,#_splash_end-#_splash_start	;
 
@@ -40,11 +38,9 @@ ld bc,#0x0000
 
 __0a196h:
 	ld hl,#0xa800			;
-; TODO POI006
-ld de,#0x0000
-;ld de,#_splash_start		; Load menu data & stubs again?
+    ld de,#_splash_start		; Load menu data & stubs again?
 
-; TODO POI007
+; TODO POI007 - Error: <r> Arg1 - Arg2, Arg2 must be in same area.
 ld bc,#0x0000
 ;ld bc,#_splash_end-#_splash_start	;
 	ldir				;
@@ -63,7 +59,7 @@ __0a1b3h:
 	ld hl,#0xa800			;
     ld de,#_splash_start		; Load menu data & stubs again?
 
-; TODO POI009
+; TODO POI009 - Error: <r> Arg1 - Arg2, Arg2 must be in same area.
 ld bc,#0x0000
 ;ld bc,#_splash_end-#_splash_start	;
 	ldir				;

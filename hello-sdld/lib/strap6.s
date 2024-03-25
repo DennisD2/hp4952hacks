@@ -7,7 +7,7 @@
 	.globl __dll_fixups
     .globl __dll_fixups_end
 
-__dll_fixups:
+__dll_fixups::
 	.word 0x2d32, 0x0000, 0x0a801
 	.word 0x2e6e, 0x0000, 0x0a804
 	.word 0x2d4a, 0x0000, 0x0a807
@@ -28,4 +28,4 @@ __dll_fixups:
 	.word 0x2e54, 0x0000, 0x0a1c8
 	.word 0x2ece, 0x0004, 0x0a1cb
 	.word 0x2ece, 0x0000, 0x0a1ce
-__dll_fixups_end:
+__dll_fixups_end::

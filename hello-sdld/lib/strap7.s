@@ -46,9 +46,11 @@ l20x32:
 	ld a,#0x02			; Load Page 2 (10046 ROM)
 	call 0x0e60			;
 	ld hl,#_splash_screen_data	;
+
 ; TODO POI011
 ld (0x761d),a
-;	ld (0x761d),l			; Screen Paint Script Location
+;ld (0x761d),l			; Screen Paint Script Location
+
 	ld hl,(0x761f)			; Copy main menu pointers
 	ld de,#_p_main_menu_page_one	; over the first page menu
 	ld (0x761f),de			; pointers in our table
