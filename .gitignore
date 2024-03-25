@@ -1,2 +1,6 @@
 /.idea/
 /vt100c.app
+/hello.app
+/keyboard.app
+/hello.dasm
+/keyboard.dasm
