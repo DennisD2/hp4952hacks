@@ -77,7 +77,7 @@ _launch_app::
 	ldir				;
 	jp _main_entry			; Run the application
 
-_splash_end:
+_splash_end::
 ;; End of menu section
 
     .area APP (ABS)

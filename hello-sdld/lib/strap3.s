@@ -28,13 +28,21 @@ __init:
 	ld hl,#0xa800			; Load menu data & stubs
 
 ; TODO POI005 - Error: <r> Arg1 - Arg2, Arg2 must be in same area.
-ld bc,#0x0000
-;ld bc,#_splash_end-#_splash_start	;
+; Solution: if linker cannot calculate "end-start" expression,
+; we do it with 16bit subtraction during runtime.
+push hl
+ld hl,#_splash_end
+ld bc,#_splash_start
+sbc hl,bc
+ld b,h
+ld c,l
+pop hl
+;REPLACED LINE: ld bc,#_splash_end-#_splash_start	;
 
 	ldir				;
 
-;	jp _launch_app			; Use this to make an autostart
-	jp _splash_start		; Run main menu stub
+	jp _launch_app			; Use this to make an autostart
+;	jp _splash_start		; Run main menu stub
 
 __0a196h:
 	ld hl,#0xa800			;

@@ -31,8 +31,8 @@ __init:
 	ldir				;
 
 
-;	jp _launch_app			; Use this to make an autostart
-	jp _splash_start		; Run main menu stub
+	jp _launch_app			; Use this to make an autostart
+;	jp _splash_start		; Run main menu stub
 
 __0a196h:
 	ld hl,0a800h			;
