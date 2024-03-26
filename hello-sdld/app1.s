@@ -1,16 +1,8 @@
     .area APP (ABS)
     ;; splash screen and menu startup code and data
     .module app_launch
-	;.org 0x2071
+	.org 0x2071
 	;seek 00871h
-	; TODO POI022 - I do not understand whats happening in original.
-	; there, _dll_stub is located at and behind 0x800, due to seek 0x800
-	; with SDCC, there is no seek and so a ".org 0x2000" would put the ocde to 0x2000
-	; Currently I just define .org to 0x800 to have the bytes at correct place.
-	; it this is copied later and then has wrong addresses somehow, how to solve?
-	;.org 0x871
-    ;.org 0xa871
-    .org 0x2071
 
     .globl _code_start
     .globl _code_end
@@ -19,7 +11,6 @@
 
     ; repeat from screen.s
     _scrattr_ascii_n	.equ 0x83
-
 
 _splash_screen_data::
 	.db 0xff
@@ -95,7 +86,7 @@ _splash_end::
     .ds 0xba
 	.db 0x00
 ;-----
-; TODO wrong labels
+; TODO - wrong labels
 _code_start:
 _code_end:
 _main_entry:

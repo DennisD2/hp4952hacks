@@ -1,34 +1,36 @@
     .area APPHEADER (ABS)
     .module header
-        .org 0xa000
-        ;.org 0x0
+    .org 0xa000
+    ;.org 0x0
 
-        .globl _splash_start
-        .globl _file_end
-        .globl _launch_app
+    .globl _splash_start
+    .globl _file_end
+    .globl _launch_app
+    .globl la246h
+    .globl __dll_fixups_end
+    .globl __init
+    .globl _dll_tmp
+    .globl _dll_stub
 
 _file_start::
     .ascii "4952 Protocol Analyzer"
 __end1:
-        ;.area APPHEADER1
-        ;.org 0xa016
-        ;.org 0x0016
+    ;.org 0xa016
+    ;.org 0x0016
 
 	.word 0x03c4
 	.word 0x800
 
-        ;.area APPHEADER2 (ABS)
-        ;.org 0xa01a
-        ;.org 0x001a
+    ;.org 0xa01a
+    ;.org 0x001a
 
 	.ascii "4952 Hacking the 4952           "
 
-        ;.area APPHEADER3 (ABS)
-        ;.org 0xa102
-        ;.org 0x0102
+    ;.org 0xa102
+    ;.org 0x0102
 
-        ; fill space because we cannot move pc
-        .ds 0xc8
+    ; fill space because we cannot move pc
+    .ds 0xc8
 
 	.globl _file_start
     .globl _file_end
@@ -51,8 +53,7 @@ _fileflags:
     ; fill space because we cannot move pc
     .ds 0x7
 
-    ;.area STRAP0 (ABS)
-    ;.module strap0_entrypoint_loc
+    ;------------------------------------------- STRAP0 ---------------------------------
     ;; Entry Point
 	;.org 0xa147
 	;.org 0x147
@@ -63,8 +64,7 @@ _fileflags:
 _entryaddr:
 	.word #__init
 
-    ;.area STRAP1 (ABS)
-    ;.module strap1_launch_app_loc
+    ;------------------------------------------- STRAP1 ---------------------------------
     ;; Main Application
 	;.org 0xa150
 	;.org 0x150
@@ -72,38 +72,25 @@ _entryaddr:
     ; fill space because we cannot move pc
     .ds 0x6
 
-	.globl _launch_app
-
 	.word #_launch_app
 
-    ;.area STRAP2 (ABS)
-    ;.module strap2_unknown
+    ;------------------------------------------- STRAP2 ---------------------------------
     ;; ???
 	;.org 0xa17e
 	;.org 0x17e
-
 
     ; fill space because we cannot move pc
     .ds 0x2c
 
 	.word #0xf958
 
-;------------------------------------------- STRAP3 ---------------------------------
-    ;.area STRAP3 (ABS)
-    ;.module strap3_load_dll_stub
+    ;------------------------------------------- STRAP3 ---------------------------------
     ;; _load_dll_stub function
 	;.org 0xa180
 	;.org 0x180
 
-    .globl la246h
-    .globl __dll_fixups_end
-
     ;; Dynamic link loader data pointer & size
     .word (#__dll_fixups_end - #__dll_fixups) / 6 ; Number of patches
-
-    .globl __init
-    .globl _dll_tmp
-    .globl _dll_stub
 
     .word #__dll_fixups			; Location of patches
 
@@ -117,7 +104,7 @@ __init:
 
 ; TODO POI005 - Error: <r> Arg1 - Arg2, Arg2 must be in same area.
 ; Solution: if linker cannot calculate "end-start" expression,
-; we do it with 16bit subtraction during runtime.
+    ; we could do it with 16bit subtraction during runtime.
         ;push hl
         ;ld hl,#_splash_end
         ;lld bc,#_splash_start
@@ -125,11 +112,13 @@ __init:
         ;lld b,h
         ;lld c,l
         ;lpop hl
+    ; but this code overlaps next code part...
 ;REPLACED LINE: ld bc,#_splash_end-#_splash_start	;
 ld bc,#0x0
 
 	ldir				;
 
+; call app directly or via menu function/splash
 	jp _launch_app			; Use this to make an autostart
 ;	jp _splash_start		; Run main menu stub
 
@@ -178,7 +167,6 @@ ld bc,#0x0000
 ;; ROM vector table into RAM and fixes up all the stubbed
 ;; ROM references in the executable
 
-
 ;; Load and execute ordinal patching stub from a safe location
 _load_dll_stub:
 	ld hl,#0xa210			;
@@ -216,21 +204,11 @@ _load_dll_stub:
 _dll_tmp:
 	.db 0x00
 
-
 ;------------------------------------------- STRAP4 ---------------------------------
-    ;.area STRAP4 (ABS)
-    ;.module strap4_dll_stub
     ;; _dll_stub function
 ;; 54 Bytes - Relocated at runtime to 0x2a00 and executed
 	;.org 0x2a00
 	;seek 00210h
-	; TODO POI020 - I do not understand whats happening in original.
-	; there, _dll_stub is located at and behind 0x210, due to seek 0x210
-	; with SDCC, there is no seek and so a ".org 0x2a00" would put the ocde to 0x2a00
-	; Currently I just define .org to 0x210 to have the bytes at correct place.
-	; it this is copied later and then has wrong addresses somehow, how to solve?
-    ;.org 0x210
-    ;.org 0xa210
 
 _dll_stub::
 	ld a,#0x04			; Access Page 4 - 10046 ROM Lower Page
@@ -262,10 +240,6 @@ _dll_stub::
 	ret				    ;
 
 ;------------------------------------------- STRAP5 ---------------------------------
-
-    ;.area STRAP5 (ABS)
-    ;.module strap5_la246h
-    ; la246h function
 	;.org 0xa246
 	;.org 0x246
 
@@ -285,10 +259,6 @@ la246h::
 	ret				    ;
 
 ;------------------------------------------- STRAP6 ---------------------------------
-
-    ;.area STRAP6 (ABS)
-    ;.module strap6_dll_fixups-table
-    ;; __dll_fixups table
 	;.org 0xa25a
 	;.org 0x25a
 
@@ -321,7 +291,7 @@ __dll_fixups_end::
 	.ds 0x533
 	.db 0x00
 
-;; TODO all three are wrong...
+; TODO - wrong labels
 _splash_start:
 _file_end:
 _launch_app:

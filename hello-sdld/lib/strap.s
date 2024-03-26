@@ -2,17 +2,8 @@
     .module strap
     ;; _splash_start function
     ;; Relocated at runtime from 0xa800 to 02000
-	;.org 0x2000
-	;seek 00800h
-	; TODO POI021 - I do not understand whats happening in original.
-	; there, _dll_stub is located at and behind 0x800, due to seek 0x800
-	; with SDCC, there is no seek and so a ".org 0x2000" would put the code to 0x2000
-	; Currently I just define .org to 0x800 to have the bytes at correct place.
-	; it this is copied later and then has wrong addresses somehow, how to solve?
-	.org 0x800
-	;.org 0xa800
-
 	.org 0x2000
+	;seek 00800h
 
 	.globl _splash_screen_data
 	.globl _p_mm_launch_app

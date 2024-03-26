@@ -1,15 +1,9 @@
     .area APP (ABS)
     ;; Main Application
     .module app_main
-	;.org 0x2200
-	;seek 0xa00
-	; TODO POI023 - I do not understand whats happening in original.
-	; there, _dll_stub is located at and behind 0x800, due to seek 0x800
-	; with SDCC, there is no seek and so a ".org 0x2000" would put the ocde to 0x2000
-	; Currently I just define .org to 0x800 to have the bytes at correct place.
-	; it this is copied later and then has wrong addresses somehow, how to solve?
-	;.org 0xa00
 	.org 0x2200
+	;seek 0xa00
+
 _code_start:
 
 _str_hello1:
@@ -89,7 +83,6 @@ _code_end:
 
 ;; End of Main Application
 
-; TODO below
 ;; Fill to end of file
 	;.org 0x10ff
 	;.org 0xb0ff
