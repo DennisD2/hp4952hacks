@@ -4,8 +4,6 @@ hello:
 	sdasz80 -losgff -o hello.s
 	sdasz80 -losgff -o lib/header.s
 	sdasz80 -losgff -o lib/strap0.s
-	sdasz80 -losgff -o lib/strap1.s
-	sdasz80 -losgff -o lib/strap2.s
 	sdasz80 -losgff -o lib/strap3.s
 	sdasz80 -losgff -o lib/strap4.s
 	sdasz80 -losgff -o lib/strap5.s
@@ -16,7 +14,7 @@ hello:
 link:
 	sdld -z -i hello.ihx hello.rel \
 		lib/header.rel \
-		lib/strap0.rel lib/strap1.rel lib/strap2.rel lib/strap3.rel lib/strap4.rel lib/strap5.rel \
+		lib/strap0.rel lib/strap3.rel lib/strap4.rel lib/strap5.rel \
 		lib/strap6.rel lib/strap7.rel
 
 #			-mz80 -Wl -y --code-loc 0xa000  \ ;--data-loc 0xb000
