@@ -32,13 +32,17 @@ binary:
 			hex2bin  app1.ihx
 			hex2bin  app2.ihx
 
+			cat header.bin strap.bin app1.bin app2.bin >hello.bin
+
 			#z80dasm -t -a -g 0xa000 hello.bin -o hello.dasm
 			z80dasm -t -a -g 0x0  header.bin -o header.dasm
 			z80dasm -t -a -g 0x800  strap.bin -o strap.dasm
 			z80dasm -t -a -g 0x871  app1.bin -o app1.dasm
 			z80dasm -t -a -g 0xa00  app2.bin -o app2.dasm
+			z80dasm -t -a -g 0xa000  hello.bin -o hellocat.dasm
 			#cmp header.bin header.bin.0
 			#cmp header.bin hello-orig.app
+
 
 # hello in original z80 assembler style understood by z80asm
 # created files: app binary for HP4952A and the app dissasembled back

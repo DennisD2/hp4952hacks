@@ -5,6 +5,7 @@
 *.rel
 *.sym
 *.ihx
+*.bin
 /sdcc/
 /ignore/
 /details/
