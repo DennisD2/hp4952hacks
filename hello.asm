@@ -79,9 +79,6 @@ _code_start:
 _str_hello1:
 	defb "Hello World 1", 000h
 
-_str_hello2:
-	defb "Hello World 2", 000h
-
 _str_exit:
 	defb "Are you sure you wish to exit?", 000h
 
@@ -108,16 +105,6 @@ _main_loop:
 
 	ld hl, _str_hello1
 	call _writestring
-
-    ld a, _scrattr_ascii_i  			; Normal Text
-    ld (_text_attr), a
-    ld a, 009h				; Line 1 (Top)
-    ld (_cur_y), a
-    ld a, 003h				; Column 1 (Left)
-    ld (_cur_x), a
-
-    ld hl, _str_hello2
-    call _writestring
 
 	jr _main_loop
 
