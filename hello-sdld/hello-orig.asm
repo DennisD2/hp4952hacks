@@ -103,7 +103,7 @@ _main_loop:
 	ld a, 002h				; Column 1 (Left)
 	ld (_cur_x), a
 
-    ld hl,_str_hello1
+	ld hl, _str_hello1
 	call _writestring
 
 	jr _main_loop

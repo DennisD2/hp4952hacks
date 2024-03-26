@@ -1,22 +1,18 @@
 
 # hello in sdcc SDASZ80 code style
 hello:
-	sdasz80 -losgff -o hello.s
 	sdasz80 -losgff -o lib/header.s
-	sdasz80 -losgff -o lib/strap0.s
-	sdasz80 -losgff -o lib/strap3.s
-	sdasz80 -losgff -o lib/strap4.s
-	sdasz80 -losgff -o lib/strap5.s
-	sdasz80 -losgff -o lib/strap6.s
-	sdasz80 -losgff -o lib/strap7.s
+	sdasz80 -losgff -o lib/strap.s
+	sdasz80 -losgff -o app1.s
+	sdasz80 -losgff -o app2.s
 	# next step is: link
 
 link:
-	sdld -z -i hello.ihx hello.rel \
-		lib/header.rel \
-		lib/strap0.rel lib/strap3.rel lib/strap4.rel lib/strap5.rel \
-		lib/strap6.rel lib/strap7.rel
-
+	#sdld -z -i hello.ihx hello.rel lib/header.rel
+	sdld -z -i header.ihx lib/header.rel
+	sdld -z -i strap.ihx lib/strap.rel
+	sdld -z -i app1.ihx app1.rel
+	sdld -z -i app2.ihx app2.rel
 #			-mz80 -Wl -y --code-loc 0xa000  \ ;--data-loc 0xb000
 #link-sdcc:
 #	sdcc -o hello.ihx \
@@ -30,11 +26,19 @@ link:
 binary:
 			# Finally, convert ihx to binary
 			#sdobjcopy -I ihex -O binary hello.ihx hello.app
-			hex2bin  hello.ihx
+			#hex2bin  hello.ihx
+			hex2bin  header.ihx
+			hex2bin  strap.ihx
+			hex2bin  app1.ihx
+			hex2bin  app2.ihx
+
 			#z80dasm -t -a -g 0xa000 hello.bin -o hello.dasm
-			z80dasm -t -a -g 0x0 hello.bin -o hello.dasm
-			cmp hello.bin hello.bin.0
-			cmp hello.bin hello-orig.app
+			z80dasm -t -a -g 0x0  header.bin -o header.dasm
+			z80dasm -t -a -g 0x800  strap.bin -o strap.dasm
+			z80dasm -t -a -g 0x871  app1.bin -o app1.dasm
+			z80dasm -t -a -g 0xa00  app2.bin -o app2.dasm
+			#cmp header.bin header.bin.0
+			#cmp header.bin hello-orig.app
 
 # hello in original z80 assembler style understood by z80asm
 # created files: app binary for HP4952A and the app dissasembled back
