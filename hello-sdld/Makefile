@@ -2,10 +2,7 @@
 # hello in sdcc SDASZ80 code style
 hello:
 	sdasz80 -losgff -o hello.s
-	sdasz80 -losgff -o lib/header0.s
-	sdasz80 -losgff -o lib/header1.s
-	sdasz80 -losgff -o lib/header2.s
-	sdasz80 -losgff -o lib/header3.s
+	sdasz80 -losgff -o lib/header.s
 	sdasz80 -losgff -o lib/strap0.s
 	sdasz80 -losgff -o lib/strap1.s
 	sdasz80 -losgff -o lib/strap2.s
@@ -18,7 +15,7 @@ hello:
 
 link:
 	sdld -z -i hello.ihx hello.rel \
-		lib/header0.rel lib/header1.rel lib/header2.rel lib/header3.rel \
+		lib/header.rel \
 		lib/strap0.rel lib/strap1.rel lib/strap2.rel lib/strap3.rel lib/strap4.rel lib/strap5.rel \
 		lib/strap6.rel lib/strap7.rel
 
@@ -38,6 +35,7 @@ binary:
 			hex2bin  hello.ihx
 			#z80dasm -t -a -g 0xa000 hello.bin -o hello.dasm
 			z80dasm -t -a -g 0x0 hello.bin -o hello.dasm
+			cmp hello.bin hello.bin.0
 			cmp hello.bin hello-orig.app
 
 # hello in original z80 assembler style understood by z80asm

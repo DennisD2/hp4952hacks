@@ -1,3 +1,23 @@
+    .area APPHEADER0 (ABS)
+	;.org 0xa000
+	.org 0x0
+
+_file_start::
+    .ascii "4952 Protocol Analyzer"
+
+    .area APPHEADER1 (ABS)
+	;.org 0xa016
+	.org 0x0016
+
+	.word 0x03c4
+	.word 0x800
+
+    .area APPHEADER2 (ABS)
+	;.org 0xa01a
+	.org 0x001a
+
+	.ascii "4952 Hacking the 4952           "
+
     .area APPHEADER3 (ABS)
 	;.org 0xa102
 	.org 0x0102

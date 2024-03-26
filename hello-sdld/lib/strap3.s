@@ -30,19 +30,20 @@ __init:
 ; TODO POI005 - Error: <r> Arg1 - Arg2, Arg2 must be in same area.
 ; Solution: if linker cannot calculate "end-start" expression,
 ; we do it with 16bit subtraction during runtime.
-push hl
-ld hl,#_splash_end
-ld bc,#_splash_start
-sbc hl,bc
-ld b,h
-ld c,l
-pop hl
+        ;push hl
+        ;ld hl,#_splash_end
+        ;lld bc,#_splash_start
+        ;lsbc hl,bc
+        ;lld b,h
+        ;lld c,l
+        ;lpop hl
 ;REPLACED LINE: ld bc,#_splash_end-#_splash_start	;
+ld bc,#0x0
 
 	ldir				;
 
-	jp _launch_app			; Use this to make an autostart
-;	jp _splash_start		; Run main menu stub
+;	jp _launch_app			; Use this to make an autostart
+	jp _splash_start		; Run main menu stub
 
 __0a196h:
 	ld hl,#0xa800			;
