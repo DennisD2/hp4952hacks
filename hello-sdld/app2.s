@@ -94,5 +94,6 @@ _code_end:
 	;.org 0x10ff
 	;.org 0xb0ff
 	;seek 0x10ff
+	.ds 0x448
 	.db 0x00
 _file_end::

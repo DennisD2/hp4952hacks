@@ -91,8 +91,11 @@ _launch_app::
 _splash_end::
 ;; End of menu section
 
+; nothing until aa00-1
+    .ds 0xba
+	.db 0x00
 ;-----
-; TODO all wrong
+; TODO wrong labels
 _code_start:
 _code_end:
 _main_entry:
