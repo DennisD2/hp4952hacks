@@ -113,7 +113,8 @@ __init:
         ;lld c,l
         ;lpop hl
     ; but this code overlaps next code part...
-;REPLACED LINE: ld bc,#_splash_end-#_splash_start	;
+;REPLACED LINE:
+;ld bc,#_splash_end-#_splash_start	;
 ld bc,#0x0
 
 	ldir				;
@@ -155,7 +156,7 @@ ld bc,#0x0000
 	ld a,#0x02			; Patch function at 1109?
 	ld (0x110c),a			;
 	ld hl,#0xd966			;
-; TODO POI010 Error: <a> Invalid Addressing Mode.
+; TODO POI010 - Error: <a> Invalid Addressing Mode.
 ld bc,#0x0000
 ;ld (0x110d),l			;
 	call 0x1109			; Main Menu andler

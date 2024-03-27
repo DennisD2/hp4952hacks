@@ -41,7 +41,7 @@ l20x32:
 	call 0x0e60			;
 	ld hl,#_splash_screen_data	;
 
-; TODO POI011
+; TODO POI011 -  Error: <a> Invalid Addressing Mode.
 ld (0x761d),a
 ;ld (0x761d),l			; Screen Paint Script Location
 
