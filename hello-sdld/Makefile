@@ -5,7 +5,6 @@ hello:
 	sdasz80 -losgff -o lib/strap.s
 	sdasz80 -losgff -o app1.s
 	sdasz80 -losgff -o app2.s
-	#sdasz80 -losgff -o lib/fixes.s
 	# next step is: link
 
 link:
@@ -45,7 +44,7 @@ binary:
 
 
 # hello in original z80 assembler style understood by z80asm
-# created files: app binary for HP4952A and the app dissasembled back
+# created files: app binary for HP4952A and the app disassembled back
 hello-orig:
 	z80asm -o hello-orig.app hello-orig.asm
 	cp hello-orig.app $(HOME)/dosbox/util_1/HELLO0.APP
