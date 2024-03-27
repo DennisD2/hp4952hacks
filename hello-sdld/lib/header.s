@@ -137,9 +137,9 @@ ld bc,#0x0000
 	ld a,#0x02			; Patch function at 1109?
 	ld (0x110c),a			;
 	ld hl,#0xd966			;
-; TODO POI008 Error: <a> Invalid Addressing Mode.
-ld (0x110d),a
-;ld (0x110d),l			;
+    ; POI008 Error: <a> Invalid Addressing Mode.
+    ;ld (0x110d),l			;
+    ld (0x110d),hl
 	call 0x1109			; Main Menu andler
 
 __0a1b3h:
@@ -156,9 +156,9 @@ ld bc,#0x0000
 	ld a,#0x02			; Patch function at 1109?
 	ld (0x110c),a			;
 	ld hl,#0xd966			;
-; TODO POI010 - Error: <a> Invalid Addressing Mode.
-ld bc,#0x0000
-;ld (0x110d),l			;
+    ; POI010 - Error: <a> Invalid Addressing Mode.
+    ;ld (0x110d),l			;
+    ld (0x110d),hl			;
 	call 0x1109			; Main Menu andler
 
 	jp __0a1b3h			; Loop Forever

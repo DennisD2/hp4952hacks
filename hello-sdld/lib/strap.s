@@ -41,9 +41,9 @@ l20x32:
 	call 0x0e60			;
 	ld hl,#_splash_screen_data	;
 
-; TODO POI011 -  Error: <a> Invalid Addressing Mode.
-ld (0x761d),a
-;ld (0x761d),l			; Screen Paint Script Location
+    ; Error: <a> Invalid Addressing Mode. ld (nn),l gives an error. I replace it with "ld (nnnn),hl"
+    ;ld (0x761d),l			; Screen Paint Script Location
+    ld (0x761d),hl
 
 	ld hl,(0x761f)			; Copy main menu pointers
 	ld de,#_p_main_menu_page_one	; over the first page menu
