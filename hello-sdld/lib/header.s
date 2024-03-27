@@ -3,14 +3,6 @@
     .org 0xa000
     ;.org 0x0
 
-    ;.globl __init
-    ;.globl la246h
-    ;.globl _dll_tmp
-    ;.globl _dll_stub
-    ;.globl _splash_start
-    ;.globl _launch_app
-    ;.globl _file_end
-
 _file_start:
     .ascii "4952 Protocol Analyzer"
     ;.org 0xa016

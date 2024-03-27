@@ -4,11 +4,6 @@
 	.org 0x2071
 	;seek 00871h
 
-    ;.globl _code_start
-    ;.globl _code_end
-    ;.globl _main_entry
-    ;.globl _scrattr_ascii_n
-
     ; repeat from screen.s
     _scrattr_ascii_n	.equ 0x83
 
