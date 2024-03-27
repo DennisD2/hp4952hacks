@@ -68,7 +68,7 @@ _p_mm_selftest:
 _p_mm_next2:
 	.word #_p_main_menu_page_one	;; Next Page
 
-_launch_app::
+_launch_app ::
 	ld a, #0x06
 	call 0x0e60			; Page in 6
 	ld hl,#0xaa00			; Copy application to Work RAM
@@ -85,8 +85,3 @@ _splash_end::
 ; nothing until aa00-1
     .ds 0xba
 	.db 0x00
-;-----
-; TODO - wrong labels
-_code_start:
-_code_end:
-_main_entry:

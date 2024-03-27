@@ -290,8 +290,3 @@ __dll_fixups_end::
     ;; until 0xa2cb
 	.ds 0x533
 	.db 0x00
-
-; TODO - wrong labels
-_splash_start:
-_file_end:
-_launch_app:

@@ -72,11 +72,3 @@ l20x65:
 	ld hl,#0xa196			;
 	ld (0x0fd5),hl			;
 	ret				;
-
-_splash_screen_data:
-;------------------------------------------- APP1 ---------------------------------
-; TODO all labels below are wrong
-_p_mm_launch_app:
-_p_main_menu_page_one:
-_p_mm_reset:
-_launch_app:

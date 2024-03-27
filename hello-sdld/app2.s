@@ -4,7 +4,7 @@
 	.org 0x2200
 	;seek 0xa00
 
-_code_start:
+_code_start::
 
 _str_hello1:
 	.asciz "Hello World 1"
@@ -12,7 +12,7 @@ _str_hello1:
 _str_exit:
 	.asciz "Are you sure you wish to exit?"
 
-_main_entry:
+_main_entry::
 	call _clear_screen
 
 _main_loop:
@@ -79,7 +79,7 @@ _real_exit:
     .include "lib/keyb.s"
 
 
-_code_end:
+_code_end::
 
 ;; End of Main Application
 

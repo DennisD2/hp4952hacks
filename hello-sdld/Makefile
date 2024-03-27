@@ -5,14 +5,17 @@ hello:
 	sdasz80 -losgff -o lib/strap.s
 	sdasz80 -losgff -o app1.s
 	sdasz80 -losgff -o app2.s
+	sdasz80 -losgff -o lib/fixes.s
 	# next step is: link
 
 link:
-	#sdld -z -i hello.ihx hello.rel lib/header.rel
-	sdld -z -i header.ihx lib/header.rel
-	sdld -z -i strap.ihx lib/strap.rel
-	sdld -z -i app1.ihx app1.rel
-	sdld -z -i app2.ihx app2.rel
+	#sdld -z -i header.ihx lib/header.rel
+	#sdld -z -i strap.ihx lib/strap.rel
+	#sdld -z -i app1.ihx app1.rel
+	#sdld -z -i app2.ihx app2.rel
+	#sdld -z -i app2.ihx lib/fixes.rel
+	sdld -z -i hell.ihx lib/header.rel lib/strap.rel app1.rel app2.rel
+
 #			-mz80 -Wl -y --code-loc 0xa000  \ ;--data-loc 0xb000
 #link-sdcc:
 #	sdcc -o hello.ihx \

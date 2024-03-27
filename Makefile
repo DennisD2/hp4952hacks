@@ -16,7 +16,7 @@ keyboard:
 hello:
 	z80asm -o hello.app hello.asm 
 	cp hello.app $(HOME)/dosbox/util_1/HELLO.APP
-	z80dasm -t -a -g 0x2071 hello.app -o hello.dasm
+	z80dasm -t -a -g 0xa000 hello.app -o hello.dasm
 
 clean:
 	rm -f *.lst *.sym *.app hello *.lk  *.map *.noi *.rel *.ihx *.bin *.cdb
