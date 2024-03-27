@@ -1,4 +1,8 @@
 /.idea/
+/sdcc/
+/ignore/
+/details/
+/roms/
 *.app
 *.dasm
 *.lst
@@ -6,7 +10,4 @@
 *.sym
 *.ihx
 *.bin
-/sdcc/
-/ignore/
-/details/
-/roms/
+
