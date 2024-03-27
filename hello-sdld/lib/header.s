@@ -1,4 +1,4 @@
-    .area APPHEADER (ABS)
+    .area HEADER (ABS,OVR)
     .module header
     .org 0xa000
     ;.org 0x0

@@ -1,4 +1,4 @@
-    .area APP (ABS)
+    .area APP1 (ABS,OVR)
     ;; splash screen and menu startup code and data
     .module app_launch
 	.org 0x2071

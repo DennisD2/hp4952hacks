@@ -1,4 +1,4 @@
-    .area APP (ABS)
+    .area APP2 (ABS,OVR)
     ;; Main Application
     .module app_main
 	.org 0x2200
@@ -88,5 +88,5 @@ _code_end::
 	;.org 0xb0ff
 	;seek 0x10ff
 	.ds 0x448
-	.db 0x00
+	.db 0x33
 _file_end::

@@ -9,7 +9,8 @@ hello:
 	# next step is: link
 
 link:
-	sdld -z -i hell.ihx lib/header.rel lib/strap.rel app1.rel app2.rel
+	sdld -m -z -i hello.ihx lib/header.rel lib/strap.rel app1.rel app2.rel
+	#sdld -z -i -b STRAP=0x2000 hello.ihx lib/header.rel lib/strap.rel app1.rel app2.rel
 
 #			-mz80 -Wl -y --code-loc 0xa000  \ ;--data-loc 0xb000
 #link-sdcc:
@@ -24,20 +25,21 @@ link:
 binary:
 			# Finally, convert ihx to binary
 			#sdobjcopy -I ihex -O binary hello.ihx hello.app
-			#hex2bin  hello.ihx
-			hex2bin  header.ihx
-			hex2bin  strap.ihx
-			hex2bin  app1.ihx
-			hex2bin  app2.ihx
+			hex2bin  hello.ihx
+			#hex2bin  lib/header.ihx
+			#hex2bin  lib/strap.ihx
+			#hex2bin  app1.ihx
+			#hex2bin  app2.ihx
 
-			cat header.bin strap.bin app1.bin app2.bin >hello.bin
+			#cat header.bin strap.bin app1.bin app2.bin >hello.bin
 
+			z80dasm -t -a -g 0x0 hello.bin -o hello.dasm
 			#z80dasm -t -a -g 0xa000 hello.bin -o hello.dasm
-			z80dasm -t -a -g 0x0  header.bin -o header.dasm
-			z80dasm -t -a -g 0x800  strap.bin -o strap.dasm
-			z80dasm -t -a -g 0x871  app1.bin -o app1.dasm
-			z80dasm -t -a -g 0xa00  app2.bin -o app2.dasm
-			z80dasm -t -a -g 0xa000  hello.bin -o hellocat.dasm
+			#z80dasm -t -a -g 0x0  header.bin -o header.dasm
+			#z80dasm -t -a -g 0x800  strap.bin -o strap.dasm
+			#z80dasm -t -a -g 0x871  app1.bin -o app1.dasm
+			#z80dasm -t -a -g 0xa00  app2.bin -o app2.dasm
+			#z80dasm -t -a -g 0xa000  hello.bin -o hellocat.dasm
 			#cmp header.bin header.bin.0
 			#cmp header.bin hello-orig.app
 

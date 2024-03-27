@@ -1,4 +1,4 @@
-    .area STRAP (ABS)
+    .area STRAP (ABS,OVR)
     .module strap
     ;; _splash_start function
     ;; Relocated at runtime from 0xa800 to 02000
