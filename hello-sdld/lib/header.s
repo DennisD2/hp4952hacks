@@ -3,18 +3,16 @@
     .org 0xa000
     ;.org 0x0
 
-    .globl _splash_start
-    .globl _file_end
-    .globl _launch_app
-    .globl la246h
-    .globl __dll_fixups_end
-    .globl __init
-    .globl _dll_tmp
-    .globl _dll_stub
+    ;.globl __init
+    ;.globl la246h
+    ;.globl _dll_tmp
+    ;.globl _dll_stub
+    ;.globl _splash_start
+    ;.globl _launch_app
+    ;.globl _file_end
 
-_file_start::
+_file_start:
     .ascii "4952 Protocol Analyzer"
-__end1:
     ;.org 0xa016
     ;.org 0x0016
 
@@ -31,9 +29,6 @@ __end1:
 
     ; fill space because we cannot move pc
     .ds 0xc8
-
-	.globl _file_start
-    .globl _file_end
 
 _filesize:
 ; TODO POI001 - Error: <r> Arg1 - Arg2, Arg2 must be in same area.
@@ -57,8 +52,6 @@ _fileflags:
     ;; Entry Point
 	;.org 0xa147
 	;.org 0x147
-
-	.globl __init
 
 	.db 0x00
 _entryaddr:
@@ -263,8 +256,6 @@ la246h::
 	;.org 0xa25a
 	;.org 0x25a
 
-	.globl __dll_fixups
-    .globl __dll_fixups_end
 
 __dll_fixups::
 	.word 0x2d32, 0x0000, 0x0a801

@@ -5,11 +5,11 @@
 	.org 0x2000
 	;seek 00800h
 
-	.globl _splash_screen_data
-	.globl _p_mm_launch_app
-    .globl _p_main_menu_page_one
-    .globl _launch_app
-    .globl _p_mm_reset
+	;.globl _splash_screen_data
+	;.globl _p_mm_launch_app
+    ;.globl _p_main_menu_page_one
+    ;.globl _launch_app
+    ;.globl _p_mm_reset
 
 _splash_start::
 	call 0x1543			; Patched to 2d32 -> 01543
