@@ -10,12 +10,13 @@ The order of areas can be defined, by list these in correct order in first file 
 But this is for address space, not for location in output file.
 
 
-| Part   | loc. start | loc. end | padded until | file offset | Desired file offset | comment      |
-|--------|------------|----------|--------------|-------------|---------------------|--------------|
-| strap  | 0x2000     | 0x2070   |              | 0x0         | 0x800               | delta=-0x800 |
-| app1   | 0x2071     | 0x2145   | 0x21ff       | 0x71        | 0x871               | delta=-0x800 |
-| app2   | 0x2200     | 0x2417   | 0x2900       | 0x200       | 0xa00               | delta=-0x800 |
-| header | 0xa000     | 0xa2cb   | 0xa7ff       | 0x8000      | 0x0                 | delta=0x8000 |
+| Part   | loc. start | loc. end | padded until | file offset   | Desired file offset | comment      |
+|--------|------------|----------|--------------|---------------|---------------------|--------------|
+| strap  | 0x2000     | 0x2070   |              | 0x0           | 0x800               | delta=-0x800 |
+| app1   | 0x2071     | 0x2145   | 0x21ff       | 0x71          | 0x871               | delta=-0x800 |
+| app2   | 0x2200     | 0x2417   | 0x2900       | 0x200         | 0xa00               | delta=-0x800 |
+| header | 0xa000     | 0xa2cb   | 0xa7ff       | 0x8000        | 0x0                 | delta=0x8000 |
+|        | ok(.org)   | egal     | map-Datei?   | evtl eingeben | ok(seek)            |              |
 
 
 https://stackoverflow.com/questions/44358613/cant-figure-out-how-to-write-interrupt-handler-for-z80-using-sdcc
@@ -33,6 +34,22 @@ hole aus datei segment 0x71..0x71+(0x21ff-0x2071) (app1)
     schreibe segment nach 0x871
 hole aus datei segment 0x200..0x200+(0x2900-0x2200) (app2)
 schreibe segment nach 0xa00
+
+Wie bekommt man tabellenwerte?
+dennis@dennis-pc:~/src/hp4952hacks/hello-sdld> grep "seek" lib/*s a*s 
+lib/header.s:    ;seek 0x0
+lib/header.s:   ;seek 00210h
+lib/strap.s:    ;seek 00800h
+app1.s: ;seek 00871h
+app2.s: ;seek 0xa00
+app2.s: ;seek 0x10ff
+
+dennis@dennis-pc:~/src/hp4952hacks/hello-sdld> grep ".org" lib/*s a*s |grep -v ";"
+lib/header.s:    .org 0xa000
+lib/strap.s:    .org 0x2000
+app1.s: .org 0x2071
+app2.s: .org 0x2200
+
 
 ```asm
 //bank.asm
