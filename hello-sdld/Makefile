@@ -8,7 +8,7 @@ hello:
 	# next step is: link
 
 link:
-	sdld -m -z -i hello.ihx lib/header.rel lib/strap.rel app1.rel app2.rel
+	sdld -u -m -w -z -i hello.ihx lib/header.rel lib/strap.rel app1.rel app2.rel
 	#sdld -z -i -b STRAP=0x2000 hello.ihx lib/header.rel lib/strap.rel app1.rel app2.rel
 
 #			-mz80 -Wl -y --code-loc 0xa000  \ ;--data-loc 0xb000
