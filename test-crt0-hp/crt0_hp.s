@@ -36,12 +36,12 @@ _fileflags:
     ;.org 0x147
     .db 0x00
 _entryaddr:
-    .word #__init
+    .word #__init + #0xa000
     ;; Main Application
     ;.org 0x150
     .ds 0x6
 
-    .word #_launch_app
+    .word #_launch_app + #0x1800
 
     ;; ???
     ;.org 0x17e
@@ -53,27 +53,27 @@ _entryaddr:
     ;; Dynamic link loader data pointer & size
     .word (#__dll_fixups_end - #__dll_fixups) / 6 ; Number of patches
 
-    .word #__dll_fixups			; Location of patches
+    .word #__dll_fixups	+ #0xa000		; Location of patches
 
 __init:
 	di				; Disable Interrupts
-	call _load_dll_stub		; Call our dynamic linker
+	call _load_dll_stub + #0xa000		; Call our dynamic linker
 
-    ld de,#_splash_start		;
+    ld de,#_splash_start + #0x1800		;
 
-	ld hl,#0xa800			; Load menu data & stubs
+	ld hl,#0xa800 			; Load menu data & stubs
 
-    ld bc,#_splash_end-#_splash_start	;
+    ld bc,#_splash_end-#_splash_start  	;
 
 	ldir				;
 
 ; call app directly or via menu function/splash
-	jp _launch_app			; Use this to make an autostart
-;	jp _splash_start		; Run main menu stub
+	jp _launch_app + #0x1800			; Use this to make an autostart
+;	jp _splash_start  + #0x1800			; Run main menu stub
 
 __0a196h:
 	ld hl,#0xa800			;
-    ld de,#_splash_start		; Load menu data & stubs again?
+    ld de,#_splash_start + #0x1800			; Load menu data & stubs again?
 
     ld bc,#_splash_end-#_splash_start	;
 	ldir				;
@@ -90,7 +90,7 @@ __0a196h:
 
 __0a1b3h:
 	ld hl,#0xa800			;
-    ld de,#_splash_start		; Load menu data & stubs again?
+    ld de,#_splash_start + #0x1800		; Load menu data & stubs again?
 
     ld bc,#_splash_end-#_splash_start	;
 	ldir				;
@@ -105,7 +105,7 @@ __0a1b3h:
     ld (0x110d),hl			;
 	call 0x1109			; Main Menu andler
 
-	jp __0a1b3h			; Loop Forever
+	jp __0a1b3h	+0xa000		; Loop Forever
 	ret				; How can we ever get here?
 
 
@@ -119,7 +119,7 @@ _load_dll_stub:
 	ld de,#0x2a00			;
 	ld bc,#0x0036			;
 	ldir				;
-	call _dll_stub			;
+	call _dll_stub	+ #0x27f0		;
 
 	ld ix,(#0xa182)			; Load patch table from ()
 	ld bc,(#0xa180)			; Load patch count
@@ -169,7 +169,7 @@ _dll_stub::
 	ld hl,(0x2d0c)		; Generate 17 more for 02e34 = 0d9f0...0da20
 	ld bc,#0x0003		;
 	ld a,#0x11			; .. Source appears to be a jump table
-	call la246h			;
+	call la246h	+ #0xa000		;
 
 	ld hl,(0x2e16)		; Generate 68 more for 02e56 =
 	ld a,(hl)			;
@@ -182,7 +182,7 @@ _dll_stub::
 
 	ld bc,#0x0002		; Generate 30 more for 02ede = 0eb98..
 	ld a,#0x1e			;
-	call la246h			;
+	call la246h	+ #0xa000		;
 	ret				    ;
 
 ;------------------------------------------- STRAP5 ---------------------------------
@@ -190,7 +190,7 @@ _dll_stub::
 	;.org 0x246
 
 la246h::
-	ld ix,#_dll_tmp		;
+	ld ix,#_dll_tmp	+ #0xa000		;
 	ld 0(ix),a			;
 	ld a,l				; do {
 	ld (de),a			;   *DE = L
@@ -246,12 +246,12 @@ _splash_start::
 	call 0x1543			; Patched to 2d32 -> 01543
 	call 0x0fe9			; Patched to 2e6e -> 00fe9
 	call 0x0085			; Patched to 2d4a -> 00085
-	call l20x65			;
-	ld hl,#_splash_screen_data	;
+	call l20x65	+	+ #0x1800		;
+	ld hl,#_splash_screen_data	+ #0x1800	;
 	push hl				;
 	call 0x1cf8			; Patched to 2d50 -> 01cf8
 	pop hl				;
-	call l20x32			;
+	call l20x32	+ #0x1800			;
 	call 0x007e			; Patched to 2d6c -> 0007e
 
 	ld a,#0x06			; Load Page 6 (Application RAM)
@@ -270,14 +270,14 @@ _splash_start::
 l20x32:
 	ld a,#0x02			; Load Page 2 (10046 ROM)
 	call 0x0e60			;
-	ld hl,#_splash_screen_data	;
+	ld hl,#_splash_screen_data		+ #0x1800;
 
     ; Error: <a> Invalid Addressing Mode. ld (nn),l gives an error. I replace it with "ld (nnnn),hl"
     ;ld (0x761d),l			; Screen Paint Script Location
     ld (0x761d),hl
 
 	ld hl,(0x761f)			; Copy main menu pointers
-	ld de,#_p_main_menu_page_one	; over the first page menu
+	ld de,#_p_main_menu_page_one	+ #0x1800	; over the first page menu
 	ld (0x761f),de			; pointers in our table
 	ld (0x7624),de			;
 	ld bc,#0x000e			;
@@ -289,12 +289,12 @@ l20x32:
 	ld l,a				;
 	inc hl				; Skip to page two...
 	inc hl				;
-	ld de,#_p_mm_reset		;
+	ld de,#_p_mm_reset		+ #0x1800	;
 	ld bc,#0x000c			;
 	ldir				;
 
-	ld hl,#_launch_app		; Patch our application vector
-	ld (#_p_mm_launch_app),hl	; for button five on page two
+	ld hl,#_launch_app	+ #0x1800		; Patch our application vector
+	ld (#_p_mm_launch_app	+ #0x1800),hl	; for button five on page two
 	ret				;
 
 l20x65:
@@ -351,10 +351,10 @@ _p_mm_run:
 _p_mm_exam:
 	.word 0x13cd			;; Ordinal 12eh Examine Data
 _p_mm_next1:
-	.word _p_main_menu_page_two	;; Next Page
+	.word _p_main_menu_page_two		+ #0x1800  ; Next Page
 
 _p_main_menu_page_two:
-	.word _splash_menu_data		;; Second Page Menu Data
+	.word _splash_menu_data	+ #0x1800  	;; Second Page Menu Data
 _p_mm_reset::
 	.word #0xbb1a			;; Entry Point for Re-Set
 _p_mm_bert:
@@ -364,20 +364,20 @@ _p_mm_remote:
 _p_mm_masstorage:
 	.word 0x0f0c			;; Entry Point for Mass Storage
 _p_mm_launch_app::
-	.word #_launch_app		;; Entry Point for Application
+	.word #_launch_app	+ #0x1800  	;; Entry Point for Application
 _p_mm_selftest:
 	.word #0x136f			;; Ordinal 12ah Self Test
 _p_mm_next2:
-	.word #_p_main_menu_page_one	;; Next Page
+	.word #_p_main_menu_page_one + #0x1800  	;; Next Page
 
 _launch_app ::
 	ld a, #0x06
 	call 0x0e60			; Page in 6
 	ld hl,#0xaa00			; Copy application to Work RAM
-	ld de,#_code_start		;
-	ld bc,#_code_end-#_code_start	;
+	ld de,#_code_start + 0x1800 	;
+	ld bc,#_code_end-#_code_start + 0x370	;
 	ldir				;
-	jp _main_entry			; Run the application
+	jp _main_entry	+ #0x1800  		; Run the application
 
 _splash_end::
 ;; End of menu section
@@ -402,82 +402,91 @@ _str_exit:
 	.asciz "Are you sure you wish to exit?"
 
 _main_entry::
-	;call _clear_screen
+	call _clear_screen
 
 _main_loop:
-	;ld a, #_scrattr_ascii_n			; Normal Text
-	;ld (#_text_attr), a
+	ld a, #_scrattr_ascii_n			; Normal Text
+	ld (#_text_attr), a
 
-	;call _keyscan
+	call _keyscan
 
-	;ld hl, #_keystates+_scancode_exit
-	;ld a, (hl)
-	;cp #0x07
-	;jr z, _exit_prompt
+	ld hl, #_keystates+_scancode_exit
+	ld a, (hl)
+	cp #0x07
+	jr z, _exit_prompt
 
-	;ld a, #_scrattr_ascii_n			; Normal Text
-	;ld (#_text_attr), a
-	;ld a, #0x08				; Line 1 (Top)
-	;ld (#_cur_y), a
-	;ld a, #0x02				; Column 1 (Left)
-	;ld (#_cur_x), a
+	ld a, #_scrattr_ascii_n			; Normal Text
+	ld (#_text_attr), a
+	ld a, #0x08				; Line 1 (Top)
+	ld (#_cur_y), a
+	ld a, #0x02				; Column 1 (Left)
+	ld (#_cur_x), a
 
-	;ld hl, #_str_hello1
-	;call _writestring
+	ld hl, #_str_hello1
+	call _writestring
 
-	;jr _main_loop
+	jr _main_loop
 
 _exit_prompt:
-	;call _clear_screen
+	call _clear_screen
 
-	;ld a, #_scrattr_ascii_n			; Normal Text
-	;ld (#_text_attr), a
-	;ld a, #0x08				; Line 1 (Top)
-	;ld (#_cur_y), a
-	;ld a, #0x02				; Column 1 (Left)
-	;ld (#_cur_x), a
+	ld a, #_scrattr_ascii_n			; Normal Text
+	ld (#_text_attr), a
+	ld a, #0x08				; Line 1 (Top)
+	ld (#_cur_y), a
+	ld a, #0x02				; Column 1 (Left)
+	ld (#_cur_x), a
 
-	;ld hl, #_str_exit
-	;call _writestring
+	ld hl, #_str_exit
+	call _writestring
 
 _wait_exit:
-	;call _keyscan
+	call _keyscan
 
-	;call _getkey_wait
-	;cp #'y'
-	;jr z, _real_exit
-	;cp #'Y'
-	;jr z, _real_exit
+	call _getkey_wait
+	cp #'y'
+	jr z, _real_exit
+	cp #'Y'
+	jr z, _real_exit
 
-	;cp #'n'
-	;jr z, _main_entry
-	;cp #'N'
-	;jr z, _main_entry
+	cp #'n'
+	jr z, _main_entry
+	cp #'N'
+	jr z, _main_entry
 
-	;jr _wait_exit
+	jr _wait_exit
 
 _real_exit:
-	;call _clear_screen
+	call _clear_screen
 
-	jp 0x14d5				; Return to main menu.
+	jp 0x14d5   				; Return to main menu.
 
-
-   ; .include "lib/string.s"
-   ; .include "lib/screen.s"
-   ; .include "lib/keyb.s"
+   .include "lib/string.s"
+   .include "lib/screen.s"
+     ;.include "lib/printf.s"
+   .include "lib/keyb.s"
 
 _code_end::
 
 ;; End of Main Application
 
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;; End file with padded bytes. File length must be multiple of 256.
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+_file_end::
 ;; Fill to end of file
 	;.org 0x10ff
 	;.org 0xb0ff
 	;seek 0x10ff
-	.ds 0x448
-	.db 0x33
-_file_end::
 
+	;;; TODO: 7 is #bytes after _padded_end - will change!!!
+	.ds ( #_file_start - #_file_end + 7) % 256
+	.db 0x33
+_padded_end::
+
+
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;; some defs for C follow
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Initialise global variables
@@ -501,12 +510,12 @@ _file_end::
   .area   _CODE
 __clock::
   ret
-  
+
 _exit::
   ret
   
   .area   _GSINIT
-gsinit::  
+gsinit::
 
 .area   _GSFINAL
   ret
