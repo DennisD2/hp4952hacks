@@ -402,48 +402,48 @@ _str_exit:
 	.asciz "Are you sure you wish to exit?"
 
 _main_entry::
-	call _clear_screen
+	call _clear_screen + 0x1800
 
 _main_loop:
 	ld a, #_scrattr_ascii_n			; Normal Text
-	ld (#_text_attr), a
+	ld (#_text_attr+ 0x1800), a
 
-	call _keyscan
+	call _keyscan + 0x1800
 
-	ld hl, #_keystates+_scancode_exit
+	ld hl, #_keystates+_scancode_exit+ 0x1800
 	ld a, (hl)
 	cp #0x07
 	jr z, _exit_prompt
 
 	ld a, #_scrattr_ascii_n			; Normal Text
-	ld (#_text_attr), a
+	ld (#_text_attr+ 0x1800), a
 	ld a, #0x08				; Line 1 (Top)
-	ld (#_cur_y), a
+	ld (#_cur_y+ 0x1800), a
 	ld a, #0x02				; Column 1 (Left)
-	ld (#_cur_x), a
+	ld (#_cur_x+ 0x1800), a
 
-	ld hl, #_str_hello1
-	call _writestring
+	ld hl, #_str_hello1+ 0x1800
+	call _writestring+ 0x1800
 
 	jr _main_loop
 
 _exit_prompt:
-	call _clear_screen
+	call _clear_screen+ 0x1800
 
 	ld a, #_scrattr_ascii_n			; Normal Text
-	ld (#_text_attr), a
+	ld (#_text_attr+ 0x1800), a
 	ld a, #0x08				; Line 1 (Top)
-	ld (#_cur_y), a
+	ld (#_cur_y+ 0x1800), a
 	ld a, #0x02				; Column 1 (Left)
-	ld (#_cur_x), a
+	ld (#_cur_x+ 0x1800), a
 
-	ld hl, #_str_exit
-	call _writestring
+	ld hl, #_str_exit+ 0x1800
+	call _writestring+ 0x1800
 
 _wait_exit:
-	call _keyscan
+	call _keyscan+ 0x1800
 
-	call _getkey_wait
+	call _getkey_wait+ 0x1800
 	cp #'y'
 	jr z, _real_exit
 	cp #'Y'
@@ -457,7 +457,7 @@ _wait_exit:
 	jr _wait_exit
 
 _real_exit:
-	call _clear_screen
+	call _clear_screen+ 0x1800
 
 	jp 0x14d5   				; Return to main menu.
 
