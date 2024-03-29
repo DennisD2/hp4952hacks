@@ -11,3 +11,5 @@
 *.ihx
 *.bin
 
+/hp4952tools/.idea/
+/hp4952tools/testee.out
