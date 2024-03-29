@@ -454,7 +454,15 @@ _main_loop:
 	ld a, #0x02				; Column 1 (Left)
 	ld (#_cur_x+ x_org_splash), a
 
-	ld hl, #_str_hello1+ x_org_splash
+    ; 1. orig code
+	;ld hl, #_str_hello1+ x_org_splash
+	; end 1.
+
+	; 2. use c string
+    _ext_c_string   .equ 0x0cd0
+	ld hl,#_ext_c_string + x_org_splash
+    ; end 2.
+
 	call _writestring+ x_org_splash
 
 	jr _main_loop
@@ -498,6 +506,9 @@ _real_exit:
      ;.include "lib/printf.s"
    .include "lib/keyb.s"
 
+_c_code_here::
+    .dw 0xaffe
+    .ds 0x100
 _code_end::
 
 ;; End of Main Application
