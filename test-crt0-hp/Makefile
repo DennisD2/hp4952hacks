@@ -6,7 +6,7 @@ crt:
 	# next step is: link
 
 link:
-	sdcc -mz80 --code-loc 0x0138 --data-loc 0 --no-std-crt0 --nostdinc --nostdlib crt0_hp.rel sdcc01.c
+	sdcc -mz80 --code-loc 0x0ccb --data-loc 0x0 --no-std-crt0 --nostdinc --nostdlib crt0_hp.rel sdcc01.c
 	#sdcc -mz80 --code-loc 0x0138 --data-loc 0 --no-std-crt0 crt0_hp.rel putchar_hp.rel sdcc01.c
 
 

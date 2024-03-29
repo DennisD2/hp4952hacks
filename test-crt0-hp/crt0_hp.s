@@ -4,6 +4,35 @@
     .area _HEADER (ABS)
     .org  0x0
 
+    ; address offsets resulting from not possible seek/org combination (possible in za80adm,
+    ; but not in sdcc. So I used the .org directive to point initial value 0xa000, which is memory
+    ; address of code after being loaded from floppy.
+    ; The code parts are then copied to several locations in memory using ldir opcode.
+    ; There are they executed. This means that the addresses used for call op codes must be correct for
+    ; final location. This is reflected by "org" in original assembler code.
+    ;
+    ; Here, it is tangled different way.
+    ;
+    ; Order of things happening is:
+    ; * load code from floppy or remote connection into 0xa0000
+    ; * call __init, which does copy code to target sections (0x2200 etc.)
+    ; * __init also does dll fixup (reroute some public addresses to some internal addresses in ROMs)
+    ; * execute __launch_app or _p_mm_launch_app. The first call would execute immediately the app. The second
+    ; does just add applications menu entry to system menu. The app is executed later, when selecting the
+    ; soft ḱey.
+    ;
+    ; For both __init and _execute_app, there are words reserved in file, at 0x147 and 0x150.
+    ; This allows Operating system to find the starting point of apps.
+    ;
+    ; Because I can do only a single ".org" in header, otherwise the area-crossing label uses would fail,
+    ; I keep the offsets to the (three) target areas where code is executed in the three defines below
+    ; as offset values for related addresses.
+    ;
+    ; This is somehow silly, but I could not get it work in another way.
+    x_org_splash    .equ 0x1800
+    x_org_dllfixup  .equ 0x27f0
+    x_org_header    .equ 0xa000
+
 _file_start:
     .ascii "4952 Protocol Analyzer"
 
@@ -36,12 +65,12 @@ _fileflags:
     ;.org 0x147
     .db 0x00
 _entryaddr:
-    .word #__init + #0xa000
+    .word #__init + #x_org_header
     ;; Main Application
     ;.org 0x150
     .ds 0x6
 
-    .word #_launch_app + #0x1800
+    .word #_launch_app + #x_org_splash
 
     ;; ???
     ;.org 0x17e
@@ -53,13 +82,13 @@ _entryaddr:
     ;; Dynamic link loader data pointer & size
     .word (#__dll_fixups_end - #__dll_fixups) / 6 ; Number of patches
 
-    .word #__dll_fixups	+ #0xa000		; Location of patches
+    .word #__dll_fixups	+ #x_org_header		; Location of patches
 
 __init:
 	di				; Disable Interrupts
-	call _load_dll_stub + #0xa000		; Call our dynamic linker
+	call _load_dll_stub + #x_org_header		; Call our dynamic linker
 
-    ld de,#_splash_start + #0x1800		;
+    ld de,#_splash_start + #x_org_splash		;
 
 	ld hl,#0xa800 			; Load menu data & stubs
 
@@ -68,12 +97,12 @@ __init:
 	ldir				;
 
 ; call app directly or via menu function/splash
-	jp _launch_app + #0x1800			; Use this to make an autostart
-;	jp _splash_start  + #0x1800			; Run main menu stub
+	jp _launch_app + #x_org_splash			; Use this to make an autostart
+;	jp _splash_start  + #x_org_splash			; Run main menu stub
 
 __0a196h:
 	ld hl,#0xa800			;
-    ld de,#_splash_start + #0x1800			; Load menu data & stubs again?
+    ld de,#_splash_start + #x_org_splash			; Load menu data & stubs again?
 
     ld bc,#_splash_end-#_splash_start	;
 	ldir				;
@@ -90,7 +119,7 @@ __0a196h:
 
 __0a1b3h:
 	ld hl,#0xa800			;
-    ld de,#_splash_start + #0x1800		; Load menu data & stubs again?
+    ld de,#_splash_start + #x_org_splash		; Load menu data & stubs again?
 
     ld bc,#_splash_end-#_splash_start	;
 	ldir				;
@@ -119,7 +148,7 @@ _load_dll_stub:
 	ld de,#0x2a00			;
 	ld bc,#0x0036			;
 	ldir				;
-	call _dll_stub	+ #0x27f0		;
+	call _dll_stub	+ #x_org_dllfixup		;
 
 	ld ix,(#0xa182)			; Load patch table from ()
 	ld bc,(#0xa180)			; Load patch count
@@ -169,7 +198,7 @@ _dll_stub::
 	ld hl,(0x2d0c)		; Generate 17 more for 02e34 = 0d9f0...0da20
 	ld bc,#0x0003		;
 	ld a,#0x11			; .. Source appears to be a jump table
-	call la246h	+ #0xa000		;
+	call la246h	+ #x_org_header		;
 
 	ld hl,(0x2e16)		; Generate 68 more for 02e56 =
 	ld a,(hl)			;
@@ -182,7 +211,7 @@ _dll_stub::
 
 	ld bc,#0x0002		; Generate 30 more for 02ede = 0eb98..
 	ld a,#0x1e			;
-	call la246h	+ #0xa000		;
+	call la246h	+ #x_org_header		;
 	ret				    ;
 
 ;------------------------------------------- STRAP5 ---------------------------------
@@ -190,7 +219,7 @@ _dll_stub::
 	;.org 0x246
 
 la246h::
-	ld ix,#_dll_tmp	+ #0xa000		;
+	ld ix,#_dll_tmp	+ #x_org_header		;
 	ld 0(ix),a			;
 	ld a,l				; do {
 	ld (de),a			;   *DE = L
@@ -246,12 +275,12 @@ _splash_start::
 	call 0x1543			; Patched to 2d32 -> 01543
 	call 0x0fe9			; Patched to 2e6e -> 00fe9
 	call 0x0085			; Patched to 2d4a -> 00085
-	call l20x65	+	+ #0x1800		;
-	ld hl,#_splash_screen_data	+ #0x1800	;
+	call l20x65	+	+ #x_org_splash		;
+	ld hl,#_splash_screen_data	+ #x_org_splash	;
 	push hl				;
 	call 0x1cf8			; Patched to 2d50 -> 01cf8
 	pop hl				;
-	call l20x32	+ #0x1800			;
+	call l20x32	+ #x_org_splash			;
 	call 0x007e			; Patched to 2d6c -> 0007e
 
 	ld a,#0x06			; Load Page 6 (Application RAM)
@@ -259,7 +288,7 @@ _splash_start::
 
 	ld de,#0xa800			;
 	ld hl,#0x2000			; Copy tis section back to A800
-	ld bc,#0x0200			; now tat it is Patched
+	ld bc,#0x0200			; now that it is Patched
 	ldir				;
 
 	ld a,#0x02			; Load Page 2
@@ -270,14 +299,14 @@ _splash_start::
 l20x32:
 	ld a,#0x02			; Load Page 2 (10046 ROM)
 	call 0x0e60			;
-	ld hl,#_splash_screen_data		+ #0x1800;
+	ld hl,#_splash_screen_data		+ #x_org_splash;
 
     ; Error: <a> Invalid Addressing Mode. ld (nn),l gives an error. I replace it with "ld (nnnn),hl"
     ;ld (0x761d),l			; Screen Paint Script Location
     ld (0x761d),hl
 
 	ld hl,(0x761f)			; Copy main menu pointers
-	ld de,#_p_main_menu_page_one	+ #0x1800	; over the first page menu
+	ld de,#_p_main_menu_page_one	+ #x_org_splash	; over the first page menu
 	ld (0x761f),de			; pointers in our table
 	ld (0x7624),de			;
 	ld bc,#0x000e			;
@@ -289,12 +318,12 @@ l20x32:
 	ld l,a				;
 	inc hl				; Skip to page two...
 	inc hl				;
-	ld de,#_p_mm_reset		+ #0x1800	;
+	ld de,#_p_mm_reset		+ #x_org_splash	;
 	ld bc,#0x000c			;
 	ldir				;
 
-	ld hl,#_launch_app	+ #0x1800		; Patch our application vector
-	ld (#_p_mm_launch_app	+ #0x1800),hl	; for button five on page two
+	ld hl,#_launch_app	+ #x_org_splash		; Patch our application vector
+	ld (#_p_mm_launch_app	+ #x_org_splash),hl	; for button five on page two
 	ret				;
 
 l20x65:
@@ -351,10 +380,10 @@ _p_mm_run:
 _p_mm_exam:
 	.word 0x13cd			;; Ordinal 12eh Examine Data
 _p_mm_next1:
-	.word _p_main_menu_page_two		+ #0x1800  ; Next Page
+	.word _p_main_menu_page_two		+ #x_org_splash  ; Next Page
 
 _p_main_menu_page_two:
-	.word _splash_menu_data	+ #0x1800  	;; Second Page Menu Data
+	.word _splash_menu_data	+ #x_org_splash  	;; Second Page Menu Data
 _p_mm_reset::
 	.word #0xbb1a			;; Entry Point for Re-Set
 _p_mm_bert:
@@ -364,11 +393,11 @@ _p_mm_remote:
 _p_mm_masstorage:
 	.word 0x0f0c			;; Entry Point for Mass Storage
 _p_mm_launch_app::
-	.word #_launch_app	+ #0x1800  	;; Entry Point for Application
+	.word #_launch_app	+ #x_org_splash  	;; Entry Point for Application
 _p_mm_selftest:
 	.word #0x136f			;; Ordinal 12ah Self Test
 _p_mm_next2:
-	.word #_p_main_menu_page_one + #0x1800  	;; Next Page
+	.word #_p_main_menu_page_one + #x_org_splash  	;; Next Page
 
 _launch_app ::
 	ld a, #0x06
@@ -377,7 +406,7 @@ _launch_app ::
 	ld de,#_code_start + 0x1800 	;
 	ld bc,#_code_end-#_code_start + 0x370	;
 	ldir				;
-	jp _main_entry	+ #0x1800  		; Run the application
+	jp _main_entry	+ #x_org_splash  		; Run the application
 
 _splash_end::
 ;; End of menu section
