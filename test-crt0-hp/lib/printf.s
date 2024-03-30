@@ -25,7 +25,7 @@ _charloop:
 	jr z,_nullterm
 	cp #'%'				; this is a parameter
 	jr z,_parameter
-	call _writechar		; this is just a plain ol' ASCII character
+	call _writechar + #x_org_splash			; this is just a plain ol' ASCII character
 _nextchar:
 	inc hl
 	jr _charloop
@@ -54,36 +54,36 @@ _nextcharstring:
 	ld a,(de)
 	cp #0x00
 	jr z,_nulltermstring
-	call _writechar
+	call _writechar + #x_org_splash		
 	inc de
 	jr _nextcharstring
 _nulltermstring:
 	jr _nextchar
 
 _prcent:
-	call _writechar		; it's a simple '%' character
+	call _writechar	+ x_org_splash		; it's a simple '%' character
 	jr _nextchar
 
 _prchr:
 	pop de				; print an ASCII character
 	ld a,e
-	call _writechar
+	call _writechar + #x_org_splash		
 	jr _nextchar
 
 _prdec:
 	pop de
 	push hl				; we'll be needing this later
 	ld a,e
-	ld hl,#_hundreds		; reset the place counts
+	ld hl,#_hundreds + #x_org_splash				; reset the place counts
 	ld (hl),#0x00
-	ld hl,#_tens
+	ld hl,#_tens + #x_org_splash
 	ld (hl),#0x00
-	ld hl,#_ones
+	ld hl,#_ones + #x_org_splash
 	ld (hl),#0x00
 
 _dohundreds:			; count the hundreds in the number
 	ld d,#0x64
-	ld hl,#_hundreds
+	ld hl,#_hundreds + #x_org_splash
 _nexthundred:
 	sub d
 	jr c,#_dotens
@@ -93,7 +93,7 @@ _nexthundred:
 _dotens:				; count the tens in the number
 	add d
 	ld d,#0x0a
-	ld hl,#_tens
+	ld hl,#_tens + #x_org_splash
 _nextten:
 	sub d
 	jr c,#_doones
@@ -102,48 +102,48 @@ _nextten:
 
 _doones:				; whatever is left is the ones
 	add d
-	ld (_ones),a
+	ld (_ones + #x_org_splash),a
 
 	ld d,#0x0
 
 _printhundreds:
-	ld a,(_hundreds)
+	ld a,(_hundreds + #x_org_splash)
 	cp #0x00
 	jr z,_printtens		; skip leading zeroes
 	add a,#0x30 			; print the hundreds
-	call _writechar
+	call _writechar + #x_org_splash		
 	ld d,#0x1
 
 _printtens:
-	ld a,(_tens)
+	ld a,(_tens + #x_org_splash	)
 	add d
 	cp #0x00
 	jr z,_printones		; skip leading zeroes
 	sub d
 	ld d,#0x1
 	add a,#0x30 			; print the tens
-	call _writechar
+	call _writechar + #x_org_splash		
 
 _printones:
-	ld a,(_ones)
+	ld a,(_ones + #x_org_splash)
 	add a,#0x30 			; print the ones
-	call _writechar
+	call _writechar + #x_org_splash		
 
 	pop hl				; take hl back off the stack, oh for more registers
-	jp _nextchar
+	jp _nextchar + #x_org_splash
 
 _prhex:
 	pop de
 	push hl				; we'll be needing this later
 	ld a,e
-	ld hl,#_tens
+	ld hl,#_tens + #x_org_splash
 	ld (hl),#0x00
-	ld hl,#_ones
+	ld hl,#_ones + #x_org_splash
 	ld (hl),#0x00
 
 _dohexh:
 	ld d,#0x10
-	ld hl,#_tens
+	ld hl,#_tens + #x_org_splash
 _nexthexh:
 	sub d
 	jr c,_dohexl
@@ -152,37 +152,37 @@ _nexthexh:
 
 _dohexl:				; whatever is left is the ones
 	add d
-	ld (_ones),a
+	ld (_ones + #x_org_splash),a
 
 	ld d,#0x0
 
 _prhexh:
-	ld a,(_tens)
+	ld a,(_tens + #x_org_splash)
 	cp #0x0a
-	jp p,_prhexha		; alphas
+	jp p,_prhexha + #x_org_splash			; alphas
 	add a,#0x30 			; print the tens
-	call _writechar
+	call _writechar + #x_org_splash		
 	jr _prhexl
 
 _prhexha:
 	add a,#0x37
-	call _writechar
+	call _writechar + #x_org_splash
 
 _prhexl:
-	ld a,(_ones)
+	ld a,(_ones + #x_org_splash)
 	cp #0x0a
-	jp p,_prhexla		; alphas
+	jp p,_prhexla + #x_org_splash			; alphas
 	add a,#0x30 			; print the ones
-	call _writechar
+	call _writechar + #x_org_splash		
 	jr _prhexdone
 
 _prhexla:
 	add a,#0x37
-	call _writechar
+	call _writechar + #x_org_splash		
 
 _prhexdone:
 	pop hl				; take hl back off the stack, oh for more registers
-	jp _nextchar
+	jp _nextchar + #x_org_splash
 
 
 _hundreds:

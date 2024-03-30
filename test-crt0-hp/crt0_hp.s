@@ -455,18 +455,29 @@ _main_loop:
 	ld (#_cur_x + x_org_splash), a
 
     ; 1. orig code
-	 ;ld hl, #_str_hello1+ x_org_splash
+	 ld hl, #_str_hello1 + x_org_splash
 	; end 1.
 
-	; 2. use c string
-     _ext_c_string   .equ 0x0cdb
-	 ld hl,#_ext_c_string + x_org_splash
+	; 2. use uninitialized c string ___str_0 by its known address value - WORKS
+;     _ext_c_string   .equ 0x0dd8
+;	 ld hl,#_ext_c_string + x_org_splash
+;	 ;.dw _myString ; is 0de0
+;	 ;.dw _global_init ; is 0db2
+;	 ;.dw _fun ; is 0dca
+;	 call _global_init + x_org_splash
     ; end 2.
 
+    	; 2. use c string
+         ;_ext_c_string   .equ 0x0ce8
+    	 ;ld hl,#_ext_c_string + x_org_splash
+    	    ;call _global_init + x_org_splash
+    	    ;ld hl,#_myString + x_org_splash
+        ; end 2.
+
     	; 2a. use c string
-         _ext_c_string   .equ 0x0d00
-         call _global_init + x_org_splash
-         ld hl,(#_ext_c_string + x_org_splash)
+         ;_ext_c_string   .equ 0x0d00
+         ;call _global_init + x_org_splash
+         ;ld hl,(#_ext_c_string + x_org_splash)
     	 ;;;;;ld hl,(_ext_c_string + x_org_splash)
         ; end 2a.
 
@@ -483,10 +494,25 @@ _main_loop:
     ; end 3.
 	call _writestring + x_org_splash
 
+	ld a, #0x01				; Line 1 (Top)
+	ld (#_cur_y + x_org_splash), a
+	ld a, #0x10				; Column 1 (Left)
+	ld (#_cur_x + x_org_splash), a
+
+	ld hl, #_str_test + x_org_splash
+	push hl
+	call _printf + x_org_splash
+
+
 	jr _main_loop
 
+_str_hex:
+	.asciz "%s"
+_str_test:
+	.asciz "abcd"
+
 _exit_prompt:
-	call _clear_screen + x_org_splash
+	;call _clear_screen + x_org_splash
 
 	ld a, #_scrattr_ascii_n			; Normal Text
 	ld (#_text_attr + x_org_splash), a
@@ -521,12 +547,12 @@ _real_exit:
 
    .include "lib/string.s"
    .include "lib/screen.s"
-     ;.include "lib/printf.s"
+   .include "lib/printf.s"
    .include "lib/keyb.s"
 
 _c_code_here::
-    .dw 0xaffe
-    .ds 0x100
+    .dw 0xfeaf ; AFFE magic number
+    ;.ds 0x100
 _code_end::
 
 ;; End of Main Application

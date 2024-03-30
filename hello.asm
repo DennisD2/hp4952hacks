@@ -145,7 +145,7 @@ _real_exit:
 
 include "lib/string.asm"
 include "lib/screen.asm"
-;include "lib/printf.asm"
+include "lib/printf.asm"
 include "lib/keyb.asm"
 
 _code_end:
