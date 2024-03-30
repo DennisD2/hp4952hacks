@@ -4,7 +4,7 @@ _keyscan:
 	push bc				; E is the current row's bits
 	push af				; B is the column counter
 
-	ld hl, #_keystates+ 0x1800
+	ld hl, #_keystates + 0x1800
 
 	ld a, #0x01			; Row to scan
 _k_scan_row:
@@ -43,8 +43,8 @@ _k_store_key:
 	ret
 
 _getkey_wait:
-	call _keyscan+ 0x1800
-	call _getkey_nowait+ 0x1800
+	call _keyscan + 0x1800
+	call _getkey_nowait + 0x1800
 	cp #_key_none
 	jr z, _getkey_wait
 	ret
@@ -54,17 +54,17 @@ _getkey_nowait:
 	push de
 	push bc
 
-	ld a, (_keystates + #_scancode_shift+ 0x1800)			; C = (Ctrl << 2) | (Shift << 7)
+	ld a, (_keystates + #_scancode_shift + 0x1800)			; C = (Ctrl << 2) | (Shift << 7)
 	rr a
 	rr a
 	rr a
 	rr a
-	ld a, (_keystates + _scancode_ctrl+ 0x1800)
+	ld a, (_keystates + _scancode_ctrl + 0x1800)
 	rr a
 	ld c, a
 
-	ld de, #_keymatrix+ 0x1800
-	ld hl, #_keystates+ 0x1800
+	ld de, #_keymatrix + 0x1800
+	ld hl, #_keystates + 0x1800
 	; from 65 (dec) to 0x40
 	ld b, #0x40
 _gk_next_key:

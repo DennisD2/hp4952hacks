@@ -3,6 +3,11 @@
 char *myString = "abcdef";
 char *myString1 = "xyz";
 
+void global_init() {
+    myString = "abcdef";
+    myString1 = "xyz";
+}
+
 char *fun(unsigned char v) {
     if (v==1) {
         return myString;

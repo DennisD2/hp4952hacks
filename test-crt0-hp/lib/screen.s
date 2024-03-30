@@ -35,8 +35,8 @@ _clear_screen:
 	ex de,hl
 	ldir
 	ld a, #0x1
-	ld (_cur_y+ 0x1800),a
-	ld (_cur_x+ 0x1800),a
+	ld (_cur_y + 0x1800),a
+	ld (_cur_x + 0x1800),a
 	pop af
 	pop bc
 	pop hl
@@ -44,30 +44,30 @@ _clear_screen:
 	ret
 
 _backspace:
-	ld a,(_cur_x+ 0x1800)
+	ld a,(_cur_x + 0x1800)
 	dec a
 	jr nz,_wrcurx
 	ld a,#0x1
 _wrcurx:
-	ld (_cur_x+ 0x1800),a
+	ld (_cur_x + 0x1800),a
 	ld a, #0x20
-	call _putchar_raw+ 0x1800
-	jp _updatecursor+ 0x1800
+	call _putchar_raw + 0x1800
+	jp _updatecursor + 0x1800
 
 ; Print char at _cur_y, _cur_x, using _text_attr
 ; A = Character, AF is clobbered by function
 _writechar:
 	push af				; Store clobbered registers
-	ld a, (_cursor_enabled+ 0x1800)
+	ld a, (_cursor_enabled + 0x1800)
 	or a
 	jr z, _no_cursor
 
 	push de
 	push hl
 
-	call _locxy+ 0x1800
+	call _locxy + 0x1800
 	inc hl				;
-	ld a,(_text_attr+ 0x1800)		;
+	ld a,(_text_attr + 0x1800)		;
 	ld (hl),a			; Text Attribute
 
 	pop hl				; Restore clobbered registers
@@ -84,18 +84,18 @@ _no_cursor:
 	cp #0x08				; Backspace?
 	jr z,_backspace			;
 _writechar_raw:
-	call _putchar_raw+ 0x1800
+	call _putchar_raw + 0x1800
 	jr _advance_cursor
 
 _updatecursor:
-	ld a, (_cursor_enabled+ 0x1800)
+	ld a, (_cursor_enabled + 0x1800)
 	or a
 	ret z
 
 	push de				; Store clobbered registers
 	push hl				;
 
-	call _locxy+ 0x1800
+	call _locxy + 0x1800
 	inc hl				;
 
 	ld a,(hl)			;
@@ -107,9 +107,9 @@ _updatecursor:
 	ret
 
 _advance_cursor:
-	ld a,(_cur_x+ 0x1800)
+	ld a,(_cur_x + 0x1800)
 	inc a				; Advance cursor
-	ld (_cur_x+ 0x1800),a
+	ld (_cur_x + 0x1800),a
 	cp #0x21				; Should we wrap?
 	jr c,_updatecursor		; nope
 
@@ -117,16 +117,16 @@ _advance_cursor:
 
 _handle_cr:
 	ld a,#0x01			; Wrap to same line
-	ld (_cur_x+ 0x1800),a
+	ld (_cur_x + 0x1800),a
 	jr _updatecursor
 
 _advance_line:
 	ld a,#0x01			; Wrap to next line
-	ld (_cur_x+ 0x1800),a
+	ld (_cur_x + 0x1800),a
 _handle_nl:
-	ld a,(_cur_y+ 0x1800)			; Advance to new line
+	ld a,(_cur_y + 0x1800)			; Advance to new line
 	inc a
-	ld (_cur_y+ 0x1800),a
+	ld (_cur_y + 0x1800),a
 	cp #0x11
 	jr c,_updatecursor
 
@@ -156,12 +156,12 @@ _handle_nl:
 	pop hl
 
 	ld a,#0x10			; We ran out of lines!
-	ld (_cur_y+ 0x1800),a			; loop (for now)
+	ld (_cur_y + 0x1800),a			; loop (for now)
 	jr _updatecursor				;
 
 _locxy:
 	ld h,#0x00
-	ld a,(_cur_y+ 0x1800)			; Line
+	ld a,(_cur_y + 0x1800)			; Line
 	ld l,a
 	dec l				; --
 	add hl,hl			; <<
@@ -174,7 +174,7 @@ _locxy:
 	ex de,hl			; de = hl
 
 	ld h,#0x00
-	ld a,(_cur_x+ 0x1800)			; Column
+	ld a,(_cur_x + 0x1800)			; Column
 	dec a				; --
 	add a,a				; <<
 	ld l,a				;
@@ -189,13 +189,13 @@ _putchar_raw:
 	push hl				;
 	push af				;
 
-	call _locxy+ 0x1800
+	call _locxy + 0x1800
 
 	pop af				;
 	ld (hl),a			; Text Character
 	inc hl				;
 
-	ld a,(_text_attr+ 0x1800)		;
+	ld a,(_text_attr + 0x1800)		;
 	ld (hl),a			; Text Attribute
 
 	pop hl				; Restore clobbered registers

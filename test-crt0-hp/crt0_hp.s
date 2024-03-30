@@ -455,35 +455,53 @@ _main_loop:
 	ld (#_cur_x+ x_org_splash), a
 
     ; 1. orig code
-	;ld hl, #_str_hello1+ x_org_splash
+	 ;ld hl, #_str_hello1+ x_org_splash
 	; end 1.
 
 	; 2. use c string
-    _ext_c_string   .equ 0x0cd0
-	ld hl,#_ext_c_string + x_org_splash
+     _ext_c_string   .equ 0x0cdb
+	 ld hl,#_ext_c_string + x_org_splash
     ; end 2.
 
-	call _writestring+ x_org_splash
+    	; 2a. use c string
+         _ext_c_string   .equ 0x0d00
+         call _global_init + x_org_splash
+         ld hl,(#_ext_c_string + x_org_splash)
+    	 ;;;;;ld hl,(_ext_c_string + x_org_splash)
+        ; end 2a.
+
+    ; 3. use c function
+    ; TODO can _global_init + _fun be used here?
+
+    ;_ext_c_global_init  .equ 0x0cc2
+    ;_ext_c_fun          .equ 0x0ce6
+    ;call _ext_c_global_init + x_org_splash
+    ;ld a,#2
+    ;call _ext_c_fun + x_org_splash
+	;ld h,d
+	;ld l,e
+    ; end 3.
+	call _writestring + x_org_splash
 
 	jr _main_loop
 
 _exit_prompt:
-	call _clear_screen+ x_org_splash
+	call _clear_screen + x_org_splash
 
 	ld a, #_scrattr_ascii_n			; Normal Text
-	ld (#_text_attr+ x_org_splash), a
+	ld (#_text_attr + x_org_splash), a
 	ld a, #0x08				; Line 1 (Top)
-	ld (#_cur_y+ x_org_splash), a
+	ld (#_cur_y + x_org_splash), a
 	ld a, #0x02				; Column 1 (Left)
-	ld (#_cur_x+ x_org_splash), a
+	ld (#_cur_x + x_org_splash), a
 
-	ld hl, #_str_exit+ x_org_splash
-	call _writestring+ x_org_splash
+	ld hl, #_str_exit + x_org_splash
+	call _writestring + x_org_splash
 
 _wait_exit:
-	call _keyscan+ x_org_splash
+	call _keyscan + x_org_splash
 
-	call _getkey_wait+ x_org_splash
+	call _getkey_wait + x_org_splash
 	cp #'y'
 	jr z, _real_exit
 	cp #'Y'
@@ -497,7 +515,7 @@ _wait_exit:
 	jr _wait_exit
 
 _real_exit:
-	call _clear_screen+ x_org_splash
+	call _clear_screen + x_org_splash
 
 	jp 0x14d5   				; Return to main menu.
 
