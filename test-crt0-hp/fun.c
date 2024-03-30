@@ -1,14 +1,16 @@
 //#include <stdio.h>
 
-char *myString = "abcdef";
-char *myString1 = "xyz";
+char *myStringGlobal = "pqr";
+//char *myString1 = "xyz";
+char *myString;
+char *myString1;
 
-void global_init() {
+void global_init() __naked {
     myString = "abcdef";
     myString1 = "xyz";
 }
 
-char *fun(unsigned char v) {
+char *fun(unsigned char v) __naked {
     if (v==1) {
         return myString;
     }

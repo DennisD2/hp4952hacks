@@ -223,11 +223,11 @@ la246h::
 	ld 0(ix),a			;
 	ld a,l				; do {
 	ld (de),a			;   *DE = L
-	inc de				;   DE++
+	inc de				;   DE ++
 	ld a,h				;
 	ld (de),a			;   *DE = H
-	inc de				;   DE++
-	add hl,bc			;   HL+=BC
+	inc de				;   DE ++
+	add hl,bc			;   HL +=BC
 	dec 0(ix)			; } wile(TMP-- != 0)
 	;jr nz,$-10			;
 	jr nz,.-10			;
@@ -438,21 +438,21 @@ _main_entry::
 
 _main_loop:
 	ld a, #_scrattr_ascii_n			; Normal Text
-	ld (#_text_attr+ x_org_splash), a
+	ld (#_text_attr + x_org_splash), a
 
 	call _keyscan + x_org_splash
 
-	ld hl, #_keystates+_scancode_exit+ x_org_splash
+	ld hl, #_keystates +_scancode_exit + x_org_splash
 	ld a, (hl)
 	cp #0x07
 	jr z, _exit_prompt
 
 	ld a, #_scrattr_ascii_n			; Normal Text
-	ld (#_text_attr+ x_org_splash), a
+	ld (#_text_attr + x_org_splash), a
 	ld a, #0x08				; Line 1 (Top)
-	ld (#_cur_y+ x_org_splash), a
+	ld (#_cur_y + x_org_splash), a
 	ld a, #0x02				; Column 1 (Left)
-	ld (#_cur_x+ x_org_splash), a
+	ld (#_cur_x + x_org_splash), a
 
     ; 1. orig code
 	 ;ld hl, #_str_hello1+ x_org_splash
