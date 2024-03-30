@@ -2,10 +2,10 @@
 
 char *myStringGlobal = "pqr";
 //char *myString1 = "xyz";
-char *myString;
-char *myString1;
+const char *myString;
+const char *myString1;
 
-void global_init() __naked {
+void global_init() {
     myString = "abcdef";
     myString1 = "xyz";
 }

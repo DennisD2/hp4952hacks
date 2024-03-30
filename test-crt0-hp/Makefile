@@ -10,11 +10,11 @@ fun:
 
 link:
 	# first link step
-	sdcc -o sdcc01.ihx -mz80 --code-loc 0x0cc0 --data-loc 0x0 --no-std-crt0 --nostdinc --nostdlib crt0_hp.rel fun.rel
+	sdcc -o sdcc01.ihx -mz80 --code-loc 0x0eb0 --data-loc 0x0 --no-std-crt0 --nostdinc --nostdlib crt0_hp.rel fun.rel
 	# link helper phase 1
 	# second link with correct .org/code-loc for c code
-	# 2200 + cc0 = 2ec0
-	sdcc -o sdcc01-l2.ihx -mz80 --code-loc 0x2ec0 --data-loc 0x0 --no-std-crt0 crt0_hp.rel fun.rel
+	# 2200 + db0 = 2fb0
+	sdcc -o sdcc01-l2.ihx -mz80 --code-loc 0x2ab0 --data-loc 0x0 --no-std-crt0 crt0_hp.rel fun.rel
 
 
 #			-mz80 -Wl -y --code-loc 0xa000  \ ;--data-loc 0xb000
