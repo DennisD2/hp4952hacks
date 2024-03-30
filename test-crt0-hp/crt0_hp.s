@@ -499,17 +499,38 @@ _main_loop:
 	ld a, #0x10				; Column 1 (Left)
 	ld (#_cur_x + x_org_splash), a
 
-	ld hl, #_str_test + x_org_splash
+    ; print hex bytes; params in reverse order
+    ; 0x0ecb
+    ld h,#0x0
+    ld a,(0x0ecb + 3 + x_org_splash)
+    ld l,a
+    push hl
+    ld a,(0x0ecb + 2 + x_org_splash)
+    ld l,a
+    push hl
+    ld a,(0x0ecb + 1 + x_org_splash)
+    ld l,a
+    push hl
+    ld a,(0x0ecb + 0 + x_org_splash)
+    ld l,a
+    push hl
+    ld hl, #_str_hex + x_org_splash
 	push hl
-	call _printf + x_org_splash
 
+
+    ; print string
+	;ld hl, #_str_test + x_org_splash
+
+	call _printf + x_org_splash
 
 	jr _main_loop
 
 _str_hex:
-	.asciz "%s"
+	.asciz "%x%x%x%x"
 _str_test:
-	.asciz "abcd"
+	.asciz "%s"
+_str_test1:
+    .ascii "klmn"
 
 _exit_prompt:
 	;call _clear_screen + x_org_splash
@@ -534,9 +555,9 @@ _wait_exit:
 	jr z, _real_exit
 
 	cp #'n'
-	jr z, _main_entry
+	jp z, _main_entry
 	cp #'N'
-	jr z, _main_entry
+	jp z, _main_entry
 
 	jr _wait_exit
 
@@ -552,7 +573,7 @@ _real_exit:
 
 _c_code_here::
     .dw 0xfeaf ; AFFE magic number
-    ;.ds 0x100
+    .ds 0x100
 _code_end::
 
 ;; End of Main Application
