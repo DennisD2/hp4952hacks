@@ -630,6 +630,7 @@ dump_msg_2:      defb    " END=", eos
 dump_msg_3:      defb    ": ", eos
 ;
 ; Examine a memory location:
+; SPACE character shows next byte
 ;
 examine:        push    af
                 push    hl
