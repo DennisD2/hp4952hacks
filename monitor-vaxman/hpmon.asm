@@ -465,10 +465,10 @@ main_loop:      ld      hl, monitor_prompt
                 jp      z, warm_start
                 cp      'S'             ; Start?
                 jp      z, start
+                cp      'X'             ; exit app?
+                jp      z, app_exit
                 cp      'I'             ; Info?
                 call    z, info
-                cp      'X'             ; exit app?
-                call    z, app_exit
                 jr      z, main_loop
                 jp      cmd_error       ; Unknown control-group-command
 
