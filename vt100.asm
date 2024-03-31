@@ -1563,18 +1563,16 @@ fun_acaf_loop:
 
 ;; ace8 POI-13
 ;; call, acf8 = POI-14
+;; adds var_word_a9bb to hl and sets bits 5,6,7 in h
 	call 0acf8h		;ace8	cd f8 ac 	. . .
-;; de:= (var_word_a9bb)
-	ld de,(var_word_a9bb)		;aceb	ed 5b bb a9 	. [ . .
-;; hl += de
-	add hl,de			;acef	19 	.
-;; set bits 7,6,5 in h
-	set 7,h		;acf0	cb fc 	. .
+	ld de,(var_word_a9bb)		;aceb	ed 5b bb a9 	. [ . .     ; de:=var_word_a9bb
+	add hl,de			;acef	19 	.                               ; hl += de
+	set 7,h		;acf0	cb fc 	. .                                 ; set bits 7,6,5 in h
 	set 6,h		;acf2	cb f4 	. .
 	set 5,h		;acf4	cb ec 	. .
 ;; exchange dl with hl
-	ex de,hl			;acf6	eb 	.
-	ret			;acf7	c9 	.
+	ex de,hl			;acf6	eb 	.                               ; put hl to de
+	ret			;acf7	c9 	.                                       ; result is in de
 
 ;; acf8 POI-14
 ;; moves l to h and sets l to 0
@@ -1754,150 +1752,142 @@ loop_clear_screen_memory:
 	ld (var_byte_a9c5),a		;ae14	32 c5 a9 	2 . .           ; var_byte_a9c5:=a
 	ret			;ae17	c9 	.
 
-;; lines below looks like character key checks for 0x13, 0x15
-;; and many more; part of key input handling???
-;;
-;; until ret, it looks like <CR) = 0x13 handling
-;;
-;; a:=(a9c4)
-	ld a,(var_byte_a9c4)		;ae18	3a c4 a9 	: . .
-;; a==13 ?
+;; looks like initialization of variables, depending on other variables
+	ld a,(var_byte_a9c4)		;ae18	3a c4 a9 	: . .   ; var_byte_a9c4==0x13 ?
 	cp 013h		;ae1b	fe 13 	. .
-;; return if not equal
-	ret z			;ae1d	c8 	.
-;; a:=13
-	ld a,013h		;ae1e	3e 13 	> .
-;; (a9c4):=a
-	ld (var_byte_a9c4),a		;ae20	32 c4 a9 	2 . .
-;; a:=15
-	ld a,015h		;ae23	3e 15 	> .
-;; (a9bf):=a
-	ld (var_byte_a9bf),a		;ae25	32 bf a9 	2 . .
+	ret z			;ae1d	c8 	.                           ; yes, return
+	ld a,013h		;ae1e	3e 13 	> .                     ; no
+	ld (var_byte_a9c4),a		;ae20	32 c4 a9 	2 . .   ; var_byte_a9c4:= 0x13
+	ld a,015h		;ae23	3e 15 	> .                     ; a:=0x15
+	ld (var_byte_a9bf),a		;ae25	32 bf a9 	2 . .   ; var_byte_a9bf := 0x15
 ;; l:=a
-	ld l,a			;ae28	6f 	o
+	ld l,a			;ae28	6f 	o                           ; l:=a
 ;; call ace8 = POI-13
-	call 0ace8h		;ae29	cd e8 ac 	. . .
-;; (a9bd):=de
-	ld (var_word_a9bd),de		;ae2c	ed 53 bd a9 	. S . .
+	call 0ace8h		;ae29	cd e8 ac 	. . .               ; this call adds some other var to a->hl returns in de , also sets bits 5,6,7
+	ld (var_word_a9bd),de		;ae2c	ed 53 bd a9 	. S . . ; var_word_a9bd := de
 
-	xor a			;ae30	af 	.
-;; a9c0:=a
-	ld (var_byte_a9c0),a		;ae31	32 c0 a9 	2 . .
-;; a9c1:=a
-	ld (var_byte_a9c1),a		;ae34	32 c1 a9 	2 . .
-;; a++
-	inc a			;ae37	3c 	<
+	xor a			;ae30	af 	.                           ; a:=0
+	ld (var_byte_a9c0),a		;ae31	32 c0 a9 	2 . .   ; var_byte_a9c0:=a
+	ld (var_byte_a9c1),a		;ae34	32 c1 a9 	2 . .   ; var_byte_a9c1:=a
+	inc a			;ae37	3c 	<                           ; a:=1
 ;; (a9c5):=a
-	ld (var_byte_a9c5),a		;ae38	32 c5 a9 	2 . .
+	ld (var_byte_a9c5),a		;ae38	32 c5 a9 	2 . .   ; var_byte_a9c5:=a
 	ret			;ae3b	c9 	.
 
-;; 0x08 = Backspace handling (?)
-	ld a,(var_byte_a9c4)		;ae3c	3a c4 a9 	: . .
+;; 0x08 = Backspace
+	ld a,(var_byte_a9c4)		;ae3c	3a c4 a9 	: . .   ; var_byte_a9c4==0x8 ?
 	cp 008h		;ae3f	fe 08 	. .
-	ret z			;ae41	c8 	.
-
+	ret z			;ae41	c8 	.                           ; yes, return
 	ld a,008h		;ae42	3e 08 	> .
-	ld (var_byte_a9c4),a		;ae44	32 c4 a9 	2 . .
-	ld (var_byte_a9bf),a		;ae47	32 bf a9 	2 . .
-	ld l,a			;ae4a	6f 	o
+	ld (var_byte_a9c4),a		;ae44	32 c4 a9 	2 . .   ; no , var_byte_a9c4:=0
+	ld (var_byte_a9bf),a		;ae47	32 bf a9 	2 . .   ; var_byte_a9bf:=a
+	ld l,a			;ae4a	6f 	o                           ; l:=a
 	call 0ace8h		;ae4b	cd e8 ac 	. . .
-	ld (var_word_a9bd),de		;ae4e	ed 53 bd a9 	. S . .
-	xor a			;ae52	af 	.
-	ld (var_byte_a9c0),a		;ae53	32 c0 a9 	2 . .
-	ld (var_byte_a9c1),a		;ae56	32 c1 a9 	2 . .
-	inc a			;ae59	3c 	<
-	ld (var_byte_a9c5),a		;ae5a	32 c5 a9 	2 . .
+	ld (var_word_a9bd),de		;ae4e	ed 53 bd a9 	. S . . ; var_word_a9bd:=de
+	xor a			;ae52	af 	.                           ; a:=0
+	ld (var_byte_a9c0),a		;ae53	32 c0 a9 	2 . .   ; var_byte_a9c0:=a
+	ld (var_byte_a9c1),a		;ae56	32 c1 a9 	2 . .   ; var_byte_a9c1:=a
+	inc a			;ae59	3c 	<                           ; a:=1
+	ld (var_byte_a9c5),a		;ae5a	32 c5 a9 	2 . .   ; var_byte_a9c5:=a
 	ret			;ae5d	c9 	.
 
 ;; '0' handling 0x30
-	cp 000h		;ae5e	fe 00 	. .
-	jr z,$+6		;ae60	28 04 	( .
-	cp 030h		;ae62	fe 30 	. 0
-	jr nz,$+26		;ae64	20 18 	  .
-	ld hl,(var_word_a9bd)		;ae66	2a bd a9 	* . .
-	ld de,(var_word_a9bd)		;ae69	ed 5b bd a9 	. [ . .
-	ld bc,00100h		;ae6d	01 00 01 	. . .
-	add hl,bc			;ae70	09 	.
-	ld l,000h		;ae71	2e 00 	. .
-	set 7,h		;ae73	cb fc 	. .
+	cp 000h		;ae5e	fe 00 	. .                         ; a==0x0?
+	jr z,$+6		;ae60	28 04 	( .                     ; jp l_ae69
+
+	cp 030h		;ae62	fe 30 	. 0                         ; a==0x30? (RS)
+	jr nz,$+26		;ae64	20 18 	  .                     ; jp l_ae7e
+	ld hl,(var_word_a9bd)		;ae66	2a bd a9 	* . .   ; hl:=var_word_a9bd
+l_ae69:
+	ld de,(var_word_a9bd)		;ae69	ed 5b bd a9 	. [ . . ; de:=var_word_a9bd
+	ld bc,00100h		;ae6d	01 00 01 	. . .           ; bc:=0x100
+	add hl,bc			;ae70	09 	.                       ; hl+=bc
+	ld l,000h		;ae71	2e 00 	. .                     ; l:=0
+	set 7,h		;ae73	cb fc 	. .                         ; set bits 5,6,7
 	set 6,h		;ae75	cb f4 	. .
 	set 5,h		;ae77	cb ec 	. .
-	ex de,hl			;ae79	eb 	.
-	call 0adfeh		;ae7a	cd fe ad 	. . .
+	ex de,hl			;ae79	eb 	.                       ; dl:=hl
+	call loop_clear_screen_memory		;ae7a	cd fe ad 	. . .               ;
 	ret			;ae7d	c9 	.
 
 ;; '1' handling
-	cp 031h		;ae7e	fe 31 	. 1
-	jr nz,$+23		;ae80	20 15 	  .
-	ld hl,(var_word_a9bd)		;ae82	2a bd a9 	* . .
-	inc hl			;ae85	23 	#
+l_ae7e:
+	cp 031h		;ae7e	fe 31 	. 1                         ; a==0x31?
+	jr nz,$+23		;ae80	20 15 	  .                     ; l_ae99
+	ld hl,(var_word_a9bd)		;ae82	2a bd a9 	* . .   ; hl:=var_word_a9bd
+	inc hl			;ae85	23 	#                           ; hl+=2
 	inc hl			;ae86	23 	#
-	set 7,h		;ae87	cb fc 	. .
+	set 7,h		;ae87	cb fc 	. .                         ; set bits 5,6,7
 	set 6,h		;ae89	cb f4 	. .
 	set 5,h		;ae8b	cb ec 	. .
-	ex de,hl			;ae8d	eb 	.
-	ld hl,(var_word_a9bd)		;ae8e	2a bd a9 	* . .
-	ld l,000h		;ae91	2e 00 	. .
-	call 0adfeh		;ae93	cd fe ad 	. . .
+	ex de,hl			;ae8d	eb 	.                       ; de:=hl
+	ld hl,(var_word_a9bd)		;ae8e	2a bd a9 	* . .   ; hl:=var_word_a9bd
+	ld l,000h		;ae91	2e 00 	. .                     ; l:=0
+	call loop_clear_screen_memory		;ae93	cd fe ad 	. . .
 	ret			;ae96	c9 	.
 
 ;; '2' handling
-	cp 032h		;ae97	fe 32 	. 2
-	ret nz			;ae99	c0 	.
+l_ae99:
+	cp 032h		;ae97	fe 32 	. 2                         ; a==0x32?
+	ret nz			;ae99	c0 	.                           ; no, return
 
-	ld hl,(var_word_a9bd)		;ae9a	2a bd a9 	* . .
-	ld de,(var_word_a9bd)		;ae9d	ed 5b bd a9 	. [ . .
-	ld bc,00100h		;aea1	01 00 01 	. . .
-	add hl,bc			;aea4	09 	.
-	ld l,000h		;aea5	2e 00 	. .
-	set 7,h		;aea7	cb fc 	. .
+	ld hl,(var_word_a9bd)		;ae9a	2a bd a9 	* . .       ; hl:=var_word_a9bd
+	ld de,(var_word_a9bd)		;ae9d	ed 5b bd a9 	. [ . . ; de:=var_word_a9bd (now hl==de)
+	ld bc,00100h		;aea1	01 00 01 	. . .           ; bc:=0x100
+	add hl,bc			;aea4	09 	.                       ; hl += bc
+	ld l,000h		;aea5	2e 00 	. .                     ; l:=0
+	set 7,h		;aea7	cb fc 	. .                         ; set bits 5,6,7
 	set 6,h		;aea9	cb f4 	. .
 	set 5,h		;aeab	cb ec 	. .
-	ex de,hl			;aead	eb 	.
-	ld l,000h		;aeae	2e 00 	. .
-	call 0adfeh		;aeb0	cd fe ad 	. . .
+	ex de,hl			;aead	eb 	.                       ; de:=hl
+	ld l,000h		;aeae	2e 00 	. .                     ; l:=0
+	call loop_clear_screen_memory		;aeb0	cd fe ad 	. . .
 	ret			;aeb3	c9 	.
 
 ;; again, '0' handling???
-	cp 000h		    ;aeb4	fe 00 	. .
-	jr z,$+6		;aeb6	28 04 	( .
-	cp 030h		    ;aeb8	fe 30 	. 0
-	jr nz,$+6		;aeba	20 04 	  .
+	cp 000h		    ;aeb4	fe 00 	. .                     ; a==0?
+	jr z,$+6		;aeb6	28 04 	( .                     ; call l_aebc
+	cp 030h		    ;aeb8	fe 30 	. 0                     ; a=0x30?
+	jr nz,$+6		;aeba	20 04 	  .                     ; jr l_aebf, so skip clear_screen_memory
+l_aebc:
 	call clear_screen_memory	;aebc	cd f7 ad 	. . .
+l_aebf:
 	ret			    ;aebf	c9 	.
 
 ;; again, '1' handling???
-	cp 031h		;aec0	fe 31 	. 1
-	jr nz,$+21		;aec2	20 13 	  .
-	ld hl,(var_word_a9bd)		;aec4	2a bd a9 	* . .
-	inc hl			;aec7	23 	#
-	inc hl			;aec8	23 	#
-	set 7,h		;aec9	cb fc 	. .
+;; very clode to l_ae7e area
+	cp 031h		;aec0	fe 31 	. 1                         ; a=0x31
+	jr nz,$+21		;aec2	20 13 	  .                     ; jr l_aed6
+	ld hl,(var_word_a9bd)		;aec4	2a bd a9 	* . .   ; hl:=var_word_a9bd
+	inc hl			;aec7	23 	#                           ; hl+=2
+	inc hl			;aec8	23 	#                           ;
+	set 7,h		;aec9	cb fc 	. .                         ; set bits 5,6,7
 	set 6,h		;aecb	cb f4 	. .
 	set 5,h		;aecd	cb ec 	. .
-	ex de,hl			;aecf	eb 	.
-	ld hl,(var_word_a9bb)		;aed0	2a bb a9 	* . .
-	call 0adfeh		;aed3	cd fe ad 	. . . 
+	ex de,hl			;aecf	eb 	.                       ; de:=hl
+	ld hl,(var_word_a9bb)		;aed0	2a bb a9 	* . .   ; var_word_a9bb:=hl
+	call loop_clear_screen_memory		;aed3	cd fe ad 	. . .
+l_aed6:
 	ret			;aed6	c9 	. 
 
 ;; again, '2' handling???	
-	cp 032h		;aed7	fe 32 	. 2 
-	ret nz			;aed9	c0 	. 
+	cp 032h		;aed7	fe 32 	. 2                         ; a==0x32?
+	ret nz			;aed9	c0 	.                           ; np, return
 
-	ld hl,(var_word_a9bd)		;aeda	2a bd a9 	* . . 
-	ld de,(var_word_a9bd)		;aedd	ed 5b bd a9 	. [ . . 
-	call 0adfeh		;aee1	cd fe ad 	. . . 
+	ld hl,(var_word_a9bd)		;aeda	2a bd a9 	* . .           ; hl:=var_word_a9bd
+	ld de,(var_word_a9bd)		;aedd	ed 5b bd a9 	. [ . .     ; de:=var_word_a9bd now de=hl
+	call loop_clear_screen_memory		;aee1	cd fe ad 	. . .
 	ret			;aee4	c9 	. 
 
-	ld hl,0dc00h		;aee5	21 00 dc 	! . . 
-	ld (0de02h),hl		;aee8	22 02 de 	" . . 
-	ld (0de00h),hl		;aeeb	22 00 de 	" . . 
-	xor a			;aeee	af 	. 
-	ld (0de06h),a		;aeef	32 06 de 	2 . . 
-	ld (0de07h),a		;aef2	32 07 de 	2 . . 
-	ld l,a			;aef5	6f 	o 
-	ld h,a			;aef6	67 	g 
-	ld (0de04h),hl		;aef7	22 04 de 	" . . 
+	ld hl,0dc00h		;aee5	21 00 dc 	! . .           ; hl:=0xdc00
+	ld (0de02h),hl		;aee8	22 02 de 	" . .           ; (de02h):=hl
+	ld (0de00h),hl		;aeeb	22 00 de 	" . .           ; (de00h):=hl
+	xor a			;aeee	af 	.                           ; a:=0
+	ld (0de06h),a		;aeef	32 06 de 	2 . .           ; (de06h):=0
+	ld (0de07h),a		;aef2	32 07 de 	2 . .           ; (de06h):=0
+	ld l,a			;aef5	6f 	o                           ; l:=0
+	ld h,a			;aef6	67 	g                           ; h:=0
+	ld (0de04h),hl		;aef7	22 04 de 	" . .           ; (de04h):=hl, i.e. 0
 	ret			;aefa	c9 	. 
 
 	ld a,001h		;aefb	3e 01 	> . 
