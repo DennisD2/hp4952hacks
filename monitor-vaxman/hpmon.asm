@@ -467,10 +467,8 @@ main_loop:      ld      hl, monitor_prompt
                 jp      z, start
                 cp      'I'             ; Info?
                 call    z, info
-
                 cp      'X'             ; exit app?
                 call    z, app_exit
-
                 jr      z, main_loop
                 jp      cmd_error       ; Unknown control-group-command
 
@@ -743,10 +741,13 @@ help:           push    hl
                 call    puts
                 pop     hl
                 ret
-help_msg:       defb    "HELP: command groups+commands:", cr, lf
+
+;               defb    "                                ", cr, lf,
+help_msg:       defb    "HELP: commandgroups+commands:", cr, lf
                 defb    "  C(ontrol group):", cr, lf
-                defb    "    C(old start), I(nfo), S(tart), ",cr,lf
-                defb    "    W(arm start)", cr, lf
+                defb    "    C(old start), I(nfo),",cr,lf
+                defb    "    S(tart), W(arm start),", cr, lf
+                defb    "    W(arm start), E(X)it", cr, lf
                 ;defb    "         D(isk group):", cr, lf
                 ;defb    "             I(nfo), M(ount), T(ransfer),"
                 ;defb    "         U(nmount)", cr, lf
@@ -754,11 +755,11 @@ help_msg:       defb    "HELP: command groups+commands:", cr, lf
                 ;defb    cr, lf
                 ;defb    "         F(ile group):", cr, lf
                 ;defb    "             C(at), D(irectory), L(oad)", cr, lf
-                defb    "  H(elp)", cr, lf
                 defb    "  M(emory group):", cr, lf
-                defb    "    D(ump), E(xamine), F(ill), "
-                defb    "    I(ntel Hex Load), L(oad), "
+                defb    "    D(ump), E(xamine), F(ill),"
+                defb    "    I(ntel Hex Load), L(oad),"
                 defb    "    R(egister dump)"
+                defb    "  H(elp)", cr, lf
                 defb    cr, lf, eos
 ;
 ; Load an INTEL-Hex file (a ROM image) into memory. This routine has been
