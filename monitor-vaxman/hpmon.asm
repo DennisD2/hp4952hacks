@@ -756,9 +756,9 @@ help_msg:       defb    "HELP: commandgroups+commands:", cr, lf
                 ;defb    "         F(ile group):", cr, lf
                 ;defb    "             C(at), D(irectory), L(oad)", cr, lf
                 defb    "  M(emory group):", cr, lf
-                defb    "    D(ump), E(xamine), F(ill),"
-                defb    "    I(ntel Hex Load), L(oad),"
-                defb    "    R(egister dump)"
+                defb    "    D(ump), E(xamine), F(ill),", cr, lf
+                defb    "    I(ntel Hex Load), L(oad),", cr, lf
+                defb    "    R(egister dump)", cr, lf
                 defb    "  H(elp)", cr, lf
                 defb    cr, lf, eos
 ;
