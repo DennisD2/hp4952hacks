@@ -517,7 +517,6 @@ _main_loop:
     ld hl, #_str_hex + x_org_splash
 	push hl
 
-
     ; print string
 	;ld hl, #_str_test + x_org_splash
 
