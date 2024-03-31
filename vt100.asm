@@ -344,61 +344,60 @@ l2065h:
 	ld hl,07621h		;a4ce	21 21 76 	! ! v 
 	ld (0a4cbh),hl		;a4d1	22 cb a4 	" . .
 
-	di			;a4d4	f3 	. 
+	di			;a4d4	f3 	.                           ; DI
 	ld a,(0a530h)		;a4d5	3a 30 a5 	: 0 . 
 	ld (010b5h),a		;a4d8	32 b5 10 	2 . . 
 	ld (0112dh),a		;a4db	32 2d 11 	2 - . 
 	ld (01067h),a		;a4de	32 67 10 	2 g . 
-	ld (01133h),a		;a4e1	32 33 11 	2 3 . 
-	ld hl,_splash_screen_data		;a4e4	21 00 c0 	! . .
+	ld (01133h),a		;a4e1	32 33 11 	2 3 .
+
+	ld hl,_splash_screen_data		;a4e4	21 00 c0 	! . . ; copies 0x1400 bytes from _splash_screen_data to 2a00h
 	ld de,02a00h		;a4e7	11 00 2a 	. . * 
 	ld bc,01400h		;a4ea	01 00 14 	. . . 
-	ldir		;a4ed	ed b0 	. . 
+	ldir		;a4ed	ed b0 	. .
+
 	call 0a533h		;a4ef	cd 33 a5 	. 3 . 
-	ld a,021h		;a4f2	3e 21 	> ! 
-	ld (07501h),a		;a4f4	32 01 75 	2 . u 
-	ei			;a4f7	fb 	. 
+	ld a,021h		;a4f2	3e 21 	> !                 ; a:=0x21 NAK
+	ld (07501h),a		;a4f4	32 01 75 	2 . u       ; (07501h):=a
+	ei			;a4f7	fb 	.                           ; EI
 	
-	ld a,(03f12h)		;a4f8	3a 12 3f 	: . ? 
-	cp 003h		;a4fb	fe 03 	. . 
-	jr z,$+33		;a4fd	28 1f 	( . 
+	ld a,(03f12h)		;a4f8	3a 12 3f 	: . ?       ; a:=(f12h)
+	cp 003h		;a4fb	fe 03 	. .                     ; a==0x3 ?
+	jr z,$+33		;a4fd	28 1f 	( .                 ; yes, jump to l_a51e
 	call 0a53fh		;a4ff	cd 3f a5 	. ? . 
 	call 02b23h		;a502	cd 23 2b 	. # + 
 	call 0007eh		;a505	cd 7e 00 	. ~ . ; Patched to 02d6ch
-;; a:=(496)	
-	ld a,(_tmp_page)		;a508	3a 96 a4 	: . .
-;; (110c) := a	
-	ld (0110ch),a		;a50b	32 0c 11 	2 . . 
-;; hl:=da20
-	ld hl,0da20h		;a50e	21 20 da 	!   . 
-;; (0110f):=h1	
-	ld (0110dh),hl		;a511	22 0d 11 	" . . 
-;; h1:= (a4cb)
-	ld hl,(0a4cbh)		;a514	2a cb a4 	* . . 
-;; save hl
-	push hl			;a517	e5 	. 
+	ld a,(_tmp_page)		;a508	3a 96 a4 	: . .   ; a:=_tmp_page
+	ld (0110ch),a		;a50b	32 0c 11 	2 . .       ; (0110ch):=a
+	ld hl,0da20h		;a50e	21 20 da 	!   .       ; hl:=da20h
+	ld (0110dh),hl		;a511	22 0d 11 	" . .       ; (0110f):=h1
+	ld hl,(0a4cbh)		;a514	2a cb a4 	* . .       ; h1:= (a4cb)
+	push hl			;a517	e5 	.                       ; save hl
 ;; call main menu handler	
 	call 01109h		;a518	cd 09 11 	. . . ; Patched to 02eceh
-;; restore hl
-	pop hl			;a51b	e1 	. 
-	jr $+11		;a51c	18 09 	. . 
+	pop hl			;a51b	e1 	.                       ; restore hl
+	jr $+11		;a51c	18 09 	. .                     ; uncoditioned jr to l_a527 (?!?)
+l_a51e:
 	call 0a8ech		;a51e	cd ec a8 	. . . 
 	call 0a53fh		;a521	cd 3f a5 	. ? . 
-	call 02cfch		;a524	cd fc 2c 	. . , 
-	ld hl,0761ch		;a527	21 1c 76 	! . v 
-	ld (0a4cbh),hl		;a52a	22 cb a4 	" . . 
+	call 02cfch		;a524	cd fc 2c 	. . ,
+l_a527:
+	ld hl,0761ch		;a527	21 1c 76 	! . v       ; hl:=0x761
+	ld (0a4cbh),hl		;a52a	22 cb a4 	" . .       ; (a4cbh):=hl
 
-	jp 0a4d4h		;a52d	c3 d4 a4 	. . .
+	jp 0a4d4h		;a52d	c3 d4 a4 	. . .           ;
 	;; What does a call to 0 mean?
 	call 00000h		;a530	cd 00 00 	. . .
 
-	ld hl,0dbe0h		;a533	21 e0 db 	! . . 
-	ld de,03f00h		;a536	11 00 3f 	. . ? 
-	ld bc,00020h		;a539	01 20 00 	.   . 
-	ldir		;a53c	ed b0 	. . 
-	ret			;a53e	c9 	. 
+    ; copies from dbe0h -> f00h, 20 bytes
+	ld hl,0dbe0h		;a533	21 e0 db 	! . .
+	ld de,03f00h		;a536	11 00 3f 	. . ?
+	ld bc,00020h		;a539	01 20 00 	.   .
+	ldir		;a53c	ed b0 	. .
+	ret			;a53e	c9 	.
 
-	ld hl,03f00h		;a53f	21 00 3f 	! . ? 
+    ; copies from f00h -> dbe0h, 20 bytes
+	ld hl,03f00h		;a53f	21 00 3f 	! . ?
 	ld de,0dbe0h		;a542	11 e0 db 	. . . 
 	ld bc,00020h		;a545	01 20 00 	.   . 
 	ldir		;a548	ed b0 	. . 
@@ -2665,28 +2664,29 @@ vt100_start_screen:
 
 
 ;; POI-14, something is read in	
-	in a,(020h)		;c2fc	db 20 	.   
-	push af			;c2fe	f5 	. 
-	ld a,022h		;c2ff	3e 22 	> " 
-	ld (07501h),a		;c301	32 01 75 	2 . u 
-	ld a,006h		;c304	3e 06 	> . ; Load Page 6 (Application RAM)
-	call 00e60h		;c306	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
-	ld a,(_tmp_page)		;c309	3a 96 a4 	: . .
-	call 00e60h		;c30c	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
-	ld hl,02ba4h		;c30f	21 a4 2b 	! . + 
-	push hl			;c312	e5 	. 
-	call 0da20h		;c313	cd 20 da 	.   . 
-	pop hl			;c316	e1 	. 
-	ld a,006h		;c317	3e 06 	> . ; Load Page 6 (Application RAM)
-	call 00e60h		;c319	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
+	in a,(020h)		;c2fc	db 20 	.               ;a:=port(20)
+	push af			;c2fe	f5 	.                   ; save af
+	ld a,022h		;c2ff	3e 22 	> "             ; a:=0x22 ' " '
+ 	ld (07501h),a		;c301	32 01 75 	2 . u   ; (07501h):=a
+
+	ld a,006h		;c304	3e 06 	> .             ; Load Page 6 (Application RAM)
+	call 00e60h		;c306	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
+	ld a,(_tmp_page)		;c309	3a 96 a4 	: . . ; a:=tmp_page
+	call 00e60h		;c30c	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in _tmp_page
+	ld hl,02ba4h		;c30f	21 a4 2b 	! . +   ; hl:=2ba4
+	push hl			;c312	e5 	.                   ; save hl
+	call 0da20h		;c313	cd 20 da 	.   .
+	pop hl			;c316	e1 	.                   ; restore hl
+	ld a,006h		;c317	3e 06 	> .             ; Load Page 6 (Application RAM)
+	call 00e60h		;c319	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
 	call 0a533h		;c31c	cd 33 a5 	. 3 . 
 	call 0a900h		;c31f	cd 00 a9 	. . . 
 	call 0a53fh		;c322	cd 3f a5 	. ? . 
-	ld a,021h		;c325	3e 21 	> ! 
-	ld (07501h),a		;c327	32 01 75 	2 . u 
-	pop af			;c32a	f1 	. 
-	out (020h),a		;c32b	d3 20 	.   
-	ld hl,00000h		;c32d	21 00 00 	! . . 
+	ld a,021h		;c325	3e 21 	> !             ; a:=0x21 '!'
+	ld (07501h),a		;c327	32 01 75 	2 . u   ; (07501h):=a
+	pop af			;c32a	f1 	.                   ;  restore af
+	out (020h),a		;c32b	d3 20 	.           ; 0x20h port := a
+	ld hl,00000h		;c32d	21 00 00 	! . .   ; hl:=0x0
 	ret			;c330	c9 	. 
 
 	ld a,062h		;c331	3e 62 	> b 
