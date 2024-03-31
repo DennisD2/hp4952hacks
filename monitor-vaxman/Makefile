@@ -2,7 +2,6 @@
 # crt in sdcc SDASZ80 code style
 crt:
 	z80asm -o monitor.app monitor.asm
-	# next step is: link
 
 binary:
 	cp monitor.bin $(HOME)/dosbox/util_1/mon.APP

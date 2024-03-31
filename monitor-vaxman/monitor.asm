@@ -224,7 +224,17 @@ rst_08:         push    bc              ; Save bc and hl
                 add     hl, hl          ; Double to get displacement in table
                 ld      bc, dispatch_table
                 add     hl, bc          ; Calculate displacement in table
-                ld      bc, (hl)        ; Load bc with the destination address
+
+                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
+                ;;;;;;;;;ld      bc, (hl)        ; Load bc with the destination address
+                ;;;;;;;;; relacement code
+                push ix         ; save ix
+                push hl         ; move hl to ix via stack
+                pop ix          ;
+                ld b,(ix+0)     ; b := (ix)
+                ld c,(ix+1)     ; c := (ix+1)
+                pop ix          ; restore ix
+
                 push    bc
                 pop     ix              ; Load ix with the destination address
                 pop     hl              ; Restore hl
@@ -350,7 +360,13 @@ initialize:      ld      sp, start_type - 01h
                 ld      hl, cold_start_msg
                 call    puts            ; Print cold start message
                 ld      hl, ram_start   ; Start of block to be filled with 000h
-                ld      de, hl          ; End address of block
+
+                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
+                ;;;;;;;;;ld      de, hl          ; End address of block
+                ;;;;;;;;; relacement code
+                push hl         ; move hl to de via stack
+                pop de          ;
+
                 inc     de              ; plus 1 (for ldir)
                 ld      bc, ram_end - ram_start
                 ld      (hl), 000h       ; Load first memory location
@@ -482,7 +498,13 @@ dump:            push    af
                 call    get_word        ; Get end address
                 call    crlf
                 inc     hl              ; Increment stop address for comparison
-                ld      de, hl          ; DE now contains the stop address
+
+                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
+                ;;;;;;;;;ld      de, hl          ; DE now contains the stop address
+                ;;;;;;;;; relacement code
+                push hl         ; move hl to de via stack
+                pop de          ;
+
                 pop     hl              ; HL is the start address again
                 ; This loop will dump 16 memory locations at once - even
                 ; if this turns out to be more than requested.
@@ -581,7 +603,13 @@ fill_get_length: ld      hl, fill_msg_2  ; Prompt for length information
                 call    puts
                 call    get_word        ; Get the length of the block
                 ; Now make sure that start + length is still in RAM:
-                ld      bc, hl          ; BC contains the length
+
+                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
+                ;;;;;;;;;ld      bc, hl          ; BC contains the length
+                ;;;;;;;;; relacement code
+                push hl         ; move hl to bc via stack
+                pop bc          ;
+
                 pop     hl              ; HL now contains the start address
                 push    hl              ; Save the start address again
                 push    bc              ; Save the length
@@ -600,7 +628,13 @@ fill_get_value:  ld      hl, fill_msg_3  ; Prompt for fill value
                 call    get_byte        ; Get the fill value
                 pop     bc              ; Get the length from the stack
                 pop     hl              ; Get the start address again
-                ld      de, hl          ; DE = HL + 1
+
+                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
+                ;;;;;;;;;ld      de, hl          ; DE = HL + 1
+                ;;;;;;;;; relacement code
+                push hl         ; move hl to de via stack
+                pop de          ;
+
                 inc     de
                 dec     bc
                 ; HL = start address
@@ -792,7 +826,13 @@ load_loop:       ld      a, ' '
                 inc     de
                 jr      load_loop       ; Get next byte (or at least try to)
 load_exit:       call    crlf            ; Finished...
-                ld      hl, de          ; Print number of bytes loaded
+
+                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
+                ;;;;;;;;;ld      hl, de          ; Print number of bytes loaded
+                ;;;;;;;;; relacement code
+                push de         ; move hl to de via stack
+                pop hl          ;
+
                 call    print_word
                 ld      hl, load_msg_2
                 call    puts
@@ -820,7 +860,13 @@ move:            push    af              ; We won't even destroy the flags!
                 ld      hl, move_msg_2
                 call    puts
                 call    get_word        ; Get destination start address
-                ld      de, hl          ; LDIR requires this in DE
+
+                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
+                ;;;;;;;;;ld      de, hl          ; LDIR requires this in DE
+                ;;;;;;;;; relacement code
+                push hl         ; move hl to de via stack
+                pop de          ;
+
                 ; Is the destination address in RAM area?
                 and     a               ; Clear carry
                 ld      bc, ram_start
@@ -833,7 +879,13 @@ move:            push    af              ; We won't even destroy the flags!
 move_get_length: ld      hl, move_msg_3
                 call    puts
                 call    get_word        ; Get length of block
-                ld      bc, hl          ; LDIR requires the length in BC
+
+                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
+                ;;;;;;;;;ld      bc, hl          ; LDIR requires the length in BC XXX
+                ;;;;;;;;; relacement code
+                push hl         ; move hl to bc via stack
+                pop bc          ;
+
                 pop     hl              ; Get address of block to be moved
                 ; I was lazy - there is no test to make sure that the block
                 ; to be moved will fit into the RAM area.
@@ -903,11 +955,23 @@ rdump_one_set:   push    hl              ; Print one register set
                 call    print_word      ; Print contents of AF
                 ld      hl, rdump_os_msg_2
                 call    puts
-                ld      hl, bc
+
+                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
+                ;;;;;;;;;ld      hl, bc
+                ;;;;;;;;; relacement code
+                push bc        ; move bc to hl via stack
+                pop hl          ;
+
                 call    print_word      ; Print contents of BC
                 ld      hl, rdump_os_msg_3
                 call    puts
-                ld      hl, de
+
+                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
+                ;;;;;;;;;ld      hl, de
+                ;;;;;;;;; relacement code
+                push de         ; move de to hl via stack
+                pop hl          ;
+
                 call    print_word      ; Print contents of DE
                 ld      hl, rdump_os_msg_4
                 call    puts
