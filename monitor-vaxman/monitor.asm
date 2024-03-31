@@ -104,15 +104,15 @@ file_size:       equ     first_cluster - 4       ; Size of file
 file_name:       equ     file_size - 12          ; Canonical name of file
 fcb:             equ     file_name               ; Start of the FCB
 ;
-fcb_filename:            equ     0
-fcb_file_size:           equ     0ch
-fcb_first_cluster:       equ     010h
-fcb_file_type:           equ     012h
-fcb_file_pointer:        equ     013h
-fcb_current_cluster:     equ     017h
-fcb_current_sector:      equ     019h
-fcb_cluster_sector:      equ     01dh
-fcb_file_buffer:         equ     01eh
+;fcb_filename:            equ     0
+;fcb_file_size:           equ     0ch
+;fcb_first_cluster:       equ     010h
+;fcb_file_type:           equ     012h
+;fcb_file_pointer:        equ     013h
+;fcb_current_cluster:     equ     017h
+;fcb_current_sector:      equ     019h
+;fcb_cluster_sector:      equ     01dh
+;fcb_file_buffer:         equ     01eh
 ;
 ; We also need some general purpose string buffers:
 ;
@@ -134,17 +134,17 @@ dirlist_rootsec: equ     dirlist_eob - 4
 ;
 start_type:      equ     dirlist_rootsec  - 01h   ; Distinguish cold/warm start
 ;
-uart_base:       equ     00h
-ide_base:        equ     010h
+;uart_base:       equ     00h
+;ide_base:        equ     010h
 ;
-uart_register_0: equ     uart_base + 0
-uart_register_1: equ     uart_base + 1
-uart_register_2: equ     uart_base + 2
-uart_register_3: equ     uart_base + 3
-uart_register_4: equ     uart_base + 4
-uart_register_5: equ     uart_base + 5
-uart_register_6: equ     uart_base + 6
-uart_register_7: equ     uart_base + 7
+;uart_register_0: equ     uart_base + 0
+;uart_register_1: equ     uart_base + 1
+;uart_register_2: equ     uart_base + 2
+;uart_register_3: equ     uart_base + 3
+;uart_register_4: equ     uart_base + 4
+;uart_register_5: equ     uart_base + 5
+;uart_register_6: equ     uart_base + 6
+;uart_register_7: equ     uart_base + 7
 ;
 eos:             equ     000h             ; End of string
 cr:              equ     00dh             ; Carriage return
@@ -296,55 +296,23 @@ dispatch_table:  defw    cold_start      ; 000h = clear etc.
                 ;                terminated by CR/LF.
                 ; Return values: N/A
                 ;
-                ;defw    fgetc
-                ; Parameters:    IY (pointer to a valid FCB)
-                ; Action:        Reads a character from a FAT file
-                ; Return values: Character in A, if EOF has been encountered,
-                ;                the carry flag will be set
-                ;
-                ;defw    dump_fcb
-                ; Parameters:    IY (pointer to a valid FCB)
-                ; Action:        Prints the contents of the FCB in human
-                ;                readable format to STDOUT
-                ; Return values: N/A
-                ;
-                ;defw    fopen
-                ; Parameters:    HL (points to a buffer containing the file
-                ;                file name), IY (points to an empty FCB)
-                ; Action:        Opens a file for reading
-                ; Return values: N/A (All information is contained in the FCB)
-                ;
-                ;defw    dirlist
-                ; Parameters:    N/A (relies on a valid FAT control block)
-                ; Action:        Writes a directory listing to STDOUT
-                ; Return values: N/A
-                ;
-                ;defw    fatmount
-                ; Parameters:    N/A (needs the global FAT control block)
-                ; Action:        Mounts a disk (populates the FAT CB)
-                ; Return values: N/A
-                ;
-                ;defw    fatunmount
-                ; Parameters:    N/A (needs the global FAT control block)
-                ; Action:        Invalidates the global FAT control block
-                ; Return values; N/A
 ;
 ;  The stackpointer will be predecremented by a push instruction. Since we need
 ; a 512 byte buffer for data transfers to and from the IDE disk, the stack
 ; pointer is initialized to start at the beginning of this buffer space.
 ;
-initialize:      ld      sp, start_type - 01h
+initialize:      ;ld      sp, start_type - 01h
 ;
 ; Initialize UART to 9600,8N1:
 ;
-                ld      a, 080h
-                out     (uart_register_3), a
-                ld      a, 0ch           ; 1843200 / (16 * 9600)
-                out     (uart_register_0), a
-                xor     a
-                out     (uart_register_1), a
-                ld      a, 03h           ; 8N1
-                out     (uart_register_3), a
+                ;ld      a, 080h
+                ;out     (uart_register_3), a
+                ;ld      a, 0ch           ; 1843200 / (16 * 9600)
+                ;out     (uart_register_0), a
+                ;xor     a
+                ;out     (uart_register_1), a
+                ;ld      a, 03h           ; 8N1
+                ;out     (uart_register_3), a
 ;
 ; Print welcome message:
 ;
@@ -354,29 +322,30 @@ initialize:      ld      sp, start_type - 01h
 ;  If this is a cold start (the location start_type does not contain 0aah)
 ; all available RAM will be reset to 000h and a message will be printed.
 ;
-                ld      a, (start_type)
-                cp      0aah             ; Warm start?
-                jr      z, main_loop    ; Yes - enter command loop
-                ld      hl, cold_start_msg
-                call    puts            ; Print cold start message
-                ld      hl, ram_start   ; Start of block to be filled with 000h
+                ;ld      a, (start_type)
+                ;cp      0aah             ; Warm start?
+                ;jr      z, main_loop    ; Yes - enter command loop
+                jr      main_loop
+                ;ld      hl, cold_start_msg
+                ;call    puts            ; Print cold start message
+                ;ld      hl, ram_start   ; Start of block to be filled with 000h
 
                 ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
                 ;;;;;;;;;ld      de, hl          ; End address of block
                 ;;;;;;;;; relacement code
-                push hl         ; move hl to de via stack
-                pop de          ;
+                ;push hl         ; move hl to de via stack
+                ;pop de          ;
 
-                inc     de              ; plus 1 (for ldir)
-                ld      bc, ram_end - ram_start
-                ld      (hl), 000h       ; Load first memory location
-                ldir                    ; And copy this value down
-                ld      hl, start_type
-                ld      (hl), 0aah       ; Cold start done, remember this
+                ;inc     de              ; plus 1 (for ldir)
+                ;ld      bc, ram_end - ram_start
+                ;ld      (hl), 000h       ; Load first memory location
+                ;ldir                    ; And copy this value down
+                ;ld      hl, start_type
+                ;ld      (hl), 0aah       ; Cold start done, remember this
 ;
 ; Read characters from the serial line and send them just back:
 ;
-main_loop:       ld      hl, monitor_prompt
+main_loop:      ld      hl, monitor_prompt
                 call    puts
 ; The monitor is rather simple: All commands are just one or two letters.
 ; The first character selects a command group, the second the desired command
@@ -399,24 +368,28 @@ main_loop:       ld      hl, monitor_prompt
                 call    z, info
                 jr      z, main_loop
                 jp      cmd_error       ; Unknown control-group-command
-disk_group:      cp      'D'             ; Disk group?
+
+disk_group:     cp      'D'             ; Disk group?
                 jr      nz, file_group  ; No - file group?
                 ld      hl, dg_msg      ; Print group prompt
                 call    puts
                 call    monitor_key     ; Get command
                 jr      z, main_loop
                 jr      cmd_error       ; Unknown disk-group-command
-file_group:      cp      'F'             ; File group?
+
+file_group:     cp      'F'             ; File group?
                 jr      nz, help_group  ; No - help group?
                 ld      hl, fg_msg      ; Print group prompt
                 call    puts
                 call    monitor_key     ; Get command key
                 jr      z, main_loop
                 jr      cmd_error       ; Unknown file-group-command
-help_group:      cp      'H'             ; Help? (No further level expected.)
+
+help_group:     cp      'H'             ; Help? (No further level expected.)
                 call    z, help         ; Yes :-)
                 jp      z, main_loop
-memory_group:    cp      'M'             ; Memory group?
+
+memory_group:   cp      'M'             ; Memory group?
                 jp      nz, group_error ; No - print an error message
                 ld      hl, mg_msg      ; Print group prompt
                 call    puts
@@ -443,10 +416,11 @@ memory_group:    cp      'M'             ; Memory group?
                 call    z, rdump
                 jp      z, main_loop
                 jr      cmd_error       ; Unknown memory-group-command
-group_error:     ld      hl, group_err_msg
+
+group_error:    ld      hl, group_err_msg
                 jr      print_error
-cmd_error:       ld      hl, command_err_msg
-print_error:     call    putc            ; Echo the illegal character
+cmd_error:      ld      hl, command_err_msg
+print_error:    call    putc            ; Echo the illegal character
                 call    puts            ; and print the error message
                 jp      main_loop
 ;
@@ -467,7 +441,7 @@ cold_start_msg:  defb    "Cold start, clearing memory.", cr, lf, eos
 ;
 ; Read a key for command group and command:
 ;
-monitor_key:     call    getc
+monitor_key:    call    getc
                 cp      lf              ; Ignore LF
                 jr      z, monitor_key  ; Just get the next character
                 call    to_upper
@@ -485,7 +459,7 @@ monitor_key:     call    getc
 ;
 ; Dump a memory area
 ;
-dump:            push    af
+dump:           push    af
                 push    bc
                 push    de
                 push    hl
@@ -508,14 +482,14 @@ dump:            push    af
                 pop     hl              ; HL is the start address again
                 ; This loop will dump 16 memory locations at once - even
                 ; if this turns out to be more than requested.
-dump_line:       ld      b, 010h          ; This loop will process 16 bytes
+dump_line:      ld      b, 010h          ; This loop will process 16 bytes
                 push    hl              ; Save HL again
                 call    print_word      ; Print address
                 ld      hl, dump_msg_3  ; and a colon
                 call    puts
                 pop hl                  ; Restore address
                 push    hl              ; We will need HL for the ASCII dump
-dump_loop:       ld      a, (hl)         ; Get the memory content
+dump_loop:      ld      a, (hl)         ; Get the memory content
                 call    print_byte      ; and print it
                 ld      a, ' '          ; Print a space
                 call    putc
@@ -532,7 +506,7 @@ dump_ascii_loop: ld      a, (hl)         ; Get byte
                 call    is_print        ; Is it printable?
                 jr      c, dump_al_1    ; Yes
                 ld      a, '.'          ; No - print a dot
-dump_al_1:       call    putc            ; Print the character
+dump_al_1:      call    putc            ; Print the character
                 inc     hl              ; Increment address to read from
                 djnz    dump_ascii_loop
                 ; Now we are finished with printing one line of dump output.
@@ -553,7 +527,7 @@ dump_msg_3:      defb    ": ", eos
 ;
 ; Examine a memory location:
 ;
-examine:         push    af
+examine:        push    af
                 push    hl
                 ld      hl, examine_msg_1
                 call    puts
@@ -561,7 +535,7 @@ examine:         push    af
                 push    hl              ; Save address for later
                 ld      hl, examine_msg_2
                 call    puts
-examine_loop:    pop     hl              ; Restore address
+examine_loop:   pop     hl              ; Restore address
                 ld      a, (hl)         ; Get content of address
                 inc     hl              ; Prepare for next examination
                 push    hl              ; Save hl again for later use
@@ -572,7 +546,7 @@ examine_loop:    pop     hl              ; Restore address
                 ld      a, ' '          ; Print a blank character
                 call    putc
                 jr      examine_loop
-examine_exit:    pop     hl              ; Get rid of save hl value
+examine_exit:   pop     hl              ; Get rid of save hl value
                 call    crlf            ; Print CR/LF
                 pop     hl
                 pop     af
@@ -583,7 +557,7 @@ examine_msg_2:   defb    " DATA=", eos
 ; Fill a block of memory with a single byte - the user is prompted for the
 ; start address, the length of the block and the fill value.
 ;
-fill:            push    af              ; We will need nearly all registers
+fill:           push    af              ; We will need nearly all registers
                 push    bc
                 push    de
                 push    hl
@@ -645,7 +619,7 @@ fill_get_value:  ld      hl, fill_msg_3  ; Prompt for fill value
                 ld      (hl), a         ; Store A into first memory location
                 ldir                    ; Fill the memory
                 call    crlf
-fill_exit:       pop     hl              ; Restore the register contents
+fill_exit:      pop     hl              ; Restore the register contents
                 pop     de
                 pop     bc
                 pop     af
@@ -658,12 +632,12 @@ fill_msg_5:      defb    " Block exceeds RAM area!", cr, lf, eos
 ;
 ; Help
 ;
-help:            push    hl
+help:           push    hl
                 ld      hl, help_msg
                 call    puts
                 pop     hl
                 ret
-help_msg:        defb    "HELP: Known command groups and commands:", cr, lf
+help_msg:       defb    "HELP: Known command groups and commands:", cr, lf
                 defb    "         C(ontrol group):", cr, lf
                 defb    "             C(old start), I(nfo), S(tart), "
                 defb    "W(arm start)", cr, lf
@@ -693,12 +667,12 @@ help_msg:        defb    "HELP: Known command groups and commands:", cr, lf
 ; Please note that this routine will not echo what it read from stdin but
 ; what it "understood". :-)
 ;
-ih_load:         push    af
+ih_load:        push    af
                 push    de
                 push    hl
                 ld      hl, ih_load_msg_1
                 call    puts
-ih_load_loop:    call    getc            ; Get a single character
+ih_load_loop:   call    getc            ; Get a single character
                 cp      cr              ; Don't care about CR
                 jr      z, ih_load_loop
                 cp      lf              ; ...or LF
@@ -730,7 +704,7 @@ ih_load_loop:    call    getc            ; Get a single character
 ih_load_chk_err: ld      hl, ih_load_msg_3
                 call    puts            ; No - print an error message
                 jr      ih_load_exit    ; and exit
-ih_load_data:    ld      a, d            ; Record length is now in A
+ih_load_data:   ld      a, d            ; Record length is now in A
                 and     a               ; Did we process all bytes?
                 jr      z, ih_load_eol  ; Yes - process end of line
                 call    get_byte        ; Read two hex digits into A
@@ -739,22 +713,22 @@ ih_load_data:    ld      a, d            ; Record length is now in A
                 inc     hl              ; Increment pointer
                 dec     d               ; Decrement remaining record length
                 jr      ih_load_data    ; Get next byte
-ih_load_eol:     call    get_byte        ; Read the last byte in the line
+ih_load_eol:    call    get_byte        ; Read the last byte in the line
                 call    ih_load_chk     ; Update checksum
                 ld      a, e
                 and     a               ; Is the checksum zero (as expected)?
                 jr      nz, ih_load_chk_err
                 call    crlf
                 jr      ih_load_loop    ; Yes - read next line
-ih_load_error:   ld      hl, ih_load_msg_2
+ih_load_error:  ld      hl, ih_load_msg_2
                 call    puts            ; Print error message
-ih_load_exit:    call    crlf
+ih_load_exit:   call    crlf
                 pop     hl              ; Restore registers
                 pop     de
                 pop     af
                 ret
 ;
-ih_load_chk:     ld      c, a            ; All in all compute E = E - A
+ih_load_chk:    ld      c, a            ; All in all compute E = E - A
                 ld      a, e
                 sub     c
                 ld      e, a
@@ -766,7 +740,7 @@ ih_load_msg_3:   defb    " Checksum error!", eos
 ;
 ; Print version information etc.
 ;
-info:            push    hl
+info:           push    hl
                 ld      hl, info_msg
                 call    puts
                 ld      hl, hello_msg
@@ -779,7 +753,7 @@ info_msg:        defb    "INFO: ", eos
 ; a sequence of bytes in hexadecimal notation may be entered until a character
 ; that is not 0-9 or a-f is encountered.
 ;
-load:            push    af
+load:           push    af
                 push    bc
                 push    de
                 push    hl
@@ -801,7 +775,7 @@ load:            push    af
                 ; to a byte and store this in memory. If one character is
                 ; illegal, the load routine terminates and returns to the
                 ; monitor.
-load_loop:       ld      a, ' '
+load_loop:      ld      a, ' '
                 call    putc            ; Write a space as byte delimiter
                 call    getc            ; Read first character
                 call    to_upper        ; Convert to upper case
@@ -825,7 +799,7 @@ load_loop:       ld      a, ' '
                 inc     hl
                 inc     de
                 jr      load_loop       ; Get next byte (or at least try to)
-load_exit:       call    crlf            ; Finished...
+load_exit:      call    crlf            ; Finished...
 
                 ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
                 ;;;;;;;;;ld      hl, de          ; Print number of bytes loaded
@@ -849,7 +823,7 @@ load_msg_3:      defb    " Illegal address!", eos
 ;
 ; Move a memory block - the user is prompted for all necessary data:
 ;
-move:            push    af              ; We won't even destroy the flags!
+move:           push    af              ; We won't even destroy the flags!
                 push    bc
                 push    de
                 push    hl
@@ -890,7 +864,7 @@ move_get_length: ld      hl, move_msg_3
                 ; I was lazy - there is no test to make sure that the block
                 ; to be moved will fit into the RAM area.
                 ldir                    ; Move block
-move_exit:       call    crlf            ; Finished
+move_exit:      call    crlf            ; Finished
                 pop     hl              ; Restore registers
                 pop     de
                 pop     bc
@@ -903,7 +877,7 @@ move_msg_4:      defb    " Illegal destination address!", eos
 ;
 ; Dump the contents of both register banks:
 ;
-rdump:           push    af
+rdump:          push    af
                 push    hl
                 ld      hl, rdump_msg_1 ; Print first two lines
                 call    puts
@@ -947,7 +921,7 @@ rdump_msg_3:     defb    tab
 rdump_msg_4:     defb    " IY=", eos
 rdump_msg_5:     defb    " SP=", eos
 ;
-rdump_one_set:   push    hl              ; Print one register set
+rdump_one_set:  push    hl              ; Print one register set
                 ld      hl, rdump_os_msg_1
                 call    puts
                 push    af              ; Move AF into HL
@@ -987,12 +961,12 @@ rdump_os_msg_4:  defb    " HL=", eos
 ; Start a program - this will prompt for a four digital hexadecimal start
 ; address. A program should end with "jp 00h" to enter the monitor again.
 ;
-start:           ld      hl, start_msg
+start:          ld      hl, start_msg
                 call    puts
                 call    get_word        ; Wait for a four-nibble address
                 call    crlf
                 jp      (hl)            ; Start program (and hope for the best)
-start_msg:       defb    "START: ADDR=", eos
+start_msg:      defb    "START: ADDR=", eos
 
 
 ;
@@ -1005,44 +979,44 @@ start_msg:       defb    "START: ADDR=", eos
 ; is_hex checks a character stored in A for being a valid hexadecimal digit.
 ; A valid hexadecimal digit is denoted by a set C flag.
 ;
-is_hex:          cp      'F' + 1         ; Greater than 'F'?
+is_hex:         cp      'F' + 1         ; Greater than 'F'?
                 ret     nc              ; Yes
                 cp      '0'             ; Less than '0'?
                 jr      nc, is_hex_1    ; No, continue
                 ccf                     ; Complement carry (i.e. clear it)
                 ret
-is_hex_1:        cp      '9' + 1         ; Less or equal '9*?
+is_hex_1:       cp      '9' + 1         ; Less or equal '9*?
                 ret     c               ; Yes
                 cp      'A'             ; Less than 'A'?
                 jr      nc, is_hex_2    ; No, continue
                 ccf                     ; Yes - clear carry and return
                 ret
-is_hex_2:        scf                     ; Set carry
+is_hex_2:       scf                     ; Set carry
                 ret
 ;
 ; is_print checks if a character is a printable ASCII character. A valid
 ; character is denoted by a set C flag.
 ;
-is_print:        cp      space
+is_print:       cp      space
                 jr      nc, is_print_1
                 ccf
                 ret
-is_print_1:      cp      07fh
+is_print_1:     cp      07fh
                 ret
 ;
 ; nibble2val expects a hexadecimal digit (upper case!) in A and returns the
 ; corresponding value in A.
 ;
-nibble2val:      cp      '9' + 1         ; Is it a digit (less or equal '9')?
+nibble2val:     cp      '9' + 1         ; Is it a digit (less or equal '9')?
                 jr      c, nibble2val_1 ; Yes
                 sub     7               ; Adjust for A-F
-nibble2val_1:    sub     '0'             ; Fold back to 0..15
+nibble2val_1:   sub     '0'             ; Fold back to 0..15
                 and     0fh              ; Only return lower 4 bits
                 ret
 ;
 ; Convert a single character contained in A to upper case:
 ;
-to_upper:        cp      'a'             ; Nothing to do if not lower case
+to_upper:       cp      'a'             ; Nothing to do if not lower case
                 ret     c
                 cp      'z' + 1         ; > 'z'?
                 ret     nc              ; Nothing to do, either
@@ -1053,9 +1027,9 @@ to_upper:        cp      'a'             ; Nothing to do if not lower case
 ; strcmp. The routine expects two pointer in HL and DE which will be
 ; preserved.
 ;
-strcmp:          push    de
+strcmp:         push    de
                 push    hl
-strcmp_loop:     ld      a, (de)
+strcmp_loop:    ld      a, (de)
                 cp      0                       ; End of first string reached?
                 jr      z, strcmp_exit
                 cp      (hl)                    ; Compare two characters
@@ -1063,7 +1037,7 @@ strcmp_loop:     ld      a, (de)
                 inc     hl
                 inc     de
                 jr      strcmp_loop
-strcmp_exit:     sub     (hl)
+strcmp_exit:    sub     (hl)
                 pop     hl
                 pop     de
                 ret
@@ -1076,7 +1050,7 @@ strcmp_exit:     sub     (hl)
 ;
 ; Send a CR/LF pair:
 ;
-crlf:            push    af
+crlf:           push    af
                 ld      a, cr
                 call    putc
                 ld      a, lf
@@ -1086,15 +1060,15 @@ crlf:            push    af
 ;
 ; Read a single character from the serial line, result is in A:
 ;
-getc:            call    rx_ready
-                in      a, (uart_register_0)
+getc:           ;call    rx_ready
+                ;in      a, (uart_register_0)
                 ret
 ;
 ; Get a byte in hexadecimal notation. The result is returned in A. Since
 ; the routine get_nibble is used only valid characters are accepted - the
 ; input routine only accepts characters 0-9a-f.
 ;
-get_byte:        push    bc              ; Save contents of B (and C)
+get_byte:       push    bc              ; Save contents of B (and C)
                 call    get_nibble      ; Get upper nibble
                 rlc     a
                 rlc     a
@@ -1111,7 +1085,7 @@ get_byte:        push    bc              ; Save contents of B (and C)
 ; to the serial line interface. The lower 4 bits of A contain the value of
 ; that particular digit.
 ;
-get_nibble:      call    getc            ; Read a character
+get_nibble:     call    getc            ; Read a character
                 call    to_upper        ; Convert to upper case
                 call    is_hex          ; Was it a hex digit?
                 jr      nc, get_nibble  ; No, get another character
@@ -1123,7 +1097,7 @@ get_nibble:      call    getc            ; Read a character
 ; Since the routines get_byte and therefore get_nibble are called, only valid
 ; characters (0-9a-f) are accepted.
 ;
-get_word:        push    af
+get_word:       push    af
                 call    get_byte        ; Get the upper byte
                 ld      h, a
                 call    get_byte        ; Get the lower byte
@@ -1134,10 +1108,10 @@ get_word:        push    af
 ;  Read a string from STDIN - HL contains the buffer start address,
 ; B contains the buffer length.
 ;
-gets:            push    af
+gets:           push    af
                 push    bc
                 push    hl
-gets_loop:       call    getc                    ; Get a single character
+gets_loop:      call    getc                    ; Get a single character
                 cp      cr                      ; Skip CR characters
                 jr      z, gets_loop            ; only LF will terminate input
                 call    to_upper
@@ -1147,7 +1121,7 @@ gets_loop:       call    getc                    ; Get a single character
                 ld      (hl), a                 ; Copy character to buffer
                 inc     hl
                 djnz    gets_loop
-gets_exit:       ld      (hl), 0                 ; Insert termination byte
+gets_exit:      ld      (hl), 0                 ; Insert termination byte
                 pop     hl
                 pop     bc
                 pop     af
@@ -1156,7 +1130,7 @@ gets_exit:       ld      (hl), 0                 ; Insert termination byte
 ; print_byte prints a single byte in hexadecimal notation to the serial line.
 ; The byte to be printed is expected to be in A.
 ;
-print_byte:      push    af              ; Save the contents of the registers
+print_byte:     push    af              ; Save the contents of the registers
                 push    bc
                 ld      b, a
                 rrca
@@ -1173,20 +1147,20 @@ print_byte:      push    af              ; Save the contents of the registers
 ; print_nibble prints a single hex nibble which is contained in the lower
 ; four bits of A:
 ;
-print_nibble:    push    af              ; We won't destroy the contents of A
+print_nibble:   push    af              ; We won't destroy the contents of A
                 and     0fh              ; Just in case...
                 add     '0'             ; If we have a digit we are done here.
                 cp      '9' + 1         ; Is the result > 9?
                 jr      c, print_nibble_1
                 add     'A' - '0' - 0ah  ; Take care of A-F
-print_nibble_1:  call    putc            ; Print the nibble and
+print_nibble_1: call    putc            ; Print the nibble and
                 pop     af              ; restore the original value of A
                 ret
 ;
 ; print_word prints the four hex digits of a word to the serial line. The
 ; word is expected to be in HL.
 ;
-print_word:      push    hl
+print_word:     push    hl
                 push    af
                 ld      a, h
                 call    print_byte
@@ -1198,41 +1172,41 @@ print_word:      push    hl
 ;
 ; Send a single character to the serial line (a contains the character):
 ;
-putc:            call    tx_ready
-                out     (uart_register_0), a
+putc:           ;call    tx_ready
+                ;out     (uart_register_0), a
                 ret
 ;
 ; Send a string to the serial line, HL contains the pointer to the string:
 ;
-puts:            push    af
+puts:           push    af
                 push    hl
-puts_loop:       ld      a, (hl)
+puts_loop:      ld      a, (hl)
                 cp      eos             ; End of string reached?
                 jr      z, puts_end     ; Yes
                 call    putc
                 inc     hl              ; Increment character pointer
                 jr      puts_loop       ; Transmit next character
-puts_end:        pop     hl
+puts_end:       pop     hl
                 pop     af
                 ret
 ;
 ; Wait for an incoming character on the serial line:
 ;
-rx_ready:        push    af
-rx_ready_loop:   in      a, (uart_register_5)
-                bit     0, a
-                jr      z, rx_ready_loop
-                pop     af
-                ret
+;rx_ready:       ;push    af
+;rx_ready_loop:  ;in      a, (uart_register_5)
+                ;bit     0, a
+                ;jr      z, rx_ready_loop
+                ;pop     af
+                ;ret
 ;
 ; Wait for UART to become ready to transmit a byte:
 ;
-tx_ready:        push    af
-tx_ready_loop:   in      a, (uart_register_5)
-                bit     5, a
-                jr      z, tx_ready_loop
-                pop af
-                ret
+;tx_ready:       ;push    af
+;tx_ready_loop:  ;in      a, (uart_register_5)
+                ;bit     5, a
+                ;jr      z, tx_ready_loop
+                ;pop af
+                ;ret
 
 ;******************************************************************************
 ;***
