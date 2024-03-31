@@ -1,3 +1,102 @@
+include "lib/header.asm"
+include "lib/strap.asm"
+
+	org 02071h
+	seek 00871h
+_splash_screen_data:
+	defb 0ffh
+
+	defb 002h, 00dh, _scrattr_ascii_n
+	defb "HP 4952A", 000h
+	defb 003h, 007h, _scrattr_ascii_n
+	defb "Open Source Software", 000h
+
+	defb 007h, 00bh, _scrattr_ascii_n
+	defb "Hello World", 000h
+
+	defb 00ch, 008h, _scrattr_ascii_n
+	defb "Hacking the 4952", 000h
+	defb 00dh, 009h, _scrattr_ascii_n
+	defb "based on hackaday.io", 000h
+
+	defb 000h							;; End of Screen Data
+
+_splash_menu_data:
+	defb "Re-!BERT!Remote!Mass !Hell!Self~"
+	defb "set!Menu!&Print!Store!o   !Test|"
+
+_p_main_menu_page_one:
+	defw 08336h			;; First Page Menu Data
+_p_mm_autoconfig:
+	defw 0141ch			;; Ordinal 120h Auto Config
+_p_mm_setup:
+	defw 0b5a8h			;; Entry Point for Setup
+_p_mm_mon:
+	defw 0100dh			;; Entry Point for Monitor Menu
+_p_mm_sim:
+	defw 01013h			;; Entry Point for Sim Menu
+_p_mm_run:
+	defw 0b9ffh			;; Entry Point for Run Menu
+_p_mm_exam:
+	defw 013cdh			;; Ordinal 12eh Examine Data
+_p_mm_next1:
+	defw _p_main_menu_page_two	;; Next Page
+
+_p_main_menu_page_two:
+	defw _splash_menu_data		;; Second Page Menu Data
+_p_mm_reset:
+	defw 0bb1ah			;; Entry Point for Re-Set
+_p_mm_bert:
+	defw 0b22ch			;; Entry Point for BERT Menu
+_p_mm_remote:
+	defw 0d963h			;; Entry Point for Remote & Print
+_p_mm_masstorage:
+	defw 00f0ch			;; Entry Point for Mass Storage
+_p_mm_launch_app:
+	defw _launch_app		;; Entry Point for Application
+_p_mm_selftest:
+	defw 0136fh			;; Ordinal 12ah Self Test
+_p_mm_next2:
+	defw _p_main_menu_page_one	;; Next Page
+
+_launch_app:
+	ld a, 006h
+	call 00e60h			; Page in 6
+	ld hl,0aa00h			; Copy application to Work RAM
+	ld de,_code_start		;
+	ld bc,_code_end-_code_start	;
+	ldir				;
+	jp _main_entry			; Run the application
+
+_splash_end:
+;; End of menu section
+
+;; Main Application
+	org 2200h
+	seek 0a00h
+_code_start:
+
+_str_hello1:
+	defb "Hello World 1", 000h
+
+_str_exit:
+	defb "Are you sure you wish to exit?", 000h
+
+_main_entry:
+	call initialize
+
+;****************************************************************************************
+;****************************************************************************************
+;
+; end wrapper
+;
+;****************************************************************************************
+;****************************************************************************************
+
+
+
+
+
 
 ;******************************************************************************
 ;
@@ -67,12 +166,12 @@
 ;  +-------+
 ;
 ;
-monitor_start:   equ     00000h           ; 00000h -> ROM, 08000h -> Test image
+;monitor_start:   equ     00000h           ; 00000h -> ROM, 08000h -> Test image
 ;
-                org     monitor_start
+;                org     monitor_start
 ;
-rom_start:       equ     00h
-rom_end:         equ     07fffh
+;rom_start:       equ     00h
+;rom_end:         equ     07fffh
 ram_start:       equ     08000h
 ram_end:         equ     0ffffh
 buffer:          equ     ram_end - 01ffh  ; 512 byte IDE general purpose buffer
@@ -154,7 +253,7 @@ tab:             equ     009h             ; Tabulator
 ;
 ; Main entry point (RST 00H):
 ;
-rst_00:          di                      ; Disable interrupts
+rst_00:         di                      ; Disable interrupts
                 jr      initialize      ; Jump over the RST-area
 ;
 ;  RST-area - here is the main entry point into the monitor. The calling
@@ -1062,6 +1161,7 @@ crlf:           push    af
 ;
 getc:           ;call    rx_ready
                 ;in      a, (uart_register_0)
+                call _getkey_wait
                 ret
 ;
 ; Get a byte in hexadecimal notation. The result is returned in A. Since
@@ -1174,6 +1274,7 @@ print_word:     push    hl
 ;
 putc:           ;call    tx_ready
                 ;out     (uart_register_0), a
+                call    _writechar
                 ret
 ;
 ; Send a string to the serial line, HL contains the pointer to the string:
@@ -1224,3 +1325,28 @@ warm_start:      ld      hl, clear_msg
                 ld      (ram_end), a
                 rst     000h
 clear_msg:       defb    "CLEAR", cr, lf, eos
+
+
+;****************************************************************************************
+;****************************************************************************************
+;
+; end wrapper
+;
+;****************************************************************************************
+;****************************************************************************************
+
+include "lib/string.asm"
+include "lib/screen.asm"
+include "lib/printf.asm"
+include "lib/keyb.asm"
+
+_code_end:
+	defb 033h
+;; End of Main Application
+
+
+;; Fill to end of file
+	org 0b0ffh
+	seek 16ffh
+	defb 033h
+_file_end:
