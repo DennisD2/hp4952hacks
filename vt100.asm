@@ -2646,6 +2646,7 @@ vt100_start_screen:
 	;nop			;c2ab	00 	.
 ; end of vt100_start_screen
 
+    ;; no code below
 	cp h			;c2ac	bc 	.
 	inc l			;c2ad	2c 	, 
 	call nc,00032h		;c2ae	d4 32 00 	. 2 . 
@@ -2663,7 +2664,7 @@ vt100_start_screen:
 	defb                 "! late!    !cute"
 
 
-;; POI-14, something is read in	
+;; POI-14, something is read in	and written out
 	in a,(020h)		;c2fc	db 20 	.               ;a:=port(20)
 	push af			;c2fe	f5 	.                   ; save af
 	ld a,022h		;c2ff	3e 22 	> "             ; a:=0x22 ' " '
@@ -2689,25 +2690,25 @@ vt100_start_screen:
 	ld hl,00000h		;c32d	21 00 00 	! . .   ; hl:=0x0
 	ret			;c330	c9 	. 
 
-	ld a,062h		;c331	3e 62 	> b 
-	ld (07501h),a		;c333	32 01 75 	2 . u 
-	ld a,006h		;c336	3e 06 	> . ; Load Page 6 (Application RAM)
-	call 00e60h		;c338	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
+	ld a,062h		;c331	3e 62 	> b             ; a:=0x62 'b'
+	ld (07501h),a		;c333	32 01 75 	2 . u   ; (07501h):=a
+	ld a,006h		;c336	3e 06 	> .             ; Load Page 6 (Application RAM)
+	call 00e60h		;c338	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
 	call 0a54bh		;c33b	cd 4b a5 	. K . 
-	ld a,022h		;c33e	3e 22 	> " 
-	ld (07501h),a		;c340	32 01 75 	2 . u 
-	ld a,(_tmp_page)		;c343	3a 96 a4 	: . .
-	call 00e60h		;c346	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
-	ld hl,00001h		;c349	21 01 00 	! . . 
+	ld a,022h		;c33e	3e 22 	> "             ;  a:=0x22 ' " '
+	ld (07501h),a		;c340	32 01 75 	2 . u   ; (07501h):=a
+	ld a,(_tmp_page)		;c343	3a 96 a4 	: . . ; a:=tmp_page
+	call 00e60h		;c346	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in _tmp_page
+	ld hl,00001h		;c349	21 01 00 	! . .   ; hl:=1
 	ret			;c34c	c9 	. 
 
-	ld a,006h		;c34d	3e 06 	> . ; Load Page 6 (Application RAM)
-	call 00e60h		;c34f	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
-	call 0a60eh		;c352	cd 0e a6 	. . . 
-	ld a,022h		;c355	3e 22 	> " 
-	ld (07501h),a		;c357	32 01 75 	2 . u 
-	ld a,(_tmp_page)		;c35a	3a 96 a4 	: . .
-	call 00e60h		;c35d	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
+	ld a,006h		;c34d	3e 06 	> .             ; Load Page 6 (Application RAM)
+	call 00e60h		;c34f	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
+	call 0a60eh		;c352	cd 0e a6 	. . .
+	ld a,022h		;c355	3e 22 	> "             ;  a:=0x22 ' " '
+	ld (07501h),a		;c357	32 01 75 	2 . u   ; (07501h):=a
+	ld a,(_tmp_page)		;c35a	3a 96 a4 	: . .  ; a:=tmp_page
+	call 00e60h		;c35d	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in _tmp_page
 	ld hl,00001h		;c360	21 01 00 	! . . 
 	ret			;c363	c9 	. 
 
