@@ -1021,12 +1021,12 @@ rdump:          push    af
                 pop     hl
                 pop     af
                 ret
-rdump_msg_1:     defb    "REGISTER DUMP", cr, lf, cr, lf, tab
-                 defb      "1st:", eos
-rdump_msg_2:     defb    tab
-                 defb     "2nd:", eos
-rdump_msg_3:     defb    tab
-                 defb     "PTR: IX=", eos
+rdump_msg_1:     defb    "REGISTER DUMP", cr, lf, cr, lf
+                 defb    "1st:", cr, lf, eos
+rdump_msg_2:
+                 defb    "2nd:", cr, lf, eos
+rdump_msg_3:
+                 defb    "PTR: IX=", eos
 rdump_msg_4:     defb    " IY=", eos
 rdump_msg_5:     defb    " SP=", eos
 ;
@@ -1062,7 +1062,7 @@ rdump_one_set:  push    hl              ; Print one register set
                 call    print_word      ; Print contents of HL
                 call    crlf
                 ret
-rdump_os_msg_1:  defb    " AF=", eos
+rdump_os_msg_1:  defb    "AF=", eos
 rdump_os_msg_2:  defb    " BC=", eos
 rdump_os_msg_3:  defb    " DE=", eos
 rdump_os_msg_4:  defb    " HL=", eos
@@ -1327,16 +1327,16 @@ puts_end:       pop     hl
 ;
 ; Clear the computer (not to be called - jump into this routine):
 ;
-cold_start:      ld      hl, start_type
+cold_start:     ld      hl, start_type
                 ld      (hl), 000h
-warm_start:      ld      hl, clear_msg
+warm_start:     ld      hl, clear_msg
                 call    puts
                 ld      a, 000h
                 ld      (ram_end), a
                 rst     000h
-clear_msg:       defb    "CLEAR", cr, lf, eos
+clear_msg:      defb    "CLEAR", cr, lf, eos
 
-app_exit:      call _clear_screen
+app_exit:       call _clear_screen
                 jp 014d5h				; Return to main menu.
 
 
@@ -1362,4 +1362,6 @@ _code_end:
 	org 0b0ffh
 	seek 16ffh
 	defb 000h
+
+	defb 0affeh
 _file_end:
