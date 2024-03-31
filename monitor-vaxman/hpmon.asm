@@ -559,7 +559,7 @@ monitor_key:    call    getc
 ;*** The following routines are used in the interactive part of the monitor
 ;***
 ;******************************************************************************
-
+n_dump_bytes:             equ     005h             ; dumped bytes per line
 ;
 ; Dump a memory area
 ;
@@ -586,7 +586,7 @@ dump:           push    af
                 pop     hl              ; HL is the start address again
                 ; This loop will dump 16 memory locations at once - even
                 ; if this turns out to be more than requested.
-dump_line:      ld      b, 010h          ; This loop will process 16 bytes
+dump_line:      ld      b, n_dump_bytes          ; This loop will process n_dump_bytes bytes
                 push    hl              ; Save HL again
                 call    print_word      ; Print address
                 ld      hl, dump_msg_3  ; and a colon
@@ -601,7 +601,7 @@ dump_loop:      ld      a, (hl)         ; Get the memory content
                 djnz    dump_loop       ; Continue with this line
                 ; This loop will dump the very same 16 memory locations - but
                 ; this time printable ASCII characters will be written.
-                ld      b, 010h          ; 16 characters at a time
+                ld      b, n_dump_bytes          ; n_dump_bytes characters at a time
                 ld      a, ' '          ; We need some spaces
                 call    putc            ; to print
                 call    putc
