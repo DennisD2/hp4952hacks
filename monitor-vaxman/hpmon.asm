@@ -415,6 +415,7 @@ initialize:      ;ld      sp, start_type - 01h
 ;
 ; Print welcome message:
 ;
+                call    _clear_screen
                 ld      hl, hello_msg
                 call    puts
 ;
@@ -453,7 +454,8 @@ main_loop:      ld      hl, monitor_prompt
                 call    monitor_key     ; Read a key
 ; Which group did we get?
                 cp      'C'             ; Control group?
-                jr      nz, disk_group  ; No - test next group
+                jr      nz, help_group  ; No - test next group
+                ;jr      nz, disk_group  ; No - test next group
                 ld      hl, cg_msg      ; Print group prompt
                 call    puts
                 call    monitor_key     ; Get command key
@@ -465,24 +467,28 @@ main_loop:      ld      hl, monitor_prompt
                 jp      z, start
                 cp      'I'             ; Info?
                 call    z, info
+
+                cp      'X'             ; exit app?
+                call    z, app_exit
+
                 jr      z, main_loop
                 jp      cmd_error       ; Unknown control-group-command
 
-disk_group:     cp      'D'             ; Disk group?
-                jr      nz, file_group  ; No - file group?
-                ld      hl, dg_msg      ; Print group prompt
-                call    puts
-                call    monitor_key     ; Get command
-                jr      z, main_loop
-                jr      cmd_error       ; Unknown disk-group-command
-
-file_group:     cp      'F'             ; File group?
-                jr      nz, help_group  ; No - help group?
-                ld      hl, fg_msg      ; Print group prompt
-                call    puts
-                call    monitor_key     ; Get command key
-                jr      z, main_loop
-                jr      cmd_error       ; Unknown file-group-command
+;disk_group:     cp      'D'             ; Disk group?
+;                jr      nz, file_group  ; No - file group?
+;                ld      hl, dg_msg      ; Print group prompt
+;                call    puts
+;                call    monitor_key     ; Get command
+;                jr      z, main_loop
+;                jr      cmd_error       ; Unknown disk-group-command
+;
+;file_group:     cp      'F'             ; File group?
+;                jr      nz, help_group  ; No - help group?
+;                ld      hl, fg_msg      ; Print group prompt
+;                call    puts
+;                call    monitor_key     ; Get command key
+;                jr      z, main_loop
+;                jr      cmd_error       ; Unknown file-group-command
 
 help_group:     cp      'H'             ; Help? (No further level expected.)
                 call    z, help         ; Yes :-)
@@ -524,15 +530,16 @@ print_error:    call    putc            ; Echo the illegal character
                 jp      main_loop
 ;
 ; Some constants for the monitor:
-;
+;                defb    "                                ", cr, lf,
 hello_msg:       defb    cr, lf, cr, lf
-                 defb     "Simple Z80-monitor - V 0.8 "
-                 defb    "(B. Ulmann, Sep. 2011 - Jan. 2012)", cr, lf, eos
+                 defb    "Simple Z80-monitor - V 0.8 ", cr, lf
+                 defb    " (B. Ulmann, Sep.2011-Jan.2012)", cr, lf
+                 defb    " adapted Apr. 2024 spurtikus.de", cr, lf, eos
 monitor_prompt:  defb    cr, lf
                  defb     "Z> ", eos
 cg_msg:          defb    "CONTROL/", eos
-dg_msg:          defb    "DISK/", eos
-fg_msg:          defb    "FILE/", eos
+;dg_msg:          defb    "DISK/", eos
+;fg_msg:          defb    "FILE/", eos
 mg_msg:          defb    "MEMORY/", eos
 command_err_msg: defb    ": Syntax error - command not found!", cr, lf, eos
 group_err_msg:   defb    ": Syntax error - group not found!", cr, lf, eos
@@ -736,21 +743,22 @@ help:           push    hl
                 call    puts
                 pop     hl
                 ret
-help_msg:       defb    "HELP: Known command groups and commands:", cr, lf
-                defb    "         C(ontrol group):", cr, lf
-                defb    "             C(old start), I(nfo), S(tart), "
-                defb    "W(arm start)", cr, lf
-                defb    "         D(isk group):", cr, lf
-                defb    "             I(nfo), M(ount), T(ransfer),"
-                defb    "         U(nmount)", cr, lf
-                defb    "                                  R(ead), W(rite)"
-                defb    cr, lf
-                defb    "         F(ile group):", cr, lf
-                defb    "             C(at), D(irectory), L(oad)", cr, lf
-                defb    "         H(elp)", cr, lf
-                defb    "         M(emory group):", cr, lf
-                defb    "             D(ump), E(xamine), F(ill), "
-                defb    "I(ntel Hex Load), L(oad), R(egister dump)"
+help_msg:       defb    "HELP: command groups+commands:", cr, lf
+                defb    "  C(ontrol group):", cr, lf
+                defb    "    C(old start), I(nfo), S(tart), ",cr,lf
+                defb    "    W(arm start)", cr, lf
+                ;defb    "         D(isk group):", cr, lf
+                ;defb    "             I(nfo), M(ount), T(ransfer),"
+                ;defb    "         U(nmount)", cr, lf
+                ;defb    "                                  R(ead), W(rite)"
+                ;defb    cr, lf
+                ;defb    "         F(ile group):", cr, lf
+                ;defb    "             C(at), D(irectory), L(oad)", cr, lf
+                defb    "  H(elp)", cr, lf
+                defb    "  M(emory group):", cr, lf
+                defb    "    D(ump), E(xamine), F(ill), "
+                defb    "    I(ntel Hex Load), L(oad), "
+                defb    "    R(egister dump)"
                 defb    cr, lf, eos
 ;
 ; Load an INTEL-Hex file (a ROM image) into memory. This routine has been
@@ -1326,6 +1334,9 @@ warm_start:      ld      hl, clear_msg
                 rst     000h
 clear_msg:       defb    "CLEAR", cr, lf, eos
 
+app_exit:      call _clear_screen
+                jp 014d5h				; Return to main menu.
+
 
 ;****************************************************************************************
 ;****************************************************************************************
@@ -1348,5 +1359,5 @@ _code_end:
 ;; Fill to end of file
 	org 0b0ffh
 	seek 16ffh
-	defb 033h
+	defb 000h
 _file_end:
