@@ -1,0 +1,5 @@
+These ROMs are equal:
+
+cmp PSU-CPU-CRT\ Board/U212_04952-10029_TMS27C256.BIN RAM-ROM\ Board/U204_04952-10029_TMS27C256.BIN
+
+Maybe an error...
