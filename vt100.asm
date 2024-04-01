@@ -50,23 +50,26 @@
 ; -------------------------------------------------------------------
 ; out/in found
 ; -------------------------------------------------------------------
-; out(000h)
-; out(001h)
-; out(002h)
-; out(020h)
-; out(021h)
-; out(023h)
-; out(040h)
-; out(080h)
-; out(090h)
+; out(000h) 9x    - 0x70, 0x78, 0x90, 0xd3, 0xd4
+; out(001h) 1x    - 0x0
+; out(002h) 7x    - 0x0, 0x80
+; out(020h) 17x   - sets "page" to value in a; 4=10046 ROM lower page, 2 ="Application ROM"
+;                   more values: 1, 3, 9, 0x10, 0x30, 0x33, 0x42
+; out(021h) 21x   - 0, 1, 3, 5, 8, 9, 0x10, 0xc0, 0x10, 0x30, 0x33, 0x82
+; out(023h) 1x
+; out(040h) 2x    - 0x0, 0xd2
+; out(080h) 3x    - 0x0
+; out(090h) 2x
 ;
-; in(000h)
-; in(020h)
-; in(021h)
-; in(022h)
-; in(023h)
-; in(02ah)
-; in(0cbh)
+; in(001h)  1x
+; in(020h)  2x
+; in(021h)  1x
+; in(022h)  1x
+; in(023h)  1x
+; in(02ah)  1x
+; in(0cbh)  1x
+; -------------------------------------------------------------------
+os_loadpage: equ    00e60h
 ; -------------------------------------------------------------------
 
 	org	0a000h
@@ -879,7 +882,7 @@ write_dbe0:
 	ld a,0aah		;a881	3e aa 	> . 
 	ld (01df8h),a		;a883	32 f8 1d 	2 . . 
 	call 0112dh		;a886	cd 2d 11 	. - .   ; Patched to edah
-	call 0a89fh		;a889	cd 9f a8 	. . . 
+	call out80_a89f		;a889	cd 9f a8 	. . .
 	ld a,001h		;a88c	3e 01 	> . 
 	ld (0dff0h),a		;a88e	32 f0 df 	2 . . 
 	ld a,002h		;a891	3e 02 	> . 
@@ -887,39 +890,42 @@ write_dbe0:
 	ret			;a896	c9 	. 
 
     ;; looks like a loop that waits for (0dff0h)==0
+waitforz_dff0_a897:
 	ld a,(0dff0h)		;a897	3a f0 df 	: . . 
 	cp 000h		;a89a	fe 00 	. . 
-	jr nz,$-5		;a89c	20 f9 	  . 
+	jr nz,$-5		;a89c	20 f9 	  .             ; -> loop_a897
 	ret			;a89e	c9 	. 
 
-	ld a,0ffh		;a89f	3e ff 	> . 
-	ld (01df8h),a		;a8a1	32 f8 1d 	2 . . 
-	call 01067h		;a8a4	cd 67 10 	. g . ; Patched to e98h
-	call 016e2h		;a8a7	cd e2 16 	. . . ; Patched to e1ch
-	ld hl,code_p_d400		;a8aa	21 00 d4 	! . .
-	ld (01dfah),hl		;a8ad	22 fa 1d 	" . . 
-	ld hl,07800h		;a8b0	21 00 78 	! . x 
-	ld (01dfch),hl		;a8b3	22 fc 1d 	" . . 
-	ld hl,00800h		;a8b6	21 00 08 	! . . 
-	ld (01dfeh),hl		;a8b9	22 fe 1d 	" . . 
-	ld a,000h		;a8bc	3e 00 	> . 
-	ld (01df9h),a		;a8be	32 f9 1d 	2 . . 
-	ld a,000h		;a8c1	3e 00 	> . 
-	ld (01df8h),a		;a8c3	32 f8 1d 	2 . . 
-	out (080h),a		;a8c6	d3 80 	. . 
-	call 016e2h		;a8c8	cd e2 16 	. . . ; Patched to e1ch
-	ld a,000h		;a8cb	3e 00 	> . 
-	ld (0dff0h),a		;a8cd	32 f0 df 	2 . . 
-	ld hl,07800h		;a8d0	21 00 78 	! . x 
-	ld (01dfah),hl		;a8d3	22 fa 1d 	" . . 
-	ld a,004h		;a8d6	3e 04 	> . 
-	ld (01df9h),a		;a8d8	32 f9 1d 	2 . . 
-	ld a,000h		;a8db	3e 00 	> . 
-	ld (01df8h),a		;a8dd	32 f8 1d 	2 . . 
-	out (080h),a		;a8e0	d3 80 	. . 
+    ; this does write 2x zero to port 80
+out80_a89f:
+	ld a,0ffh		;a89f	3e ff 	> .             ; (01df8h):=ff
+	ld (01df8h),a		;a8a1	32 f8 1d 	2 . .   ;
+	call 01067h		;a8a4	cd 67 10 	. g .       ; Patched to e98h
+	call 016e2h		;a8a7	cd e2 16 	. . .       ; Patched to e1ch
+	ld hl,code_p_d400		;a8aa	21 00 d4 	! . . : (01dfah): := address of code part 0d400
+	ld (01dfah),hl		;a8ad	22 fa 1d 	" . .   ;
+	ld hl,07800h		;a8b0	21 00 78 	! . x   ; (01dfch) :=07800
+	ld (01dfch),hl		;a8b3	22 fc 1d 	" . .   ;
+	ld hl,00800h		;a8b6	21 00 08 	! . .   ; (01dfeh):= 00800
+	ld (01dfeh),hl		;a8b9	22 fe 1d 	" . .   ;
+	ld a,000h		;a8bc	3e 00 	> .             ; (01df9h):=0
+	ld (01df9h),a		;a8be	32 f9 1d 	2 . .   ;
+	ld a,000h		;a8c1	3e 00 	> .             ; (01df8h):=0
+	ld (01df8h),a		;a8c3	32 f8 1d 	2 . .   ;
+	out (080h),a		;a8c6	d3 80 	. .         ; out 80  (this outputs 0)
+	call 016e2h		;a8c8	cd e2 16 	. . .       ; Patched to e1ch
+	ld a,000h		;a8cb	3e 00 	> .             ; (0dff0h):=0
+	ld (0dff0h),a		;a8cd	32 f0 df 	2 . .   ;
+	ld hl,07800h		;a8d0	21 00 78 	! . x   ;  (01dfah):=07800
+	ld (01dfah),hl		;a8d3	22 fa 1d 	" . .   ;
+	ld a,004h		;a8d6	3e 04 	> .             ; (01df9h):=4
+	ld (01df9h),a		;a8d8	32 f9 1d 	2 . .   ;
+	ld a,000h		;a8db	3e 00 	> .             ; (01df8h):=0
+	ld (01df8h),a		;a8dd	32 f8 1d 	2 . .   ;
+	out (080h),a		;a8e0	d3 80 	. .         ; out 80 (this outputs 0)
 	ret			;a8e2	c9 	. 
 
-	call 0a897h		;a8e3	cd 97 a8 	. . . 
+	call waitforz_dff0_a897		;a8e3	cd 97 a8 	. . .
 	ld a,005h		;a8e6	3e 05 	> . 
 	ld (0dff0h),a		;a8e8	32 f0 df 	2 . . 
 	ret			;a8eb	c9 	. 
@@ -928,7 +934,7 @@ write_dbe0:
 	ld (03f12h),a		;a8ee	32 12 3f 	2 . ? 
 	ret			;a8f1	c9 	. 
 
-	call 0a89fh		;a8f2	cd 9f a8 	. . . 
+	call out80_a89f		;a8f2	cd 9f a8 	. . .
 	ld a,008h		;a8f5	3e 08 	> . 
 	ld (0dff0h),a		;a8f7	32 f0 df 	2 . . 
 	ld a,002h		;a8fa	3e 02 	> . 
@@ -939,7 +945,7 @@ write_dbe0:
 	or a			;a903	b7 	. 
 	ret z			;a904	c8 	. 
 
-	call 0a89fh		;a905	cd 9f a8 	. . . 
+	call out80_a89f		;a905	cd 9f a8 	. . .
 	ld a,007h		;a908	3e 07 	> . 
 	ld (0dff0h),a		;a90a	32 f0 df 	2 . . 
 	xor a			;a90d	af 	. 
@@ -947,7 +953,7 @@ write_dbe0:
 	ret			;a911	c9 	. 
 
 	push af			;a912	f5 	. 
-	call 0a897h		;a913	cd 97 a8 	. . . 
+	call waitforz_dff0_a897		;a913	cd 97 a8 	. . .
 	pop af			;a916	f1 	. 
 	ld c,a			;a917	4f 	O 
 	ld (0dff1h),a		;a918	32 f1 df 	2 . . 
@@ -956,17 +962,17 @@ write_dbe0:
 	ld a,c			;a920	79 	y 
 	ret			;a921	c9 	. 
 
-	call 0a897h		;a922	cd 97 a8 	. . . 
+	call waitforz_dff0_a897		;a922	cd 97 a8 	. . .
 	ld a,004h		;a925	3e 04 	> . 
 	ld (0dff0h),a		;a927	32 f0 df 	2 . . 
 	ret			;a92a	c9 	. 
 
 	ld b,0ffh		;a92b	06 ff 	. . 
 	djnz $+0		;a92d	10 fe 	. . 
-	call 0a89fh		;a92f	cd 9f a8 	. . . 
+	call out80_a89f		;a92f	cd 9f a8 	. . .
 	ld a,006h		;a932	3e 06 	> . 
 	ld (0dff0h),a		;a934	32 f0 df 	2 . . 
-	call 0a897h		;a937	cd 97 a8 	. . . 
+	call waitforz_dff0_a897		;a937	cd 97 a8 	. . .
 	ld a,003h		;a93a	3e 03 	> . 
 	ld (03f12h),a		;a93c	32 12 3f 	2 . ? 
 	ret			;a93f	c9 	. 
@@ -1604,7 +1610,7 @@ fun_aa9a:
 
     ; this functions writes out the byte from (0037) to port 090.
     ; it writes it one time with bit 2 cleared, and one time with bit set.
-    ;
+    ; betweeen these 2 writes there is a delay countdown loop
     ; is this maybe the latch relay switching function for the pods?
 fun_acaf:
 	di			;acaf	f3 	.                       ;
@@ -1613,7 +1619,6 @@ fun_acaf:
 	ld (00037h),a		;acb5	32 37 00 	2 7 .   ; (0037):=0
 	out (090h),a		;acb8	d3 90 	. .         ; a -> 090
 	ei			;acba	fb 	.                       ;
-
     ; next 6 lines count down from 2000 to 0; seems a delay
 	ld hl,02000h		;acbb	21 00 20 	! .     ; hl:=2000
 fun_acaf_loop:
@@ -1621,7 +1626,8 @@ fun_acaf_loop:
 	ld a,h			;acbf	7c 	|                   ;    a:=h
 	or l			;acc0	b5 	.                   ;    a := a|l
 	jr nz,$-3		;acc1	20 fb 	  .             ;    ^ these test for hl==0, back to fun_acaf_loop
-
+    ; countdown is finished, go on
+    ; code below close to fun_acaf, but sets bit 2
 	di			;acc3	f3 	.                       ;
 	ld a,(00037h)		;acc4	3a 37 00 	: 7 .   ; a:=(0037)
 	set 2,a		;acc7	cb d7 	. .                 ; bit 2 of a is SET
@@ -2623,7 +2629,7 @@ _splash_screen_data: ; see lib/splash.asm
 	ld (0761fh),hl		;c12c	22 1f 76 	" . v
 	ld (07624h),hl		;c12f	22 24 76 	" $ v   ; (07624) := 2a7b
 	ld a,(_tmp_page)		;c132	3a 96 a4 	: . .
-	call 00e60h		;c135	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
+	call os_loadpage		;c135	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
 	ld hl,08326h		;c138	21 26 83 	! & .   ; hl:=08326h
 	ld e,(hl)			;c13b	5e 	^               ; de := word at 08326h
 	inc hl			;c13c	23 	#                   ;
@@ -2656,7 +2662,7 @@ _splash_screen_data: ; see lib/splash.asm
 	ld bc,0000ch		;c168	01 0c 00 	. . .   ; bc:=0xc
 	ldir		;c16b	ed b0 	. .                 ; do copy
 	ld a,006h		;c16d	3e 06 	> .             ; Load Page 6 (Application RAM)
-	call 00e60h		;c16f	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
+	call os_loadpage		;c16f	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
 	ld hl,02cfch		;c172	21 fc 2c 	! . , 
 	ld (02ad5h),hl		;c175	22 d5 2a 	" . * 
 	ld hl,02b1bh		;c178	21 1b 2b 	! . +   ; from 02b1bh
@@ -2669,17 +2675,18 @@ _splash_screen_data: ; see lib/splash.asm
 	ldir		;c18c	ed b0 	. . 
 	ret			;c18e	c9 	. 
 
-;; POI-27, in+out	
-	in a,(020h)		;c18f	db 20 	.   
-	push af			;c191	f5 	. 
-	ld a,(_tmp_page)		;c192	3a 96 a4 	: . .
-	call 00e60h		;c195	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
-	ld hl,02a00h		;c198	21 00 2a 	! . * 
-	push hl			;c19b	e5 	. 
+;; POI-27, in+out
+    ; saves current page, loads a page, calls 01cf8 and restores old page
+	in a,(020h)		;c18f	db 20 	.       ; get current page
+	push af			;c191	f5 	.           ; save it
+	ld a,(_tmp_page)		;c192	3a 96 a4 	: . .   ; get _tmp_page
+	call os_loadpage		;c195	cd 60 0e 	. ` .   ; Patched to 02d02h, Page-in _tmp_page; loads page?
+	ld hl,02a00h		;c198	21 00 2a 	! . *       ; hl:=02a00
+	push hl			;c19b	e5 	.                       ; save hl
 	call 01cf8h		;c19c	cd f8 1c 	. . . 
-	pop hl			;c19f	e1 	. 
-	pop af			;c1a0	f1 	. 
-	out (020h),a		;c1a1	d3 20 	.   
+	pop hl			;c19f	e1 	.                       ; restore hl
+	pop af			;c1a0	f1 	.                       ; restore value read in
+	out (020h),a		;c1a1	d3 20 	.               ; write it back
 	ret			;c1a3	c9 	. 
 
 	ld bc,02ba9h		;c1a4	01 a9 2b 	. . + 
@@ -2749,28 +2756,28 @@ vt100_start_screen:
 	defb                 "! late!    !cute"
 
 
-;; POI-14, something is read in	and written out
-	in a,(020h)		;c2fc	db 20 	.               ;a:=port(20)
-	push af			;c2fe	f5 	.                   ; save af
-	ld a,022h		;c2ff	3e 22 	> "             ; a:=0x22 ' " '
- 	ld (07501h),a		;c301	32 01 75 	2 . u   ; (07501h):=a
+;; POI-14, changes 2x page to 006, and finally back to old page
+	in a,(020h)		;c2fc	db 20 	.               ;get current page
+	push af			;c2fe	f5 	.                   ; save it
+	ld a,022h		;c2ff	3e 22 	> "             ; (07501h):=0x22 ' " '
+ 	ld (07501h),a		;c301	32 01 75 	2 . u   ;
 
 	ld a,006h		;c304	3e 06 	> .             ; Load Page 6 (Application RAM)
-	call 00e60h		;c306	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
+	call os_loadpage		;c306	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
 	ld a,(_tmp_page)		;c309	3a 96 a4 	: . . ; a:=tmp_page
-	call 00e60h		;c30c	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in _tmp_page
+	call os_loadpage		;c30c	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in _tmp_page
 	ld hl,02ba4h		;c30f	21 a4 2b 	! . +   ; hl:=2ba4
 	push hl			;c312	e5 	.                   ; save hl
 	call 0da20h		;c313	cd 20 da 	.   .
 	pop hl			;c316	e1 	.                   ; restore hl
 	ld a,006h		;c317	3e 06 	> .             ; Load Page 6 (Application RAM)
-	call 00e60h		;c319	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
+	call os_loadpage		;c319	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
 	call read_dbe0		;c31c	cd 33 a5 	. 3 .
 	call 0a900h		;c31f	cd 00 a9 	. . . 
 	call write_dbe0		;c322	cd 3f a5 	. ? .
-	ld a,021h		;c325	3e 21 	> !             ; a:=0x21 '!'
-	ld (07501h),a		;c327	32 01 75 	2 . u   ; (07501h):=a
-	pop af			;c32a	f1 	.                   ;  restore af
+	ld a,021h		;c325	3e 21 	> !             ; (07501h):=0x21 '!'
+	ld (07501h),a		;c327	32 01 75 	2 . u   ;
+	pop af			;c32a	f1 	.                   ;  restore af, = old page
 	out (020h),a		;c32b	d3 20 	.           ; 0x20h port := a
 	ld hl,00000h		;c32d	21 00 00 	! . .   ; hl:=0x0
 	ret			;c330	c9 	. 
@@ -2778,22 +2785,22 @@ vt100_start_screen:
 	ld a,062h		;c331	3e 62 	> b             ; a:=0x62 'b'
 	ld (07501h),a		;c333	32 01 75 	2 . u   ; (07501h):=a
 	ld a,006h		;c336	3e 06 	> .             ; Load Page 6 (Application RAM)
-	call 00e60h		;c338	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
+	call os_loadpage		;c338	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
 	call 0a54bh		;c33b	cd 4b a5 	. K . 
 	ld a,022h		;c33e	3e 22 	> "             ;  a:=0x22 ' " '
 	ld (07501h),a		;c340	32 01 75 	2 . u   ; (07501h):=a
 	ld a,(_tmp_page)		;c343	3a 96 a4 	: . . ; a:=tmp_page
-	call 00e60h		;c346	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in _tmp_page
+	call os_loadpage		;c346	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in _tmp_page
 	ld hl,00001h		;c349	21 01 00 	! . .   ; hl:=1
 	ret			;c34c	c9 	. 
 
 	ld a,006h		;c34d	3e 06 	> .             ; Load Page 6 (Application RAM)
-	call 00e60h		;c34f	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
+	call os_loadpage		;c34f	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
 	call 0a60eh		;c352	cd 0e a6 	. . .
 	ld a,022h		;c355	3e 22 	> "             ;  a:=0x22 ' " '
 	ld (07501h),a		;c357	32 01 75 	2 . u   ; (07501h):=a
 	ld a,(_tmp_page)		;c35a	3a 96 a4 	: . .  ; a:=tmp_page
-	call 00e60h		;c35d	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in _tmp_page
+	call os_loadpage		;c35d	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in _tmp_page
 	ld hl,00001h		;c360	21 01 00 	! . . 
 	ret			;c363	c9 	. 
 
@@ -3400,7 +3407,7 @@ term_setup_screen:
 	defb "Off", 000h
 
 	ld a,006h		;c8d4	3e 06 	> . ; Load Page 6 (Application RAM)
-	call 00e60h		;c8d6	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
+	call os_loadpage		;c8d6	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
 	call read_dbe0		;c8d9	cd 33 a5 	. 3 .
 	ld hl,(03f00h)		;c8dc	2a 00 3f 	* . ? 
 	push hl			;c8df	e5 	. 
@@ -3449,10 +3456,10 @@ term_setup_screen:
 	ld a,c			;c92b	79 	y 
 	ld (03f12h),a		;c92c	32 12 3f 	2 . ? 
 	ld a,006h		;c92f	3e 06 	> . ; Load Page 6 (Application RAM)
-	call 00e60h		;c931	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
+	call os_loadpage		;c931	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
 	call write_dbe0		;c934	cd 3f a5 	. ? .
 	ld a,(_tmp_page)		;c937	3a 96 a4 	: . .
-	call 00e60h		;c93a	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
+	call os_loadpage		;c93a	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
 	call 01c47h		;c93d	cd 47 1c 	. G . 
 	ld hl,00001h		;c940	21 01 00 	! . . 
 	ret			;c943	c9 	. 
@@ -3460,7 +3467,7 @@ term_setup_screen:
 ;; POI-010 below could be config steps for serial parameters
 ;; many ldirs/copying of small areas
 	ld a,(_tmp_page)		;c944	3a 96 a4 	: . .
-	call 00e60h		;c947	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
+	call os_loadpage		;c947	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
 	
 	ld a,022h		;c94a	3e 22 	> " 
 	ld (07501h),a		;c94c	32 01 75 	2 . u 
@@ -3746,8 +3753,8 @@ code_p_d400:
 	nop			;d403	00 	.
 
 	ld sp,08000h		;d404	31 00 80 	1 . .   ; sp:=8000
-	ld a,0ffh		;d407	3e ff 	> .             ; a:=0xff
-	ld (09df8h),a		;d409	32 f8 9d 	2 . .   ; (09df8h):=a
+	ld a,0ffh		;d407	3e ff 	> .             ; (09df8h):=0xff
+	ld (09df8h),a		;d409	32 f8 9d 	2 . .   ;
 	ld a,078h		;d40c	3e 78 	> x             ; a:=0x78
 	out (000h),a		;d40e	d3 00 	. .         ; a -> out 000
 	xor a			;d410	af 	.                   ; a:=0
@@ -3767,36 +3774,30 @@ l_d426:
 	jr z,$+8		;d42c	28 06 	( . 
 	call 07c45h		;d42e	cd 45 7c 	. E | 
 	call z,078bdh		;d431	cc bd 78 	. . x 
-;; a:= (dff0)
-	ld a,(0dff0h)		;d434	3a f0 df 	: . . 
-;; == 0 ?
-	cp 000h		;d437	fe 00 	. . 
-;; 	
-	jp z,07817h		;d439	ca 17 78 	. . x 
-;; hl:=7869	
-	ld hl,07869h		;d43c	21 69 78 	! i x 
-	push hl			;d43f	e5 	. 
-;; == 1 ?	
-	cp 001h		;d440	fe 01 	. . 
+	ld a,(0dff0h)		;d434	3a f0 df 	: . .   ; a:=(0dff0h)
+	cp 000h		;d437	fe 00 	. .                 ; a==0?
+	jp z,07817h		;d439	ca 17 78 	. . x       ; yes, do jump
+	ld hl,07869h		;d43c	21 69 78 	! i x   ; no, hl:=7869
+	push hl			;d43f	e5 	.                   ; save hl
+	cp 001h		;d440	fe 01 	. .                 ; a==1?
 	jp z,07871h		;d442	ca 71 78 	. q x 
-	cp 002h		;d445	fe 02 	. . 
+	cp 002h		;d445	fe 02 	. .                 ; a==2?
 	jp z,0787bh		;d447	ca 7b 78 	. { x 
-	cp 003h		;d44a	fe 03 	. . 
+	cp 003h		;d44a	fe 03 	. .                 ; a==3?
 	jp z,0787fh		;d44c	ca 7f 78 	.  x 
-	cp 004h		;d44f	fe 04 	. . 
+	cp 004h		;d44f	fe 04 	. .                 ; a==4?
 	jp z,07891h		;d451	ca 91 78 	. . x 
-	cp 005h		;d454	fe 05 	. . 
+	cp 005h		;d454	fe 05 	. .                 ; a==5?
 	jp z,078b2h		;d456	ca b2 78 	. . x 
-	cp 006h		;d459	fe 06 	. . 
+	cp 006h		;d459	fe 06 	. .                 ; a==6?
 	jp z,078d3h		;d45b	ca d3 78 	. . x 
-	cp 007h		;d45e	fe 07 	. . 
+	cp 007h		;d45e	fe 07 	. .                 ; a==7?
 	jp z,0791dh		;d460	ca 1d 79 	. . y 
-	cp 008h		;d463	fe 08 	. . 
-;; == 8 ?	
-	jp z,0792ah		;d465	ca 2a 79 	. * y 
-	pop hl			;d468	e1 	. 
-	ld a,000h		;d469	3e 00 	> . 
-	ld (0dff0h),a		;d46b	32 f0 df 	2 . . 
+	cp 008h		;d463	fe 08 	. .                 ; a==8?
+	jp z,0792ah		;d465	ca 2a 79 	. * y
+	pop hl			;d468	e1 	.                   ; restore hl
+	ld a,000h		;d469	3e 00 	> .             ; (0dff0h):=0
+	ld (0dff0h),a		;d46b	32 f0 df 	2 . .   ;
 	jp 07817h		;d46e	c3 17 78 	. . x 
 	call 079cch		;d471	cd cc 79 	. . y 
 	call 079d2h		;d474	cd d2 79 	. . y 
@@ -3971,7 +3972,11 @@ l_d426:
 	ret			;d5ae	c9 	. 
 
 ;; POI-025, many out
-	ld a,009h		;d5af	3e 09 	> . 
+;; outputs:  to port 21: 9,c0,9,82
+;; outputs:  to port 20: 9,42
+;; outputs:  to port 40: 42,0
+;; outputs:  to port 40: 0
+	ld a,009h		;d5af	3e 09 	> .
 	out (021h),a		;d5b1	d3 21 	. ! 
 	ld a,0c0h		;d5b3	3e c0 	> . 
 	out (021h),a		;d5b5	d3 21 	. ! 
@@ -4200,7 +4205,8 @@ l_d426:
 	bit 0,e		;d74b	cb 43 	. C 
 	ld a,0b4h		;d74d	3e b4 	> . 
 	jr nz,$+4		;d74f	20 02 	  . 
-	jr $+34		;d751	18 20 	.   
+	jr $+34		;d751	18 20 	.
+
 	out (000h),a		;d753	d3 00 	. . 
 	call 07bd6h		;d755	cd d6 7b 	. . { 
 	ld a,090h		;d758	3e 90 	> . 
@@ -4240,11 +4246,11 @@ l_d426:
 	pop de			;d796	d1 	. 
 	ret			;d797	c9 	. 
 
-	call 07bc3h		;d798	cd c3 7b 	. . { 
-	xor a			;d79b	af 	. 
-	out (001h),a		;d79c	d3 01 	. . 
-	in a,(001h)		;d79e	db 01 	. . 
-	ld (0793bh),a		;d7a0	32 3b 79 	2 ; y 
+	call 07bc3h		;d798	cd c3 7b 	. . {       ;
+	xor a			;d79b	af 	.                   ; a:=0
+	out (001h),a		;d79c	d3 01 	. .         ; a -> out 001
+	in a,(001h)		;d79e	db 01 	. .             ; in 001 -> a
+	ld (0793bh),a		;d7a0	32 3b 79 	2 ; y   ; (0793bh):=a
 	and 0d0h		;d7a3	e6 d0 	. . 
 	ld b,a			;d7a5	47 	G 
 	rrc b		;d7a6	cb 08 	. . 
