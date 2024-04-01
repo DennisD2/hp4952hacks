@@ -68,8 +68,11 @@
 ; in(023h)  1x
 ; in(02ah)  1x
 ; in(0cbh)  1x
+
+; not found in this code:
+; lib/keyb.asm:   out (0d0h) set row bits; related to keyboard input control
 ; -------------------------------------------------------------------
-os_loadpage: equ    00e60h
+os_loadpage: equ    00e60h      ; loads a page; ROM function
 ; -------------------------------------------------------------------
 
 	org	0a000h
