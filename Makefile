@@ -1,7 +1,7 @@
 # assemble and compare result against original.
 check:
 	z80asm -o vt100c.app vt100.asm
-	cmp vt100c.app VT100.no_header
+	cmp -b -l vt100c.app VT100.no_header
 
 # initial disassemble step
 disassemble:
