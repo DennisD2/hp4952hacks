@@ -1,8 +1,26 @@
 ; z80dasm 1.1.6
 ; command line: z80dasm -t -a -g 0xa000 -o x.asm VT100.no_header
+;
+; -------------------------------------------------------------------
+; application memory map
+; -------------------------------------------------------------------
+; App has these sections
+;  org      seek
+; ------------------
+;  0xa000   0x0
+;    a102   0x102                           filesize/256, minimum is 1
+;    a147   0x147                           entry point ("jp __init")
+;    a180   0x180                           number of dll fixups
+;    a190   0x190                           fixup list
+;    a410   0x410                           _load_dll_stub, _dll_tmp, _dll_stub, la246h, __init + the app code?
+;  0xd400   0x3400 code_p_d400
+;  0xdbe0   0x3be0 code_p_dbe0
+;  0xc000   0x2000 _splash_screen_data
+;  0xe800   0x4800 code_p_endfill           contains fill bytes up to next multiple of 256
 
-; memory map
-
+; -------------------------------------------------------------------
+; system memory map (work in progress)
+; -------------------------------------------------------------------
 ;	0x1000 seems RAM
 ;	ld (010b5h),a		;a4d8	32 b5 10 	2 . . 		; value copied to various locations, address range 0x1xxx, must also be RAM
 ;	ld (0112dh),a		;a4db	32 2d 11 	2 - .
@@ -17,17 +35,39 @@
 ; 	ld hl,0dbe0h		;a533	21 e0 db 	! . .
 ;	ld de,03f00h		;a536	11 00 3f 	. . ?
 
-; 	0x8000 seems to be ROM
+; 	0x8000 seems to be ROM "10046 ROM"
 ;	ld hl,08000h		;a450	21 00 80 	! . .   ; Copy system ordinals from 10046 ROM
 ; SWITCHED ON
 ;	ld a,004h		;a44c	3e 04 	> .             ; Access Page 4 - 10046 ROM Lower Page
 ;	out (020h),a		;a44e	d3 20 	.           ;
 
-
 ;   0xda20 contains readable data
 ;	ld hl,0da20h
 
 ;   0xdbe0 seems to have 0x20 bytes of interest,
+
+; -------------------------------------------------------------------
+; out/in found
+; -------------------------------------------------------------------
+; out(000h)
+; out(001h)
+; out(002h)
+; out(020h)
+; out(021h)
+; out(023h)
+; out(040h)
+; out(080h)
+; out(090h)
+;
+; in(000h)
+; in(020h)
+; in(021h)
+; in(022h)
+; in(023h)
+; in(02ah)
+; in(0cbh)
+; -------------------------------------------------------------------
+
 
 	org	0a000h
 	seek 00000h
@@ -230,10 +270,11 @@ __dll_fixups_end:
 
 ;; Load and execute ordinal patching stub from a safe location
 _load_dll_stub:
-	ld hl,_dll_stub		;a410	21 4c a4 	! L .		; copy 36 bytes from a44c to 2a00
-	ld de,02a00h		;a413	11 00 2a 	. . * 
-	ld bc,00036h		;a416	01 36 00 	. 6 . 
-	ldir		;a419	ed b0 	. . 
+	ld hl,_dll_stub		;a410	21 4c a4 	! L .		; copy 0x36 bytes from a44c to 2a00
+	ld de,02a00h		;a413	11 00 2a 	. . *       : this is _dll_stub function code block
+	;ld bc,00036h		;a416	01 36 00 	. 6 .
+	ld bc,_dll_stub_end-_dll_stub		;a416	01 36 00 	. 6 .
+	ldir		;a419	ed b0 	. .
 
 	call 02a00h		;a41b	cd 00 2a 	. . * 			; jump to copied code, i.e. _dll_stub
 
@@ -304,6 +345,7 @@ _dll_stub:
 	;; 0a482h --> la246h
 	call la246h		;a47e	cd 82 a4 	. . .
 	ret			;a481	c9 	.
+_dll_stub_end:
 
 la246h:
     ld ix,_dll_tmp                  ;
@@ -352,7 +394,7 @@ l2065h:
 	ld de,02a00h		;a4ba	11 00 2a 	. . *
 
 	;ld bc,01400h		;a4bd	01 00 14 	. . .
-	ld bc,code_part2-_splash_screen_data    ;a4bd	01 00 14 	. . .
+	ld bc,code_p_d400-_splash_screen_data    ;a4bd	01 00 14 	. . .
 	ldir		;a4c0	ed b0 	. .
 
 ;; unknown call to Applic.RAM	
@@ -376,6 +418,8 @@ var_word_a4cd:
 	defb 022h, 0cbh, 0a4h
 	;ld (var_word_a4cb),hl		;a4d1	22 cb a4 	" . .
 
+;; POI-100 who enters this loop?
+loop_a4d4:
 	di			;a4d4	f3 	.                           ; DI
 	ld a,(0a530h)		;a4d5	3a 30 a5 	: 0 . 		; a530 contains a0cdh, at least at initialization
 	ld (010b5h),a		;a4d8	32 b5 10 	2 . . 		; value copied to various locations, address range 0x1xxx, must also be RAM
@@ -385,7 +429,7 @@ var_word_a4cd:
 
 	ld hl,_splash_screen_data		;a4e4	21 00 c0 	! . . ; copies 0x1400 bytes from _splash_screen_data to 2a00h
 	ld de,02a00h		;a4e7	11 00 2a 	. . * 
-	ld bc,01400h		;a4ea	01 00 14 	. . . 
+	ld bc,code_p_d400-_splash_screen_data 		;a4ea	01 00 14 	. . .
 	ldir		;a4ed	ed b0 	. .
 
 	call read_dbe0		;a4ef	cd 33 a5 	. 3 . 		; a533 -> read_dbe0
@@ -417,7 +461,7 @@ l_a527:
 	ld hl,0761ch		;a527	21 1c 76 	! . v       ; hl:=0x761
 	ld (var_word_a4cb),hl		;a52a	22 cb a4 	" . .       ; (a4cbh):=hl
 
-	jp 0a4d4h		;a52d	c3 d4 a4 	. . .           ;
+	jp loop_a4d4		;a52d	c3 d4 a4 	. . .           ;
 
 	;; 0a530 used by line a4d5, it is a defb
 	;call 00000h		;a530	cd 00 00 	. . .
@@ -427,9 +471,9 @@ l_a527:
 read_dbe0:
 	; a533 -> read_dbe0
     ; copies from dbe0h -> 3f00h, 0x20 bytes
-	ld hl,0dbe0h		;a533	21 e0 db 	! . .
+	ld hl,code_p_dbe0		;a533	21 e0 db 	! . .
 	ld de,03f00h		;a536	11 00 3f 	. . ?
-	ld bc,00020h		;a539	01 20 00 	.   .
+	ld bc,end_code_p_dbe0-code_p_dbe0		;a539	01 20 00 	.   .
 	ldir		;a53c	ed b0 	. .
 	ret			;a53e	c9 	.
 
@@ -437,8 +481,8 @@ write_dbe0:
 	; a53f -> write_dbe0
     ; copies from 3f00h -> dbe0h, 0x20 bytes
 	ld hl,03f00h		;a53f	21 00 3f 	! . ?
-	ld de,0dbe0h		;a542	11 e0 db 	. . . 
-	ld bc,00020h		;a545	01 20 00 	.   . 
+	ld de,code_p_dbe0		;a542	11 e0 db 	. . .
+	ld bc,end_code_p_dbe0-code_p_dbe0		;a545	01 20 00 	.   .
 	ldir		;a548	ed b0 	. . 
 	ret			;a54a	c9 	. 
 
@@ -852,7 +896,7 @@ write_dbe0:
 	ld (01df8h),a		;a8a1	32 f8 1d 	2 . . 
 	call 01067h		;a8a4	cd 67 10 	. g . ; Patched to e98h
 	call 016e2h		;a8a7	cd e2 16 	. . . ; Patched to e1ch
-	ld hl,0d400h		;a8aa	21 00 d4 	! . . 
+	ld hl,code_p_d400		;a8aa	21 00 d4 	! . .
 	ld (01dfah),hl		;a8ad	22 fa 1d 	" . . 
 	ld hl,07800h		;a8b0	21 00 78 	! . x 
 	ld (01dfch),hl		;a8b3	22 fc 1d 	" . . 
@@ -930,7 +974,9 @@ write_dbe0:
 	nop			;a940	00 	. 
 	ld b,b			;a941	40 	@ 
 	nop			;a942	00 	. 
-	nop			;a943	00 	. 
+	nop			;a943	00 	.
+
+	; below does not look like code
 	ld bc,00026h		;a944	01 26 00 	. & . 
 	add hl,hl			;a947	29 	) 
 	add hl,hl			;a948	29 	) 
@@ -1015,7 +1061,7 @@ var_word_a9bd:
     ; a9bd -> var_word_a9bd
 	;nop			;a9bd	00 	.
     ;ret pe			;a9be	e8 	.
-    defw 0e800h
+    defw code_p_endfill
 
 var_byte_a9bf:
     ; a9bf -> var_byte_a9bf
@@ -1036,7 +1082,7 @@ var_word_a9c2:
     ; a9c2 -> var_word_a9c2
 	;nop			;a9c2	00 	.
 	;ret pe			;a9c3	e8 	.
-    defw 0e800h
+    defw code_p_endfill
 
 var_byte_a9c4:
     ; byte variable used at numerous places, initialized with 8
@@ -1723,16 +1769,19 @@ fun_acaf_loop:
 	inc a			;adaa	3c 	<
 	cp 020h		;adab	fe 20 	.
 	jr nz,$+36		;adad	20 22 	  "
-	ld hl,(var_word_a9bb)		;adaf	2a bb a9 	* . .
-	ld (hl),020h		;adb2	36 20 	6
-	inc l			;adb4	2c 	,
-	ld (hl),083h		;adb5	36 83 	6 .
-	ld e,l			;adb7	5d 	]
+
+	; next lines do an ldir with size 0xfe=255. It is not clear from where to where it copies.
+	ld hl,(var_word_a9bb)		;adaf	2a bb a9 	* . .   ; hl:=var_word_a9bb
+	ld (hl),020h		;adb2	36 20 	6                   ; (hl):=020 SPACE
+	inc l			;adb4	2c 	,                           ; l++
+	ld (hl),083h		;adb5	36 83 	6 .                 ; (hl):=text attr
+	ld e,l			;adb7	5d 	]                           ; de := hl
 	ld d,h			;adb8	54 	T
-	inc e			;adb9	1c 	.
-	dec l			;adba	2d 	-
-	ld bc,000feh		;adbb	01 fe 00 	. . .
+	inc e			;adb9	1c 	.                           ; e++
+	dec l			;adba	2d 	-                           ; l--
+	ld bc,000feh		;adbb	01 fe 00 	. . .           ; bc := 0xfe,
 	ldir		;adbe	ed b0 	. .
+
 	ld a,001h		;adc0	3e 01 	> .
 	ld (var_byte_a9c5),a		;adc2	32 c5 a9 	2 . .
 	ex de,hl			;adc5	eb 	.
@@ -2567,31 +2616,28 @@ _splash_screen_data: ; see lib/splash.asm
 	;;ld sp,03030h		;c120	31 30 30 	1 0 0 
 	defb "VT-  100"
 
-	; (0761d) := 2a00
-	ld hl,02a00h		;c123	21 00 2a 	! . * 
-	ld (0761dh),hl		;c126	22 1d 76 	" . v ; Screen Paint Script Location, see lib/strap.asm
-	; (0761f) := 2a7b
-	ld hl,02a7bh		;c129	21 7b 2a 	! { * 
+    ; this routine does 6 ldirs with small areas , but who calls it???
+	ld hl,02a00h		;c123	21 00 2a 	! . * 	; (0761d) := 2a00
+	ld (0761dh),hl		;c126	22 1d 76 	" . v   ; Screen Paint Script Location, see lib/strap.asm
+	ld hl,02a7bh		;c129	21 7b 2a 	! { *   ; (0761f) := 2a7b
 	ld (0761fh),hl		;c12c	22 1f 76 	" . v
-	; (07624) := 2a7b
-	ld (07624h),hl		;c12f	22 24 76 	" $ v 
+	ld (07624h),hl		;c12f	22 24 76 	" $ v   ; (07624) := 2a7b
 	ld a,(_tmp_page)		;c132	3a 96 a4 	: . .
 	call 00e60h		;c135	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
-
-	ld hl,08326h		;c138	21 26 83 	! & . 
-	ld e,(hl)			;c13b	5e 	^ 
-	inc hl			;c13c	23 	# 
-	ld d,(hl)			;c13d	56 	V 
-	inc hl			;c13e	23 	# 
-	push hl			;c13f	e5 	. 
-	ex de,hl			;c140	eb 	. 
-	ld de,02a8bh		;c141	11 8b 2a 	. . * 
-	ld bc,00040h		;c144	01 40 00 	. @ . 
-	ldir		;c147	ed b0 	. . 
-	pop hl			;c149	e1 	. 
-	ld de,02a7dh		;c14a	11 7d 2a 	. } * 
-	ld bc,0000ch		;c14d	01 0c 00 	. . . 
-	ldir		;c150	ed b0 	. . 
+	ld hl,08326h		;c138	21 26 83 	! & .   ; hl:=08326h
+	ld e,(hl)			;c13b	5e 	^               ; de := word at 08326h
+	inc hl			;c13c	23 	#                   ;
+	ld d,(hl)			;c13d	56 	V               ;
+	inc hl			;c13e	23 	#                   ; hl++
+	push hl			;c13f	e5 	.                   ; save hl
+	ex de,hl			;c140	eb 	.               ; hl:=de
+	ld de,02a8bh		;c141	11 8b 2a 	. . *   ; de:=02a8bh
+	ld bc,00040h		;c144	01 40 00 	. @ .   ; size=0x040
+	ldir		;c147	ed b0 	. .                 ; do copy
+	pop hl			;c149	e1 	.                   ; restore hl
+	ld de,02a7dh		;c14a	11 7d 2a 	. } *   ; de:=02a7dh
+	ld bc,0000ch		;c14d	01 0c 00 	. . .   ; bc:=0xc
+	ldir		;c150	ed b0 	. .                 ; do copy
 	ld e,(hl)			;c152	5e 	^ 
 	inc hl			;c153	23 	# 
 	ld d,(hl)			;c154	56 	V 
@@ -2601,25 +2647,25 @@ _splash_screen_data: ; see lib/splash.asm
 	ld d,(hl)			;c158	56 	V 
 	inc hl			;c159	23 	# 
 	push hl			;c15a	e5 	. 
-	ex de,hl			;c15b	eb 	. 
-	ld de,02adbh		;c15c	11 db 2a 	. . * 
-	ld bc,00040h		;c15f	01 40 00 	. @ . 
-	ldir		;c162	ed b0 	. . 
+	ex de,hl			;c15b	eb 	.               ; hl:=de
+	ld de,02adbh		;c15c	11 db 2a 	. . *   ; de:=02adbh
+	ld bc,00040h		;c15f	01 40 00 	. @ .   ; size=0x040
+	ldir		;c162	ed b0 	. .                 ; do copy
 	pop hl			;c164	e1 	. 
 	ld de,02acdh		;c165	11 cd 2a 	. . * 
-	ld bc,0000ch		;c168	01 0c 00 	. . . 
-	ldir		;c16b	ed b0 	. . 
-	ld a,006h		;c16d	3e 06 	> .; Load Page 6 (Application RAM)
-	call 00e60h		;c16f	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
+	ld bc,0000ch		;c168	01 0c 00 	. . .   ; bc:=0xc
+	ldir		;c16b	ed b0 	. .                 ; do copy
+	ld a,006h		;c16d	3e 06 	> .             ; Load Page 6 (Application RAM)
+	call 00e60h		;c16f	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
 	ld hl,02cfch		;c172	21 fc 2c 	! . , 
 	ld (02ad5h),hl		;c175	22 d5 2a 	" . * 
-	ld hl,02b1bh		;c178	21 1b 2b 	! . + 
+	ld hl,02b1bh		;c178	21 1b 2b 	! . +   ; from 02b1bh
 	ld de,02af1h		;c17b	11 f1 2a 	. . * 
-	ld bc,00004h		;c17e	01 04 00 	. . . 
+	ld bc,00004h		;c17e	01 04 00 	. . .   ; size=4
 	ldir		;c181	ed b0 	. . 
-	ld hl,02b1fh		;c183	21 1f 2b 	! . + 
+	ld hl,02b1fh		;c183	21 1f 2b 	! . +   ; from 02b1fh
 	ld de,02b11h		;c186	11 11 2b 	. . + 
-	ld bc,00004h		;c189	01 04 00 	. . . 
+	ld bc,00004h		;c189	01 04 00 	. . .   ; size=4
 	ldir		;c18c	ed b0 	. . 
 	ret			;c18e	c9 	. 
 
@@ -3411,7 +3457,8 @@ term_setup_screen:
 	ld hl,00001h		;c940	21 01 00 	! . . 
 	ret			;c943	c9 	. 
 
-;; POI-010 below could be config steps for serial parameters	
+;; POI-010 below could be config steps for serial parameters
+;; many ldirs/copying of small areas
 	ld a,(_tmp_page)		;c944	3a 96 a4 	: . .
 	call 00e60h		;c947	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
 	
@@ -3488,7 +3535,6 @@ term_setup_screen:
 	ld hl,02e6eh		;c9f8	21 6e 2e 	! n . 
 	push hl			;c9fb	e5 	. 
 	call 00fbfh		;c9fc	cd bf 0f 	. . . ; Patched to 02e60h
-	
 	pop hl			;c9ff	e1 	. 
 	ld hl,00033h		;ca00	21 33 00 	! 3 . 
 	ex (sp),hl			;ca03	e3 	. 
@@ -3694,31 +3740,27 @@ term_setup_screen:
 
 	org 0d400h
 	seek 03400h
-code_part2:
+code_p_d400:
 
 	jp 07804h		;d400	c3 04 78 	. . x 
-	nop			;d403	00 	. 
-;; sp:=8000	
-	ld sp,08000h		;d404	31 00 80 	1 . . 
-;; a:= ff	
-	ld a,0ffh		;d407	3e ff 	> . 
-;; (9df8) := a
-	ld (09df8h),a		;d409	32 f8 9d 	2 . . 
-;; a:= 78	
-	ld a,078h		;d40c	3e 78 	> x 
-;;	
-	out (000h),a		;d40e	d3 00 	. . 
-	xor a			;d410	af 	. 
-;; (7803):=a	
-	ld (07803h),a		;d411	32 03 78 	2 . x 
+	nop			;d403	00 	.
+
+	ld sp,08000h		;d404	31 00 80 	1 . .   ; sp:=8000
+	ld a,0ffh		;d407	3e ff 	> .             ; a:=0xff
+	ld (09df8h),a		;d409	32 f8 9d 	2 . .   ; (09df8h):=a
+	ld a,078h		;d40c	3e 78 	> x             ; a:=0x78
+	out (000h),a		;d40e	d3 00 	. .         ; a -> out 000
+	xor a			;d410	af 	.                   ; a:=0
+	ld (07803h),a		;d411	32 03 78 	2 . x   ; (7803):=a
 	jp 07828h		;d414	c3 28 78 	. ( x 
 	call 0793dh		;d417	cd 3d 79 	. = y 
-	jr z,$+14		;d41a	28 0c 	( . 
+	jr z,$+14		;d41a	28 0c 	( .             ; jr l_d426
 	ld c,l			;d41c	4d 	M 
 	ld b,h			;d41d	44 	D 
 	call 07bf5h		;d41e	cd f5 7b 	. . { 
 	jr nz,$-10		;d421	20 f4 	  . 
-	call 078c7h		;d423	cd c7 78 	. . x 
+	call 078c7h		;d423	cd c7 78 	. . x
+l_d426:
 	jr $-15		;d426	18 ef 	. . 
 	ld a,(07803h)		;d428	3a 03 78 	: . x 
 	or a			;d42b	b7 	. 
@@ -3767,7 +3809,7 @@ code_part2:
 	ld a,(0dff1h)		;d47f	3a f1 df 	: . . 
 	ld c,a			;d482	4f 	O 
 	call 0798dh		;d483	cd 8d 79 	. . y 
-	ld a,(0dbeah)		;d486	3a ea db 	: . . 
+	ld a,(var_byte_dbea)		;d486	3a ea db 	: . .
 	or a			;d489	b7 	. 
 	ret z			;d48a	c8 	. 
 
@@ -3819,12 +3861,14 @@ code_part2:
 	ld a,(078d2h)		;d4db	3a d2 78 	: . x 
 	ld (01994h),a		;d4de	32 94 19 	2 . . 
 	ld hl,0790eh		;d4e1	21 0e 79 	! . y 
-	ld (02a84h),hl		;d4e4	22 84 2a 	" . * 
-	ld hl,02a86h		;d4e7	21 86 2a 	! . * 
-	ld de,02a87h		;d4ea	11 87 2a 	. . * 
+	ld (02a84h),hl		;d4e4	22 84 2a 	" . *
+
+	ld hl,02a86h		;d4e7	21 86 2a 	! . *   ; copy 7 bytes 02a86h -> 02a87 - strange...
+	ld de,02a87h		;d4ea	11 87 2a 	. . *
 	ld bc,00007h		;d4ed	01 07 00 	. . . 
 	ld (hl),000h		;d4f0	36 00 	6 . 
-	ldir		;d4f2	ed b0 	. . 
+	ldir		;d4f2	ed b0 	. .
+
 	ld hl,00000h		;d4f4	21 00 00 	! . . 
 	ld (02a95h),hl		;d4f7	22 95 2a 	" . * 
 	ld hl,07000h		;d4fa	21 00 70 	! . p 
@@ -3881,7 +3925,7 @@ code_part2:
 	ld c,b			;d55b	48 	H 
 	in a,(c)		;d55c	ed 78 	. x 
 	ld c,a			;d55e	4f 	O 
-	ld a,(0dbe2h)		;d55f	3a e2 db 	: . . 
+	ld a,(var_byte_dbe2)		;d55f	3a e2 db 	: . .
 	bit 2,a		;d562	cb 57 	. W 
 	jr nz,$+14		;d564	20 0c 	  . 
 	bit 6,a		;d566	cb 77 	. w 
@@ -3908,7 +3952,7 @@ code_part2:
 	ret			;d58c	c9 	. 
 
 ;; POI-025, many out, 1xin	
-	ld a,(0dbe2h)		;d58d	3a e2 db 	: . . 
+	ld a,(var_byte_dbe2)		;d58d	3a e2 db 	: . .
 	bit 3,a		;d590	cb 5f 	. _ 
 	jr z,$+4		;d592	28 02 	( . 
 	set 7,c		;d594	cb f9 	. . 
@@ -3945,29 +3989,29 @@ code_part2:
 
 	call 07b19h		;d5cc	cd 19 7b 	. . { 
 	call 079afh		;d5cf	cd af 79 	. . y 
-	ld a,(0dbe2h)		;d5d2	3a e2 db 	: . . 
+	ld a,(var_byte_dbe2)		;d5d2	3a e2 db 	: . .
 	bit 2,a		;d5d5	cb 57 	. W 
 	ld a,060h		;d5d7	3e 60 	> ` 
 	jr nz,$+5		;d5d9	20 03 	  . 
-	ld a,(0dbe0h)		;d5db	3a e0 db 	: . . 
+	ld a,(var_byte_dbe0)		;d5db	3a e0 db 	: . .
 	or 080h		;d5de	f6 80 	. . 
 	ld (07aadh),a		;d5e0	32 ad 7a 	2 . z 
 	or 002h		;d5e3	f6 02 	. . 
 	ld (07a92h),a		;d5e5	32 92 7a 	2 . z 
-	ld a,(0dbe2h)		;d5e8	3a e2 db 	: . . 
+	ld a,(var_byte_dbe2)		;d5e8	3a e2 db 	: . .
 	bit 2,a		;d5eb	cb 57 	. W 
 	ld a,060h		;d5ed	3e 60 	> ` 
 	jr nz,$+5		;d5ef	20 03 	  . 
-	ld a,(0dbe0h)		;d5f1	3a e0 db 	: . . 
+	ld a,(var_byte_dbe0)		;d5f1	3a e0 db 	: . .
 	rlca			;d5f4	07 	. 
 	or 010h		;d5f5	f6 10 	. . 
 	ld (07a90h),a		;d5f7	32 90 7a 	2 . z 
 	ld (07aabh),a		;d5fa	32 ab 7a 	2 . z 
-	ld a,(0dbe2h)		;d5fd	3a e2 db 	: . . 
+	ld a,(var_byte_dbe2)		;d5fd	3a e2 db 	: . .
 	or 05ch		;d600	f6 5c 	. \ 
 	ld (07a88h),a		;d602	32 88 7a 	2 . z 
 	ld (07aa3h),a		;d605	32 a3 7a 	2 . z 
-	ld hl,(0dbe4h)		;d608	2a e4 db 	* . . 
+	ld hl,(var_word_dbe4)		;d608	2a e4 db 	* . .
 	srl h		;d60b	cb 3c 	. < 
 	rr l		;d60d	cb 1d 	. . 
 	srl h		;d60f	cb 3c 	. < 
@@ -4092,7 +4136,7 @@ code_part2:
 	jp 07ac9h		;d6d6	c3 c9 7a 	. . z 
 	ld l,001h		;d6d9	2e 01 	. . 
 	ld h,008h		;d6db	26 08 	& . 
-	ld a,(0dbe8h)		;d6dd	3a e8 db 	: . . 
+	ld a,(var_byte_dbe8)		;d6dd	3a e8 db 	: . .
 	bit 0,a		;d6e0	cb 47 	. G 
 	ld a,003h		;d6e2	3e 03 	> . 
 	jr nz,$+12		;d6e4	20 0a 	  . 
@@ -4129,7 +4173,7 @@ code_part2:
 
 	jr $-13		;d717	18 f1 	. . 
 	call 07b98h		;d719	cd 98 7b 	. . { 
-	ld a,(0dbe8h)		;d71c	3a e8 db 	: . . 
+	ld a,(var_byte_dbe8)		;d71c	3a e8 db 	: . .
 	ld e,a			;d71f	5f 	_ 
 	ld a,090h		;d720	3e 90 	> . 
 	out (000h),a		;d722	d3 00 	. . 
@@ -4339,32 +4383,59 @@ code_part2:
 	ld a,000h		;d891	3e 00 	> . 
 	ld (0de06h),a		;d893	32 06 de 	2 . . 
 	ret			;d896	c9 	.
-
 ;; in original file, we have nop until 0dbdfh
+
+    ;; this looks like an important variable section
 	org 0dbe0h
 	seek 03be0h
+code_p_dbe0:
 
-	ld h,b			;dbe0	60 	` 
-	rst 38h			;dbe1	ff 	. 
-	nop			;dbe2	00 	. 
-	nop			;dbe3	00 	. 
-	rst 38h			;dbe4	ff 	. 
-	dec b			;dbe5	05 	. 
-	nop			;dbe6	00 	. 
-	nop			;dbe7	00 	. 
-	add a,c			;dbe8	81 	. 
-	nop			;dbe9	00 	. 
-	ld bc,00100h		;dbea	01 00 01 	. . . 
-	nop			;dbed	00 	. 
+var_byte_dbe0:
+    defb    060h
+    defb    0ffh
+	;ld h,b			;dbe0	60 	`
+	;rst 38h		;dbe1	ff 	.
+
+var_byte_dbe2:
+    defb    000h
+    defb    000h
+	;nop			;dbe2	00 	.
+	;nop			;dbe3	00 	.
+
+var_word_dbe4:
+    defb 0ffh, 005h
+	;rst 38h		;dbe4	ff 	.
+	;dec b			;dbe5	05 	.
+
+	nop			    ;dbe6	00 	.
+	nop			    ;dbe7	00 	.
+
+var_byte_dbe8:
+    defb 081h
+	;add a,c		;dbe8	81 	.
+
+	nop			    ;dbe9	00 	.
+
+var_byte_dbea:
+    defb 001h
+    defb 000h, 001h
+	;ld bc,00100h		;dbea	01 00 01 	. . .
+
+	nop			;dbed	00 	.
 	nop			;dbee	00 	. 
 	nop			;dbef	00 	. 
 	ld bc,00000h		;dbf0	01 00 00 	. . . 
 	ret po			;dbf3	e0 	. 
 
+    defb 000h, 000h, 000h, 000h
+    defb 000h, 000h, 000h, 000h
+    defb 000h, 000h, 000h, 000h
+end_code_p_dbe0:
+
 ;; in original file, we have nop until 0e7ffh
 	org 0e800h
 	seek 04800h
-
+code_p_endfill:
 ;; from here to file end, we have, in original app, the pattern "20 83"
 ;; so from e800/e801  to f8fe/f8ff
 ;; For unknown reason, we need to have this space, can be filled with e.g. nops.
