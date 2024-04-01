@@ -350,7 +350,9 @@ l2065h:
 																	; copy 0x1400 bytes starting _splash_screen_data to 0x2a00
 	ld hl,_splash_screen_data		;a4b7	21 00 c0 	! . .		; this will verwrite just copied _dll_stub code, which is no longer needed
 	ld de,02a00h		;a4ba	11 00 2a 	. . *
-	ld bc,(code_part2 - _splash_screen_data) 	;a4bd	01 00 14 	; 1400h = code_part2 - _splash_screen_data
+
+	;ld bc,01400h		;a4bd	01 00 14 	. . .
+	ld bc,code_part2-_splash_screen_data    ;a4bd	01 00 14 	. . .
 	ldir		;a4c0	ed b0 	. .
 
 ;; unknown call to Applic.RAM	
@@ -3690,9 +3692,9 @@ term_setup_screen:
 
 	;; in original file, we have nop until 0d400h
 
-code_part2:
 	org 0d400h
 	seek 03400h
+code_part2:
 
 	jp 07804h		;d400	c3 04 78 	. . x 
 	nop			;d403	00 	. 

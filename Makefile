@@ -1,11 +1,12 @@
 # assemble and compare result against original.
 check:
 	z80asm -o vt100c.app vt100.asm
+	z80dasm -t -a -g 0xa000 -o vt100.dasm vt100c.app
 	cmp -b -l vt100c.app VT100.no_header
 
 # initial disassemble step
 disassemble:
-	z80dasm -t -a -g 0xa000 -o vt100.dasm VT100.no_header
+	z80dasm -t -a -g 0xa000 -o vt100-orig.dasm VT100.no_header
 
 # keyboard test app from https://github.com/dkgrizzly/4952oss
 keyboard:

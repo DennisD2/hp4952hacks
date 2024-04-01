@@ -1,5 +1,5 @@
 ; z80dasm 1.1.6
-; command line: z80dasm -t -a -g 0xa000 -o vt100.dasm VT100.no_header
+; command line: z80dasm -t -a -g 0xa000 -o vt100.dasm vt100c.app
 
 	org	0a000h
 
