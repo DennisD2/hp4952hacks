@@ -1,6 +1,34 @@
 ; z80dasm 1.1.6
 ; command line: z80dasm -t -a -g 0xa000 -o x.asm VT100.no_header
 
+; memory map
+
+;	0x1000 seems RAM
+;	ld (010b5h),a		;a4d8	32 b5 10 	2 . . 		; value copied to various locations, address range 0x1xxx, must also be RAM
+;	ld (0112dh),a		;a4db	32 2d 11 	2 - .
+;	ld (01067h),a		;a4de	32 67 10 	2 g .
+;	ld (01133h),a		;a4e1	32 33 11 	2 3 .
+; 	ld (0110ch),a		;a50b	32 0c 11 	2 . .       ; (0110ch):=a
+
+
+;	0x2a00 seems safe RAM, also 2d00: Application RAM
+;
+;   0x3f00 seems safe RAM
+; 	ld hl,0dbe0h		;a533	21 e0 db 	! . .
+;	ld de,03f00h		;a536	11 00 3f 	. . ?
+
+; 	0x8000 seems to be ROM
+;	ld hl,08000h		;a450	21 00 80 	! . .   ; Copy system ordinals from 10046 ROM
+; SWITCHED ON
+;	ld a,004h		;a44c	3e 04 	> .             ; Access Page 4 - 10046 ROM Lower Page
+;	out (020h),a		;a44e	d3 20 	.           ;
+
+
+;   0xda20 contains readable data
+;	ld hl,0da20h
+
+;   0xdbe0 seems to have 0x20 bytes of interest,
+
 	org	0a000h
 	seek 00000h
 
@@ -202,11 +230,12 @@ __dll_fixups_end:
 
 ;; Load and execute ordinal patching stub from a safe location
 _load_dll_stub:
-	ld hl,0a44ch		;a410	21 4c a4 	! L .
+	ld hl,_dll_stub		;a410	21 4c a4 	! L .		; copy 36 bytes from a44c to 2a00
 	ld de,02a00h		;a413	11 00 2a 	. . * 
 	ld bc,00036h		;a416	01 36 00 	. 6 . 
 	ldir		;a419	ed b0 	. . 
-	call 02a00h		;a41b	cd 00 2a 	. . * 
+
+	call 02a00h		;a41b	cd 00 2a 	. . * 			; jump to copied code, i.e. _dll_stub
 
     ;; 0a190h -> __dll_fixups
     ;; 0a180h -> num_fixups
@@ -241,13 +270,16 @@ _dll_tmp:
 	defb 000h
 
 ;; see line 138ff
+; a44c -> _dll_stub
 _dll_stub:
 	ld a,004h		;a44c	3e 04 	> .             ; Access Page 4 - 10046 ROM Lower Page
 	out (020h),a		;a44e	d3 20 	.           ;
+
 	ld hl,08000h		;a450	21 00 80 	! . .   ; Copy system ordinals from 10046 ROM
-	ld de,02d00h		;a453	11 00 2d 	. . -
+	ld de,02d00h		;a453	11 00 2d 	. . -	; copy 0x134 bytes from 08000 to 02d00
 	ld bc,00134h		;a456	01 34 01 	. 4 .
 	ldir		;a459	ed b0 	. .
+
 	ld a,002h		;a45b	3e 02 	> .             ; Load Page 2 - Application "ROM"
 	out (020h),a		;a45d	d3 20 	.
 	ld hl,(02d0ch)		;a45f	2a 0c 2d 	* . -   ; Generate 17 more for 02e34h = 0d9f0h...0da20h
@@ -299,34 +331,26 @@ _tmp_page:
     ; 0fd5
 __init:
 	di			;a497	f3 	.
-;; 0a410 -> _load_dll_stub
-	call _load_dll_stub		;a498	cd 10 a4 	. . .
-;; next call is to location 1543, which is patched by dynamic loader
-	call 01543h		;a49b	cd 43 15 	. C . ; Patched to 2d32 -> 01543h
-;; next call is to location fe9, which is patched by dynamic loader
-	call 00fe9h		;a49e	cd e9 0f 	      ; Patched to 2e6e -> 00fe9h
-;; a:=(0fd4)
-	ld a,(00fd4h)		;a4a1	3a d4 0f 	: . . 
-;; drop highest bit
-	and 07fh		;a4a4	e6 7f 	.  
-;; save result in _tmp_page (a496)
-;; (a496):=a
-	ld (_tmp_page),a		;a4a6	32 96 a4 	2 . .
+	call _load_dll_stub		;a498	cd 10 a4 	. . .				; 0a410 -> _load_dll_stub
+	call 01543h		;a49b	cd 43 15 	. C . 						; Patched to 2d32 -> 01543h
+	call 00fe9h		;a49e	cd e9 0f 	      						; Patched to 2e6e -> 00fe9h
+	ld a,(00fd4h)		;a4a1	3a d4 0f 	: . . 					; a:=(0fd4)
+	and 07fh		;a4a4	e6 7f 	.  							; clear highest bit
+	ld (_tmp_page),a		;a4a6	32 96 a4 	2 . .				; save result in _tmp_page (a496), (a496):=a
+
 l2065h:
     ; comment from lib/strap.asm: "Patch 00fd4h -> our menu display function"
-	ld a,006h		;a4a9	3e 06 	> .             ; a:=6
-	ld (00fd4h),a		;a4ab	32 d4 0f 	2 . .   ; (fd4h):=a
+	ld a,006h		;a4a9	3e 06 	> .             				; a:=6
+	ld (00fd4h),a		;a4ab	32 d4 0f 	2 . .   				; (fd4h):=a
 ;; POI-010 a4cd seems to be some data or table section see POI-011
-	ld hl,0a4cdh		;a4ae	21 cd a4 	! . .   ; h1:=a4cdh
-	ld (00fd5h),hl		;a4b1	22 d5 0f 	" . .   ; (fd5):=hl
-	call fun_a9c7		;a4b4	cd c7 a9 	. . .   ;
+	ld hl,var_word_a4cd		;a4ae	21 cd a4 	! . .   			; h1:=a4cdh
+	ld (00fd5h),hl		;a4b1	22 d5 0f 	" . .   				; (fd5):=hl
+	call fun_a9c7		;a4b4	cd c7 a9 	. . .   				;
 
-;; hl:=c000
-	ld hl,_splash_screen_data		;a4b7	21 00 c0 	! . .
-;; de:=2a00, points to Applic.RAM
+																	; copy 0x1400 bytes starting _splash_screen_data to 0x2a00
+	ld hl,_splash_screen_data		;a4b7	21 00 c0 	! . .		; this will verwrite just copied _dll_stub code, which is no longer needed
 	ld de,02a00h		;a4ba	11 00 2a 	. . *
-;; bc:=1400, which is in page ROM
-	ld bc,01400h		;a4bd	01 00 14 	. . . 
+	ld bc,(code_part2 - _splash_screen_data) 	;a4bd	01 00 14 	; 1400h = code_part2 - _splash_screen_data
 	ldir		;a4c0	ed b0 	. .
 
 ;; unknown call to Applic.RAM	
@@ -339,14 +363,20 @@ l2065h:
 	jp 014d5h		;a4c8	c3 d5 14 	. . . ; Patched to 02e32h
 	
 	
-;; POI-011, somes to be table or data, used by POI-10 line	
-	ld hl,0f376h		;a4cb	21 76 f3 	! v . 
-	ld hl,07621h		;a4ce	21 21 76 	! ! v 
-	ld (0a4cbh),hl		;a4d1	22 cb a4 	" . .
+;; POI-011, some data, used by POI-10 line
+var_word_a4cb:
+	defb	021h, 076h
+var_word_a4cd:
+	defb 	0f3h, 021h ; adress value a4cd used by line a4ae and stored in (fd5)
+	defb	021h, 076h
+	;ld hl,0f376h		;a4cb	21 76 f3 	! v .
+	;ld hl,07621h		;a4ce	21 21 76 	! ! v
+	defb 022h, 0cbh, 0a4h
+	;ld (var_word_a4cb),hl		;a4d1	22 cb a4 	" . .
 
 	di			;a4d4	f3 	.                           ; DI
-	ld a,(0a530h)		;a4d5	3a 30 a5 	: 0 . 
-	ld (010b5h),a		;a4d8	32 b5 10 	2 . . 
+	ld a,(0a530h)		;a4d5	3a 30 a5 	: 0 . 		; a530 contains a0cdh, at least at initialization
+	ld (010b5h),a		;a4d8	32 b5 10 	2 . . 		; value copied to various locations, address range 0x1xxx, must also be RAM
 	ld (0112dh),a		;a4db	32 2d 11 	2 - . 
 	ld (01067h),a		;a4de	32 67 10 	2 g . 
 	ld (01133h),a		;a4e1	32 33 11 	2 3 .
@@ -356,47 +386,54 @@ l2065h:
 	ld bc,01400h		;a4ea	01 00 14 	. . . 
 	ldir		;a4ed	ed b0 	. .
 
-	call 0a533h		;a4ef	cd 33 a5 	. 3 . 
+	call read_dbe0		;a4ef	cd 33 a5 	. 3 . 		; a533 -> read_dbe0
 	ld a,021h		;a4f2	3e 21 	> !                 ; a:=0x21 NAK
 	ld (07501h),a		;a4f4	32 01 75 	2 . u       ; (07501h):=a
 	ei			;a4f7	fb 	.                           ; EI
 	
-	ld a,(03f12h)		;a4f8	3a 12 3f 	: . ?       ; a:=(f12h)
+	ld a,(03f12h)		;a4f8	3a 12 3f 	: . ?       ; a:=(3f12h), this address was populated by read_dbe0()
 	cp 003h		;a4fb	fe 03 	. .                     ; a==0x3 ?
 	jr z,$+33		;a4fd	28 1f 	( .                 ; yes, jump to l_a51e
-	call 0a53fh		;a4ff	cd 3f a5 	. ? . 
+	call write_dbe0		;a4ff	cd 3f a5 	. ? . 		; a5ef -> write_dbe0 ; write back values as read, unchanged !?!
 	call 02b23h		;a502	cd 23 2b 	. # + 
-	call 0007eh		;a505	cd 7e 00 	. ~ . ; Patched to 02d6ch
+	call 0007eh		;a505	cd 7e 00 	. ~ . 			; Patched to 02d6ch
 	ld a,(_tmp_page)		;a508	3a 96 a4 	: . .   ; a:=_tmp_page
 	ld (0110ch),a		;a50b	32 0c 11 	2 . .       ; (0110ch):=a
 	ld hl,0da20h		;a50e	21 20 da 	!   .       ; hl:=da20h
 	ld (0110dh),hl		;a511	22 0d 11 	" . .       ; (0110f):=h1
-	ld hl,(0a4cbh)		;a514	2a cb a4 	* . .       ; h1:= (a4cb)
+	ld hl,(var_word_a4cb)		;a514	2a cb a4 	* . .       ; h1:= (a4cb)
 	push hl			;a517	e5 	.                       ; save hl
 ;; call main menu handler	
-	call 01109h		;a518	cd 09 11 	. . . ; Patched to 02eceh
+	call 01109h		;a518	cd 09 11 	. . . 			; Patched to 02eceh
 	pop hl			;a51b	e1 	.                       ; restore hl
 	jr $+11		;a51c	18 09 	. .                     ; uncoditioned jr to l_a527 (?!?)
 l_a51e:
 	call 0a8ech		;a51e	cd ec a8 	. . . 
-	call 0a53fh		;a521	cd 3f a5 	. ? . 
+	call write_dbe0		;a521	cd 3f a5 	. ? .
 	call 02cfch		;a524	cd fc 2c 	. . ,
 l_a527:
 	ld hl,0761ch		;a527	21 1c 76 	! . v       ; hl:=0x761
-	ld (0a4cbh),hl		;a52a	22 cb a4 	" . .       ; (a4cbh):=hl
+	ld (var_word_a4cb),hl		;a52a	22 cb a4 	" . .       ; (a4cbh):=hl
 
 	jp 0a4d4h		;a52d	c3 d4 a4 	. . .           ;
-	;; What does a call to 0 mean?
-	call 00000h		;a530	cd 00 00 	. . .
 
-    ; copies from dbe0h -> f00h, 20 bytes
+	;; 0a530 used by line a4d5, it is a defb
+	;call 00000h		;a530	cd 00 00 	. . .
+	defb	0cdh
+	defb	000h, 000h
+
+read_dbe0:
+	; a533 -> read_dbe0
+    ; copies from dbe0h -> 3f00h, 0x20 bytes
 	ld hl,0dbe0h		;a533	21 e0 db 	! . .
 	ld de,03f00h		;a536	11 00 3f 	. . ?
 	ld bc,00020h		;a539	01 20 00 	.   .
 	ldir		;a53c	ed b0 	. .
 	ret			;a53e	c9 	.
 
-    ; copies from f00h -> dbe0h, 20 bytes
+write_dbe0:
+	; a53f -> write_dbe0
+    ; copies from 3f00h -> dbe0h, 0x20 bytes
 	ld hl,03f00h		;a53f	21 00 3f 	! . ?
 	ld de,0dbe0h		;a542	11 e0 db 	. . . 
 	ld bc,00020h		;a545	01 20 00 	.   . 
@@ -408,7 +445,7 @@ l_a527:
 	ld a,l			;a54f	7d 	} 
 	or h			;a550	b4 	. 
 	jr nz,$-3		;a551	20 fb 	  . 
-	call 0a533h		;a553	cd 33 a5 	. 3 . 
+	call read_dbe0		;a553	cd 33 a5 	. 3 .
 	call 0a5f9h		;a556	cd f9 a5 	. . . 
 	call 0a6e7h		;a559	cd e7 a6 	. . . 
 	call 0a6e7h		;a55c	cd e7 a6 	. . . 
@@ -416,7 +453,7 @@ l_a527:
 	call 0a702h		;a562	cd 02 a7 	. . . 
 	call 0a56fh		;a565	cd 6f a5 	. o . 
 	call 0a606h		;a568	cd 06 a6 	. . . 
-	call 0a53fh		;a56b	cd 3f a5 	. ? . 
+	call write_dbe0		;a56b	cd 3f a5 	. ? .
 	ret			;a56e	c9 	. 
 
 	call 0af71h		;a56f	cd 71 af 	. q . 
@@ -497,11 +534,11 @@ l_a527:
 	nop			;a60b	00 	. 
 	nop			;a60c	00 	. 
 	nop			;a60d	00 	. 
-	call 0a533h		;a60e	cd 33 a5 	. 3 . 
+	call read_dbe0		;a60e	cd 33 a5 	. 3 .
 	call 0a87bh		;a611	cd 7b a8 	. { . 
 	call 0a8e3h		;a614	cd e3 a8 	. . . 
 	call 0a92bh		;a617	cd 2b a9 	. + . 
-	call 0a53fh		;a61a	cd 3f a5 	. ? . 
+	call write_dbe0		;a61a	cd 3f a5 	. ? .
 	ld a,(0a609h)		;a61d	3a 09 a6 	: . . 
 	ld (010b5h),a		;a620	32 b5 10 	2 . . 
 	ld (0112dh),a		;a623	32 2d 11 	2 - . 
@@ -2679,9 +2716,9 @@ vt100_start_screen:
 	pop hl			;c316	e1 	.                   ; restore hl
 	ld a,006h		;c317	3e 06 	> .             ; Load Page 6 (Application RAM)
 	call 00e60h		;c319	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
-	call 0a533h		;c31c	cd 33 a5 	. 3 . 
+	call read_dbe0		;c31c	cd 33 a5 	. 3 .
 	call 0a900h		;c31f	cd 00 a9 	. . . 
-	call 0a53fh		;c322	cd 3f a5 	. ? . 
+	call write_dbe0		;c322	cd 3f a5 	. ? .
 	ld a,021h		;c325	3e 21 	> !             ; a:=0x21 '!'
 	ld (07501h),a		;c327	32 01 75 	2 . u   ; (07501h):=a
 	pop af			;c32a	f1 	.                   ;  restore af
@@ -3315,7 +3352,7 @@ term_setup_screen:
 
 	ld a,006h		;c8d4	3e 06 	> . ; Load Page 6 (Application RAM)
 	call 00e60h		;c8d6	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
-	call 0a533h		;c8d9	cd 33 a5 	. 3 . 
+	call read_dbe0		;c8d9	cd 33 a5 	. 3 .
 	ld hl,(03f00h)		;c8dc	2a 00 3f 	* . ? 
 	push hl			;c8df	e5 	. 
 	ld hl,(03f02h)		;c8e0	2a 02 3f 	* . ? 
@@ -3364,7 +3401,7 @@ term_setup_screen:
 	ld (03f12h),a		;c92c	32 12 3f 	2 . ? 
 	ld a,006h		;c92f	3e 06 	> . ; Load Page 6 (Application RAM)
 	call 00e60h		;c931	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
-	call 0a53fh		;c934	cd 3f a5 	. ? . 
+	call write_dbe0		;c934	cd 3f a5 	. ? .
 	ld a,(_tmp_page)		;c937	3a 96 a4 	: . .
 	call 00e60h		;c93a	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
 	call 01c47h		;c93d	cd 47 1c 	. G . 
@@ -3651,6 +3688,8 @@ term_setup_screen:
 	adc a,a			;cb6c	8f 	.
 
 	;; in original file, we have nop until 0d400h
+
+code_part2:
 	org 0d400h
 	seek 03400h
 
