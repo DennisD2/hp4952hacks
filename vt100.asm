@@ -22,29 +22,42 @@
 ; -------------------------------------------------------------------
 ; system memory map (work in progress)
 ; -------------------------------------------------------------------
+;    0x0 - 0x1000   ?
+; 0x1000 - 0x3f00   Application RAM
+; 0x3f01 -          ?
+; 0x8000 - ?        10046 ROM
+; 0xda20 - ?        Application RAM
+; 0xdbe0 - 0xdbff   Application RAM
+; 0xdc00 - 0xffff   ?
+;
+; There are overlapping spaces for RAM/ROM. using out (020h),<page-id> or bank-id,
+; it can be selected what memory appears for some address.
+; I need to study the HP4952 doc more on that.
+;
+; Collected details:
 ;	0x1000 seems RAM
 ;	ld (010b5h),a		;a4d8	32 b5 10 	2 . . 		; value copied to various locations, address range 0x1xxx, must also be RAM
 ;	ld (0112dh),a		;a4db	32 2d 11 	2 - .
 ;	ld (01067h),a		;a4de	32 67 10 	2 g .
 ;	ld (01133h),a		;a4e1	32 33 11 	2 3 .
 ; 	ld (0110ch),a		;a50b	32 0c 11 	2 . .       ; (0110ch):=a
-
-
+;
 ;	0x2a00 seems safe RAM, also 2d00: Application RAM
 ;
 ;   0x3f00 seems safe RAM
 ; 	ld hl,0dbe0h		;a533	21 e0 db 	! . .
 ;	ld de,03f00h		;a536	11 00 3f 	. . ?
-
+;
 ; 	0x8000 seems to be ROM "10046 ROM"
 ;	ld hl,08000h		;a450	21 00 80 	! . .   ; Copy system ordinals from 10046 ROM
-; SWITCHED ON
+;
+; Switching pages:
 ;	ld a,004h		;a44c	3e 04 	> .             ; Access Page 4 - 10046 ROM Lower Page
 ;	out (020h),a		;a44e	d3 20 	.           ;
-
+;
 ;   0xda20 contains readable data
 ;	ld hl,0da20h
-
+;
 ;   0xdbe0 seems to have 0x20 bytes of interest,
 
 ; -------------------------------------------------------------------
