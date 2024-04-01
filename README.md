@@ -7,7 +7,7 @@ This is Z80 code for HP495x platform.
 
 # Disassemble the code
 ```shell
-make disassemble
+make vt100dis
 ```
 This will create a file vt100.dasm.
 

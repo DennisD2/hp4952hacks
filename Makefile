@@ -5,8 +5,11 @@ check:
 	cmp -b -l vt100c.app VT100.no_header
 
 # initial disassemble step
-disassemble:
+vt100dis:
 	z80dasm -t -a -g 0xa000 -o vt100-orig.dasm VT100.no_header
+
+copydisk:
+	z80dasm -t -a -g 0xa000 -o copy-disk-orig.dasm COPY_DISC.APP
 
 # keyboard test app from https://github.com/dkgrizzly/4952oss
 keyboard:
