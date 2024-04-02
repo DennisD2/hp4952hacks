@@ -30,22 +30,22 @@ it to app_target_area, it would fail.
 In application code, many out/in calls can be seen.
 
 #### Data transfer with SCC chip
-By checking the schematics, SCC CE is driven by A14=15=1 (and IO/~M = 0). This means, if
+By checking the schematics, SCC CE is driven by A14=15=1 (and IO/~M = 1). This means, if
 SCC should be invoked, upper address byte of address bus need to be used.
-(Detail: A%,A14 and IO/~M go into a AND gate, followed by inverter. So these signals
+(Detail: A15,A14 and IO/~M go into a AND gate, followed by inverter. So these signals
 are combined by NAND function, is zero only if all inputs are high.)
 
-Z80 allows this using bc register, and an ``òut (c),xxx`` call is required then. In that case,
+Z80 allows 16 bit addressed ports using bc register, and an ``out (c),xxx`` call is required then. In that case,
 b contains upper part of port address. 
 For register b from bc register, then bit 0 (A14) and bit 1 (A15) are to be set.
 
 What I did not find in vt100 app code, was a call using a 16 bit port address.
 
 So I checked all the ROM code and found a single function doing that, in ROM U500,
-a MBM27C512, a 64KB ROM.
+a MBM27C512 64KB ROM.
 
 Disassembled ROM:
-[U500_04952-10028_MBM27C512.BIN.dasm](ROMs/RAM-ROM Board/U500_04952-10028_MBM27C512.BIN.dasm)
+[U500_04952-10028_MBM27C512.BIN.dasm](ROMs/RAM-ROM%20Board/U500_04952-10028_MBM27C512.BIN.dasm)
 
 Code piece found:
 ```asm
@@ -67,7 +67,7 @@ l_536d:
 ```
 
 SCC also uses address bits 9 and 8 for D/~C and A/~B. 
-So, addresses for SCC always look like cx0x, cx1x, cx2x, cx3x.
+So, addresses for SCC always look like Cx0x, Cx1x, Cx2x, CSx3x.
 
 | A9 = D/~C | A8 = A/~B | Meaning                       |
 |-----------|-----------|-------------------------------|
