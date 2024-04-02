@@ -10,7 +10,6 @@ monitor-orig:
 	z80asm -o monitor-z80asm.app monitor-z80asm.asm
 	z80dasm -t -a -g 0x0 monitor-z80asm.app -o monitor-z80asm.dasm
 
-
 clean:
 	rm -f monitor.app  monitor.dasm hpmon.app
 

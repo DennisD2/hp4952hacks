@@ -323,6 +323,10 @@ memory_group:   cp      'M'             ; Memory group?
                 jp      z, main_loop
                 ;cp      'I'             ; INTEL-Hex load?
                 ;call    z, ih_load
+
+                cp      'X'             ; memdump code
+                call    z, _app_main
+
                 jp      z, main_loop
                 cp      'L'             ; Load?
                 call    z, load
@@ -556,7 +560,7 @@ help_msg:       defb    "HELP: commandgroups+commands:", cr, lf
                 defb    "    E(X)it", cr, lf
                 defb    "  M(emory group):", cr, lf
                 defb    "    D(ump), E(xamine), F(ill),", cr, lf
-                defb    "    L(oad),", cr, lf
+                defb    "    L(oad), E(X)tern code", cr, lf
                 defb    "    R(egister dump)", cr, lf
                 defb    "  H(elp)", cr, lf
                 defb    cr, lf, eos
