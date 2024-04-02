@@ -87,9 +87,12 @@
 ; -------------------------------------------------------------------
 
 ; target address where app code is being copied during startup by HP4952 app loading
-app_target_area:    equ 02a00h
+app_target_area:        equ     02a00h
 
-os_loadpage: equ    00e60h      ; loads a page; ROM function
+; HP4952a firmware/OS functions
+os_loadpage:            equ     00e60h      ; loads a page; ROM function
+os_rtn_to_main_menu:    equ     014d5h      ; jumps back to HP4953 main menu, ends app
+
 ; -------------------------------------------------------------------
 
 	org	0a000h
@@ -308,7 +311,7 @@ _load_dll_stub:
 	ldir		;a419	ed b0 	. .
 
 	call app_target_area    ;a41b	cd 00 2a 	. . * 			; jump to copied code, i.e. _dll_stub
-	;call 02a00h		;a41b	cd 00 2a 	. . * 			; jump to copied code, i.e. _dll_stub
+	;call 02a00h		;a41b	cd 00 2a 	. . * 			
 
     ;; 0a190h -> __dll_fixups
     ;; 0a180h -> num_fixups
@@ -429,27 +432,27 @@ l2065h:
 	ld bc,code_p_d400-_splash_screen_data    ;a4bd	01 00 14 	. . .
 	ldir		;a4c0	ed b0 	. .
 
-;; 02b23h points into the block just copied by ldir above. The block was copied to start address 02a00h
-;; so 02a00h was named/defined to app_target_area
-;; Then, a "call 02b23" points to the app_target_area with offset 0123h.
-;; in this file, we will find the function 02b3 with base "org" offset 0xc000 and offset 123h, so at 0c123h
+; next line: 02b23h points into the block just copied by ldir above. The block was copied 
+; to start address 02a00h, so 02a00h was named/defined to app_target_area
+; This means, a "call 02b23" points to the app_target_area with offset 0123h.
+; in this file, we will find the function 02b3 with base "org" offset 0xc000 and 
+; offset 123h, so at 0c123h
 ;
-
-; How do we formulate this as a calculation?
-; result must be 2b23. Input is app_target_area and the fucntion label to be created at c123.
-; result = 2a00 + (function_label-c000)
+; How do we formulate this as a calculation of label values?
+; result must be 2b23. Input is app_target_area and the function label to be created at c123.
 ; result = app_target_area + (f_2b23 - _splash_screen_data)
 ; or rearranged for improved reading:
 ; result = f_2b23 + app_target_area-_splash_screen_data
 	call  f_2b23 + app_target_area-_splash_screen_data	;a4c2	cd 23 2b 	. # +
 	;call 02b23h		;a4c2	cd 23 2b 	. # +
-;;call to app_target_area + 018fh	, label l_2b8f
+    ;call to app_target_area + 018fh	, label l_2b8f
 	call l_2b8f + app_target_area-_splash_screen_data	;a4c5	cd 8f 2b 	. . +
 	;call 02b8fh		;a4c5	cd 8f 2b 	. . +
 
-    ;; return to main menu, means we leave this app
-    ;; see lib/strap.asm
-	jp 014d5h		;a4c8	c3 d5 14 	. . . ; Patched to 02e32h
+    ; return to main menu, means we leave this app
+    ; see lib/strap.asm
+	jp os_rtn_to_main_menu		;a4c8	c3 d5 14 	. . . ; Patched to 02e32h
+	;jp 014d5h
 	
 	
 ;; POI-011, some data, used by POI-10 line

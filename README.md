@@ -19,7 +19,7 @@ make
 ```
 
 # State of analysis
-Check file ```vt100.asm```. 
+Check file ```vt100.asm```. Details on analysis are in [analysis.md](analysis.md)
 
 # Required prerequisites
 
