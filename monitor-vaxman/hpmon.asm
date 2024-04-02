@@ -12,7 +12,7 @@ _splash_screen_data:
 	defb "Open Source Software", 000h
 
 	defb 007h, 00bh, _scrattr_ascii_n
-	defb "Hello World", 000h
+	defb "Monitor", 000h
 
 	defb 00ch, 008h, _scrattr_ascii_n
 	defb "Hacking the 4952", 000h
@@ -75,9 +75,6 @@ _splash_end:
 	org 2200h
 	seek 0a00h
 _code_start:
-
-_str_hello1:
-	defb "Hello World 1", 000h
 
 _str_exit:
 	defb "Are you sure you wish to exit?", 000h

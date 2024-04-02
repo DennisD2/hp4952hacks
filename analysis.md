@@ -67,7 +67,7 @@ l_536d:
 ```
 
 SCC also uses address bits 9 and 8 for D/~C and A/~B. 
-So, addresses for SCC always look like Cx0x, Cx1x, Cx2x, CSx3x.
+So, addresses for SCC always look like Cx0x, Cx1x, Cx2x, Cx3x.
 
 | A9 = D/~C | A8 = A/~B | Meaning                      |
 |-----------|-----------|------------------------------|
