@@ -1126,5 +1126,5 @@ _code_end:
 	seek 16ffh
 	defb 000h
 
-	defb 0affeh
+	defw 0affeh
 _file_end:
