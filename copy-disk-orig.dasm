@@ -429,7 +429,7 @@
 	ld bc,00134h		;a21a	01 34 01 	. 4 . 
 	ldir		;a21d	ed b0 	. . 
 	ld a,002h		;a21f	3e 02 	> . 
-	out (020h),a		;a221	d3 20 	.   
+	out (020h),a		;a221	d3 20 	.
 	ld hl,(02d0ch)		;a223	2a 0c 2d 	* . - 
 	ld bc,00003h		;a226	01 03 00 	. . . 
 	ld a,011h		;a229	3e 11 	> . 

@@ -85,6 +85,10 @@
 ; not found in this code:
 ; lib/keyb.asm:   out (0d0h) set row bits; related to keyboard input control
 ; -------------------------------------------------------------------
+
+; target address where app code is being copied during startup by HP4952 app loading
+app_target_area:    equ 02a00h
+
 os_loadpage: equ    00e60h      ; loads a page; ROM function
 ; -------------------------------------------------------------------
 
@@ -303,7 +307,8 @@ _load_dll_stub:
 	ld bc,_dll_stub_end-_dll_stub		;a416	01 36 00 	. 6 .
 	ldir		;a419	ed b0 	. .
 
-	call 02a00h		;a41b	cd 00 2a 	. . * 			; jump to copied code, i.e. _dll_stub
+	call app_target_area    ;a41b	cd 00 2a 	. . * 			; jump to copied code, i.e. _dll_stub
+	;call 02a00h		;a41b	cd 00 2a 	. . * 			; jump to copied code, i.e. _dll_stub
 
     ;; 0a190h -> __dll_fixups
     ;; 0a180h -> num_fixups
@@ -425,11 +430,11 @@ l2065h:
 	ldir		;a4c0	ed b0 	. .
 
 ;; 02b23h points into the block just copied by ldir above. The block was copied to start address 02a00h
-;; so 02a00h should be named to something like app_target_area
+;; so 02a00h was named/defined to app_target_area
 ;; Then, a "call 02b23" points to the app_target_area with offset 0123h.
 ;; in this file, we will find the function 02b3 with base "org" offset 0xc000 and offset 123h, so at 0c123h
 ;
-    app_target_area:    equ 02a00h
+
 ; How do we formulate this as a calculation?
 ; result must be 2b23. Input is app_target_area and the fucntion label to be created at c123.
 ; result = 2a00 + (function_label-c000)
@@ -481,7 +486,10 @@ loop_a4d4:
 	cp 003h		;a4fb	fe 03 	. .                     ; a==0x3 ?
 	jr z,$+33		;a4fd	28 1f 	( .                 ; yes, jump to l_a51e
 	call write_dbe0		;a4ff	cd 3f a5 	. ? . 		; a5ef -> write_dbe0 ; write back values as read, unchanged !?!
-	call 02b23h		;a502	cd 23 2b 	. # + 
+
+    call f_2b23 + app_target_area-_splash_screen_data
+	;call 02b23h		;a502	cd 23 2b 	. # +
+
 	call 0007eh		;a505	cd 7e 00 	. ~ . 			; Patched to 02d6ch
 	ld a,(_tmp_page)		;a508	3a 96 a4 	: . .   ; a:=_tmp_page
 	ld (0110ch),a		;a50b	32 0c 11 	2 . .       ; (0110ch):=a
@@ -496,7 +504,10 @@ loop_a4d4:
 l_a51e:
 	call 0a8ech		;a51e	cd ec a8 	. . . 
 	call write_dbe0		;a521	cd 3f a5 	. ? .
-	call 02cfch		;a524	cd fc 2c 	. . ,
+
+    call f_2cfc + app_target_area-_splash_screen_data
+	;call 02cfch		;a524	cd fc 2c 	. . ,
+
 l_a527:
 	ld hl,0761ch		;a527	21 1c 76 	! . v       ; hl:=0x761
 	ld (var_word_a4cb),hl		;a52a	22 cb a4 	" . .       ; (a4cbh):=hl
@@ -2799,6 +2810,7 @@ vt100_start_screen:
 
 
 ;; POI-14, changes 2x page to 006, and finally back to old page
+f_2cfc:
 	in a,(020h)		;c2fc	db 20 	.               ;get current page
 	push af			;c2fe	f5 	.                   ; save it
 	ld a,022h		;c2ff	3e 22 	> "             ; (07501h):=0x22 ' " '
