@@ -49,21 +49,21 @@ Disassembled ROM:
 
 Code piece found:
 ```asm
-    ;; outputs to any port at address bc, a sequence of bytes. Ends with 0x00.
-    ;; all args in (hl)
-    ;; b from hl
-    ;; c from hl+1
-    ;; a from hl+2
-	ld b,(hl)			;5369	46 	F 
-	inc hl			;536a	23 	# 
-	ld c,(hl)			;536b	4e 	N 
-	inc hl			;536c	23 	#
+;; outputs to any port at address bc, a sequence of bytes. Ends with 0x00.
+;; all args in (hl)
+;; b from hl
+;; c from hl+1
+;; a from hl+2
+ld b,(hl)			;5369	46 	F 
+inc hl			;536a	23 	# 
+ld c,(hl)			;536b	4e 	N 
+inc hl			;536c	23 	#
 l_536d:
-	ld a,(hl)			;536d	7e 	~ 
-	out (c),a		;536e	ed 79 	. y 
-	inc hl			;5370	23 	# 
-	djnz $-4		;5371	10 fa 	. .     ; -> l_536d
-	ret			;5373	c9 	. 
+ld a,(hl)			;536d	7e 	~ 
+out (c),a		;536e	ed 79 	. y 
+inc hl			;5370	23 	# 
+djnz $-4		;5371	10 fa 	. .     ; -> l_536d
+ret			;5373	c9 	. 
 ```
 
 SCC also uses address bits 9 and 8 for D/~C and A/~B. 
