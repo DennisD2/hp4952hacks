@@ -1,4 +1,5 @@
-
+Text below copied from: http://www.vaxman.de/projects/tiny_z80/ .
+----
 
 A tiny Z80 based computer
 
