@@ -130,6 +130,14 @@ _entryaddr:
 	;jp 0a497h		;a147	c3 97 a4 	. . .
     jp __init
 
+;; Some applications define main application entry point here
+;; See  lib/strap.asm
+;; Main Application
+    org 0a150h
+    seek 0050h
+;; Obviously, vt100.app does not define any value here.
+    defw 00000h
+
     org 0a17dh
     seek 0017dh
 
@@ -408,7 +416,7 @@ l2065h:
 	ld (00fd5h),hl		;a4b1	22 d5 0f 	" . .   				; (fd5):=hl
 	call fun_a9c7		;a4b4	cd c7 a9 	. . .   				;
 
-																	; copy 0x1400 bytes starting _splash_screen_data to 0x2a00
+	; copy 0x1400 bytes starting _splash_screen_data to 0x2a00
 	ld hl,_splash_screen_data		;a4b7	21 00 c0 	! . .		; this will verwrite just copied _dll_stub code, which is no longer needed
 	ld de,02a00h		;a4ba	11 00 2a 	. . *
 
@@ -416,10 +424,23 @@ l2065h:
 	ld bc,code_p_d400-_splash_screen_data    ;a4bd	01 00 14 	. . .
 	ldir		;a4c0	ed b0 	. .
 
-;; unknown call to Applic.RAM	
-	call 02b23h		;a4c2	cd 23 2b 	. # + 
-;; unknown call to Applic.RAM	
-	call 02b8fh		;a4c5	cd 8f 2b 	. . + 
+;; 02b23h points into the block just copied by ldir above. The block was copied to start address 02a00h
+;; so 02a00h should be named to something like app_target_area
+;; Then, a "call 02b23" points to the app_target_area with offset 0123h.
+;; in this file, we will find the function 02b3 with base "org" offset 0xc000 and offset 123h, so at 0c123h
+;
+    app_target_area:    equ 02a00h
+; How do we formulate this as a calculation?
+; result must be 2b23. Input is app_target_area and the fucntion label to be created at c123.
+; result = 2a00 + (function_label-c000)
+; result = app_target_area + (f_2b23 - _splash_screen_data)
+; or rearranged for improved reading:
+; result = f_2b23 + app_target_area-_splash_screen_data
+	call  f_2b23 + app_target_area-_splash_screen_data	;a4c2	cd 23 2b 	. # +
+	;call 02b23h		;a4c2	cd 23 2b 	. # +
+;;call to app_target_area + 018fh	, label l_2b8f
+	call l_2b8f + app_target_area-_splash_screen_data	;a4c5	cd 8f 2b 	. . +
+	;call 02b8fh		;a4c5	cd 8f 2b 	. . +
 
     ;; return to main menu, means we leave this app
     ;; see lib/strap.asm
@@ -2638,7 +2659,10 @@ _splash_screen_data: ; see lib/splash.asm
 	;;ld sp,03030h		;c120	31 30 30 	1 0 0 
 	defb "VT-  100"
 
-    ; this routine does 6 ldirs with small areas , but who calls it???
+f_2b23:
+    ; important app entry function, called by __init
+    ; does many ldir and 2 os_loadpage calls. No other calls.
+    ; So its more memory preparation for app execution
 	ld hl,02a00h		;c123	21 00 2a 	! . * 	; (0761d) := 2a00
 	ld (0761dh),hl		;c126	22 1d 76 	" . v   ; Screen Paint Script Location, see lib/strap.asm
 	ld hl,02a7bh		;c129	21 7b 2a 	! { *   ; (0761f) := 2a7b
@@ -2691,7 +2715,8 @@ _splash_screen_data: ; see lib/splash.asm
 	ldir		;c18c	ed b0 	. . 
 	ret			;c18e	c9 	. 
 
-;; POI-27, in+out
+l_2b8f:
+    ; important app entry function, caslled by __init
     ; saves current page, loads a page, calls 01cf8 and restores old page
 	in a,(020h)		;c18f	db 20 	.       ; get current page
 	push af			;c191	f5 	.           ; save it
@@ -2705,6 +2730,7 @@ _splash_screen_data: ; see lib/splash.asm
 	out (020h),a		;c1a1	d3 20 	.               ; write it back
 	ret			;c1a3	c9 	. 
 
+    ; next 3 lines look like variables
 	ld bc,02ba9h		;c1a4	01 a9 2b 	. . + 
 	xor h			;c1a7	ac 	. 
 	inc l			;c1a8	2c 	, 

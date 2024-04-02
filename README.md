@@ -35,6 +35,13 @@ Also helpful:
 * Z80 Monitor. Part of another Z80 assembler package, see https://wwwhomes.uni-bielefeld.de/achim/z80-asm.html.
   The monitor in that package executable is called "z80-mon".
 
+# Pathbreaking work by others
+I would not have started my analysis of the code, if these people would
+not have done their pathbreaking work before:
+
+* Doing big analysis and writing a first library using HP4952: https://github.com/DennisD2/4952oss 
+* Dumping all ROMs https://github.com/VintageProject/HP4952A
+
 # References
 * Z80 Opcode table - https://clrhome.org/table/
 * VT100 codes - https://espterm.github.io/docs/VT100%20escape%20codes.html
