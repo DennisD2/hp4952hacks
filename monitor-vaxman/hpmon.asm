@@ -22,8 +22,8 @@ _splash_screen_data:
 	defb 000h							;; End of Screen Data
 
 _splash_menu_data:
-	defb "Re-!BERT!Remote!Mass !Hell!Self~"
-	defb "set!Menu!&Print!Store!o   !Test|"
+	defb "Re-!BERT!Remote!Mass !Moni!Self~"
+	defb "set!Menu!&Print!Store!tor !Test|"
 
 _p_main_menu_page_one:
 	defw 08336h			;; First Page Menu Data
@@ -89,9 +89,6 @@ _main_entry:
 ;
 ;****************************************************************************************
 ;****************************************************************************************
-
-
-
 
 
 
@@ -170,77 +167,9 @@ _main_entry:
 ;rom_start:       equ     00h
 ;rom_end:         equ     07fffh
 ram_start:       equ     08000h
-ram_end:         equ     0ffffh
-buffer:          equ     ram_end - 01ffh  ; 512 byte IDE general purpose buffer
-;
-; Define the FAT control block memory addresses:
-;
-datastart:       equ     buffer - 4      ; Data area start vector
-rootstart:       equ     datastart - 4   ; Root directory start vector
-fat1start:       equ     rootstart - 4   ; Start vector to first FAT
-psiz:            equ     fat1start - 4   ; Size of partition (in sectors)
-pstart:          equ     psiz - 4        ; First sector of partition
-rootlen:         equ     pstart - 2      ; Maximum number of entries in directory
-fatsec:          equ     rootlen - 2     ; FAT size in sectors
-ressec:          equ     fatsec - 2      ; Number of reserved sectors
-clusiz:          equ     ressec - 1      ; Size of a cluster (in sectors)
-fatname:         equ     clusiz - 9      ; Name of the FAT (null terminated)
-fatcb:           equ     fatname         ; Start of the FATCB
-;
-; Define a file control block (FCB) memory addresses and displacements:
-;
-file_buffer:     equ     fatcb - 0200h            ; 512 byte sector buffer
-cluster_sector:  equ     file_buffer - 1         ; Current sector in cluster
-current_sector:  equ     cluster_sector - 4      ; Current sector address
-current_cluster: equ     current_sector - 2      ; Current cluster number
-file_pointer:    equ     current_cluster - 4     ; Pointer for file position
-file_type:       equ     file_pointer - 1        ; 0 -> not found, else OK
-first_cluster:   equ     file_type - 2           ; First cluster of file
-file_size:       equ     first_cluster - 4       ; Size of file
-file_name:       equ     file_size - 12          ; Canonical name of file
-fcb:             equ     file_name               ; Start of the FCB
-;
-;fcb_filename:            equ     0
-;fcb_file_size:           equ     0ch
-;fcb_first_cluster:       equ     010h
-;fcb_file_type:           equ     012h
-;fcb_file_pointer:        equ     013h
-;fcb_current_cluster:     equ     017h
-;fcb_current_sector:      equ     019h
-;fcb_cluster_sector:      equ     01dh
-;fcb_file_buffer:         equ     01eh
-;
-; We also need some general purpose string buffers:
-;
-string_81_bfr:   equ     fcb - 81
-string_12_bfr:   equ     string_81_bfr - 12
-;
-;  A number of routines need a bit of scratch RAM, too. Since these are
-; sometimes interdependent, each routine gets its own memory cells (only
-; possible since the routines are not recursive).
-;
-load_file_scrat: equ     string_12_bfr - 2       ; Two bytes for load_file
-str2filename_de: equ     load_file_scrat - 2     ; Two bytes for str2filename
-fopen_eob:       equ     str2filename_de - 2     ; Eight bytes for fopen
-fopen_rsc:       equ     fopen_eob - 4
-fopen_scr:       equ     fopen_rsc - 2
-dirlist_scratch: equ     fopen_scr - 2           ; Eight bytes for fopen
-dirlist_eob:     equ     dirlist_scratch - 2
-dirlist_rootsec: equ     dirlist_eob - 4
-;
-start_type:      equ     dirlist_rootsec  - 01h   ; Distinguish cold/warm start
-;
-;uart_base:       equ     00h
-;ide_base:        equ     010h
-;
-;uart_register_0: equ     uart_base + 0
-;uart_register_1: equ     uart_base + 1
-;uart_register_2: equ     uart_base + 2
-;uart_register_3: equ     uart_base + 3
-;uart_register_4: equ     uart_base + 4
-;uart_register_5: equ     uart_base + 5
-;uart_register_6: equ     uart_base + 6
-;uart_register_7: equ     uart_base + 7
+;ram_end:         equ     0ffffh
+
+
 ;
 eos:             equ     000h             ; End of string
 cr:              equ     00dh             ; Carriage return
@@ -321,9 +250,7 @@ rst_08:         push    bc              ; Save bc and hl
                 ld      bc, dispatch_table
                 add     hl, bc          ; Calculate displacement in table
 
-                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
                 ;;;;;;;;;ld      bc, (hl)        ; Load bc with the destination address
-                ;;;;;;;;; relacement code
                 push ix         ; save ix
                 push hl         ; move hl to ix via stack
                 pop ix          ;
@@ -336,7 +263,7 @@ rst_08:         push    bc              ; Save bc and hl
                 pop     hl              ; Restore hl
                 pop     bc              ; and bc
                 jp      (ix)            ; Jump to the destination routine
-dispatch_table:  defw    cold_start      ; 000h = clear etc.
+dispatch_table: ; defw    cold_start      ; 000h = clear etc.
                 ; Parameters:    N/A
                 ; Action:        Performs a cold start (memory is cleared!)
                 ; Return values: N/A
@@ -456,10 +383,10 @@ main_loop:      ld      hl, monitor_prompt
                 ld      hl, cg_msg      ; Print group prompt
                 call    puts
                 call    monitor_key     ; Get command key
-                cp      'C'             ; Cold start?
-                jp      z, cold_start
-                cp      'W'             ; Warm start?
-                jp      z, warm_start
+                ;cp      'C'             ; Cold start?
+                ;jp      z, cold_start
+                ;cp      'W'             ; Warm start?
+                ;jp      z, warm_start
                 cp      'S'             ; Start?
                 jp      z, start
                 cp      'X'             ; exit app?
@@ -468,22 +395,6 @@ main_loop:      ld      hl, monitor_prompt
                 call    z, info
                 jr      z, main_loop
                 jp      cmd_error       ; Unknown control-group-command
-
-;disk_group:     cp      'D'             ; Disk group?
-;                jr      nz, file_group  ; No - file group?
-;                ld      hl, dg_msg      ; Print group prompt
-;                call    puts
-;                call    monitor_key     ; Get command
-;                jr      z, main_loop
-;                jr      cmd_error       ; Unknown disk-group-command
-;
-;file_group:     cp      'F'             ; File group?
-;                jr      nz, help_group  ; No - help group?
-;                ld      hl, fg_msg      ; Print group prompt
-;                call    puts
-;                call    monitor_key     ; Get command key
-;                jr      z, main_loop
-;                jr      cmd_error       ; Unknown file-group-command
 
 help_group:     cp      'H'             ; Help? (No further level expected.)
                 call    z, help         ; Yes :-)
@@ -503,8 +414,8 @@ memory_group:   cp      'M'             ; Memory group?
                 cp      'F'             ; Fill?
                 call    z, fill
                 jp      z, main_loop
-                cp      'I'             ; INTEL-Hex load?
-                call    z, ih_load
+                ;cp      'I'             ; INTEL-Hex load?
+                ;call    z, ih_load
                 jp      z, main_loop
                 cp      'L'             ; Load?
                 call    z, load
@@ -533,12 +444,9 @@ hello_msg:       defb    cr, lf, cr, lf
 monitor_prompt:  defb    cr, lf
                  defb     "Z> ", eos
 cg_msg:          defb    "CONTROL/", eos
-;dg_msg:          defb    "DISK/", eos
-;fg_msg:          defb    "FILE/", eos
 mg_msg:          defb    "MEMORY/", eos
 command_err_msg: defb    ": Syntax error - command not found!", cr, lf, eos
 group_err_msg:   defb    ": Syntax error - group not found!", cr, lf, eos
-cold_start_msg:  defb    "Cold start, clearing memory.", cr, lf, eos
 ;
 ; Read a key for command group and command:
 ;
@@ -574,9 +482,7 @@ dump:           push    af
                 call    crlf
                 inc     hl              ; Increment stop address for comparison
 
-                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
                 ;;;;;;;;;ld      de, hl          ; DE now contains the stop address
-                ;;;;;;;;; relacement code
                 push hl         ; move hl to de via stack
                 pop de          ;
 
@@ -680,9 +586,7 @@ fill_get_length: ld      hl, fill_msg_2  ; Prompt for length information
                 call    get_word        ; Get the length of the block
                 ; Now make sure that start + length is still in RAM:
 
-                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
                 ;;;;;;;;;ld      bc, hl          ; BC contains the length
-                ;;;;;;;;; relacement code
                 push hl         ; move hl to bc via stack
                 pop bc          ;
 
@@ -705,9 +609,7 @@ fill_get_value:  ld      hl, fill_msg_3  ; Prompt for fill value
                 pop     bc              ; Get the length from the stack
                 pop     hl              ; Get the start address again
 
-                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
                 ;;;;;;;;;ld      de, hl          ; DE = HL + 1
-                ;;;;;;;;; relacement code
                 push hl         ; move hl to de via stack
                 pop de          ;
 
@@ -743,106 +645,15 @@ help:           push    hl
 ;               defb    "                                ", cr, lf,
 help_msg:       defb    "HELP: commandgroups+commands:", cr, lf
                 defb    "  C(ontrol group):", cr, lf
-                defb    "    C(old start), I(nfo),",cr,lf
-                defb    "    S(tart), W(arm start),", cr, lf
-                defb    "    W(arm start), E(X)it", cr, lf
-                ;defb    "         D(isk group):", cr, lf
-                ;defb    "             I(nfo), M(ount), T(ransfer),"
-                ;defb    "         U(nmount)", cr, lf
-                ;defb    "                                  R(ead), W(rite)"
-                ;defb    cr, lf
-                ;defb    "         F(ile group):", cr, lf
-                ;defb    "             C(at), D(irectory), L(oad)", cr, lf
+                defb    "    I(nfo), S(tart), ", cr, lf
+                defb    "    E(X)it", cr, lf
                 defb    "  M(emory group):", cr, lf
                 defb    "    D(ump), E(xamine), F(ill),", cr, lf
-                defb    "    I(ntel Hex Load), L(oad),", cr, lf
+                defb    "    L(oad),", cr, lf
                 defb    "    R(egister dump)", cr, lf
                 defb    "  H(elp)", cr, lf
                 defb    cr, lf, eos
-;
-; Load an INTEL-Hex file (a ROM image) into memory. This routine has been
-; more or less stolen from a boot program written by Andrew Lynch and adapted
-; to this simple Z80 based machine.
-;
-; The INTEL-Hex format looks a bit awkward - a single line contains these
-; parts:
-; ':', Record length (2 hex characters), load address field (4 hex characters),
-; record type field (2 characters), data field (2 * n hex characters),
-; checksum field. Valid record types are 0 (data) and 1 (end of file).
-;
-; Please note that this routine will not echo what it read from stdin but
-; what it "understood". :-)
-;
-ih_load:        push    af
-                push    de
-                push    hl
-                ld      hl, ih_load_msg_1
-                call    puts
-ih_load_loop:   call    getc            ; Get a single character
-                cp      cr              ; Don't care about CR
-                jr      z, ih_load_loop
-                cp      lf              ; ...or LF
-                jr      z, ih_load_loop
-                cp      space           ; ...or a space
-                jr      z, ih_load_loop
-                call    to_upper        ; Convert to upper case
-                call    putc            ; Echo character
-                cp      ':'             ; Is it a colon?
-                jr      nz, ih_load_error
-                call    get_byte        ; Get record length into A
-                ld      d, a            ; Length is now in D
-                ld      e, 00h           ; Clear checksum
-                call    ih_load_chk     ; Compute checksum
-                call    get_word        ; Get load address into HL
-                ld      a, h            ; Update checksum by this address
-                call    ih_load_chk
-                ld      a, l
-                call    ih_load_chk
-                call    get_byte        ; Get the record type
-                call    ih_load_chk     ; Update checksum
-                cp      01h              ; Have we reached the EOF marker?
-                jr      nz, ih_load_data; No - get some data
-                call    get_byte        ; Yes - EOF, read checksum data
-                call    ih_load_chk     ; Update our own checksum
-                ld      a, e
-                and     a               ; Is our checksum zero (as expected)?
-                jr      z, ih_load_exit ; Yes - exit this routine
-ih_load_chk_err: ld      hl, ih_load_msg_3
-                call    puts            ; No - print an error message
-                jr      ih_load_exit    ; and exit
-ih_load_data:   ld      a, d            ; Record length is now in A
-                and     a               ; Did we process all bytes?
-                jr      z, ih_load_eol  ; Yes - process end of line
-                call    get_byte        ; Read two hex digits into A
-                call    ih_load_chk     ; Update checksum
-                ld      (hl), a         ; Store byte into memory
-                inc     hl              ; Increment pointer
-                dec     d               ; Decrement remaining record length
-                jr      ih_load_data    ; Get next byte
-ih_load_eol:    call    get_byte        ; Read the last byte in the line
-                call    ih_load_chk     ; Update checksum
-                ld      a, e
-                and     a               ; Is the checksum zero (as expected)?
-                jr      nz, ih_load_chk_err
-                call    crlf
-                jr      ih_load_loop    ; Yes - read next line
-ih_load_error:  ld      hl, ih_load_msg_2
-                call    puts            ; Print error message
-ih_load_exit:   call    crlf
-                pop     hl              ; Restore registers
-                pop     de
-                pop     af
-                ret
-;
-ih_load_chk:    ld      c, a            ; All in all compute E = E - A
-                ld      a, e
-                sub     c
-                ld      e, a
-                ld      a, c
-                ret
-ih_load_msg_1:   defb    "INTEL HEX LOAD: ", eos
-ih_load_msg_2:   defb    " Syntax error!", eos
-ih_load_msg_3:   defb    " Checksum error!", eos
+
 ;
 ; Print version information etc.
 ;
@@ -907,9 +718,7 @@ load_loop:      ld      a, ' '
                 jr      load_loop       ; Get next byte (or at least try to)
 load_exit:      call    crlf            ; Finished...
 
-                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
                 ;;;;;;;;;ld      hl, de          ; Print number of bytes loaded
-                ;;;;;;;;; relacement code
                 push de         ; move hl to de via stack
                 pop hl          ;
 
@@ -941,9 +750,7 @@ move:           push    af              ; We won't even destroy the flags!
                 call    puts
                 call    get_word        ; Get destination start address
 
-                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
                 ;;;;;;;;;ld      de, hl          ; LDIR requires this in DE
-                ;;;;;;;;; relacement code
                 push hl         ; move hl to de via stack
                 pop de          ;
 
@@ -960,9 +767,7 @@ move_get_length: ld      hl, move_msg_3
                 call    puts
                 call    get_word        ; Get length of block
 
-                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
                 ;;;;;;;;;ld      bc, hl          ; LDIR requires the length in BC XXX
-                ;;;;;;;;; relacement code
                 push hl         ; move hl to bc via stack
                 pop bc          ;
 
@@ -1036,9 +841,7 @@ rdump_one_set:  push    hl              ; Print one register set
                 ld      hl, rdump_os_msg_2
                 call    puts
 
-                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
                 ;;;;;;;;;ld      hl, bc
-                ;;;;;;;;; relacement code
                 push bc        ; move bc to hl via stack
                 pop hl          ;
 
@@ -1046,9 +849,7 @@ rdump_one_set:  push    hl              ; Print one register set
                 ld      hl, rdump_os_msg_3
                 call    puts
 
-                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
                 ;;;;;;;;;ld      hl, de
-                ;;;;;;;;; relacement code
                 push de         ; move de to hl via stack
                 pop hl          ;
 
@@ -1297,41 +1098,6 @@ puts_loop:      ld      a, (hl)
 puts_end:       pop     hl
                 pop     af
                 ret
-;
-; Wait for an incoming character on the serial line:
-;
-;rx_ready:       ;push    af
-;rx_ready_loop:  ;in      a, (uart_register_5)
-                ;bit     0, a
-                ;jr      z, rx_ready_loop
-                ;pop     af
-                ;ret
-;
-; Wait for UART to become ready to transmit a byte:
-;
-;tx_ready:       ;push    af
-;tx_ready_loop:  ;in      a, (uart_register_5)
-                ;bit     5, a
-                ;jr      z, tx_ready_loop
-                ;pop af
-                ;ret
-
-;******************************************************************************
-;***
-;*** Miscellaneous functions
-;***
-;******************************************************************************
-;
-; Clear the computer (not to be called - jump into this routine):
-;
-cold_start:     ld      hl, start_type
-                ld      (hl), 000h
-warm_start:     ld      hl, clear_msg
-                call    puts
-                ld      a, 000h
-                ld      (ram_end), a
-                rst     000h
-clear_msg:      defb    "CLEAR", cr, lf, eos
 
 app_exit:       call _clear_screen
                 jp 014d5h				; Return to main menu.
