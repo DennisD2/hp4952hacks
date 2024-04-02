@@ -69,9 +69,9 @@ l_536d:
 SCC also uses address bits 9 and 8 for D/~C and A/~B. 
 So, addresses for SCC always look like Cx0x, Cx1x, Cx2x, CSx3x.
 
-| A9 = D/~C | A8 = A/~B | Meaning                       |
-|-----------|-----------|-------------------------------|
+| A9 = D/~C | A8 = A/~B | Meaning                      |
+|-----------|-----------|------------------------------|
 | 0         | 0         | Control byte (command), PORTB |
 | 0         | 1         | Control byte (command), PORTA |
-| 1         | 0         | Data byte (command), PORTB    |
-| 1         | 1         | Data byte (command), PORTA    |
+| 1         | 0         | Data byte, PORTB   |
+| 1         | 1         | Data byte, PORTA    |
