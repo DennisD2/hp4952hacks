@@ -358,33 +358,38 @@ _dll_stub:
 
 	ld a,002h		;a45b	3e 02 	> .             ; Load Page 2 - Application "ROM"
 	out (020h),a		;a45d	d3 20 	.
+	
 	ld hl,(02d0ch)		;a45f	2a 0c 2d 	* . -   ; Generate 17 more for 02e34h = 0d9f0h...0da20h
-	ld bc,00003h		;a462	01 03 00 	. . .
-	ld a,011h		;a465	3e 11 	> .             ; .. Source appears to be a jump table
+	ld bc,00003h		;a462	01 03 00 	. . .   ; stepping 3 bytes
+	ld a,011h		;a465	3e 11 	> .             ;  amount to copy .. Source appears to be a jump table
 	;; 0a482h --> la246h
 	call la246h		;a467	cd 82 a4 	. . .
 
-	ld hl,(02e16h)		;a46a	2a 16 2e 	* . .   ; Generate 68 more for 02e56h =
+	ld hl,(02e16h)		;a46a	2a 16 2e 	* . .   ; Generate 0x44/68 more for 02e56h =
 	ld a,(hl)			;a46d	7e 	~
 	inc hl			;a46e	23 	#
 	ld h,(hl)			;a46f	66 	f
 	ld l,a			;a470	6f 	o
-	ld bc,00006h		;a471	01 06 00 	. . .
-	ld a,044h		;a474	3e 44 	> D
+	ld bc,00006h		;a471	01 06 00 	. . .   ; stepping 6 bytes
+	ld a,044h		;a474	3e 44 	>               ; amount to copy
 	;; 0a482h --> la246h
 	call la246h		;a476	cd 82 a4 	. . .
 
-	ld bc,00002h		;a479	01 02 00 	. . .   ; Generate 30 more for 02edeh = 0eb98h..
+	ld bc,00002h		;a479	01 02 00 	. . .   ; stepping 3, Generate 30 more for 02edeh = 0eb98h..
 	;; STRANGE, LIB/STRAP.ASM HAS 01EH AS VALUE FOR NEXT LINE
-	ld a,01dh		;a47c	3e 1d 	> .
+	ld a,01dh		;a47c	3e 1d 	> .             ; amount to copy
 	;; 0a482h --> la246h
 	call la246h		;a47e	cd 82 a4 	. . .
 	ret			;a481	c9 	.
 _dll_stub_end:
 
+; copies words from HL to loc.starting.at.DE, A iterations
+; HL steps BC, DE steps 2
+; uses _dll_tmp variable for loop counter,counted down to 0
 la246h:
     ld ix,_dll_tmp                  ;
     ld (ix+000h),a                  ;
+loop_la246h:
     ld a,l                          ; do {
     ld (de),a                       ;   *DE = L
     inc de                          ;   DE++
@@ -393,7 +398,7 @@ la246h:
     inc de                          ;   DE++
     add hl,bc                       ;   HL+=BC
     dec (ix+000h)                   ; } while(TMP-- != 0)
-    jr nz,$-10                      ;
+    jr nz,$-10                      ; -> loop_la246h
     ret                             ;
 
 _tmp_page:
@@ -417,15 +422,15 @@ __init:
 
 l2065h:
     ; comment from lib/strap.asm: "Patch 00fd4h -> our menu display function"
-	ld a,006h		;a4a9	3e 06 	> .             				; a:=6
-	ld (00fd4h),a		;a4ab	32 d4 0f 	2 . .   				; (fd4h):=a
+	ld a,006h		;a4a9	3e 06 	> .             				; (fd4h):=6
+	ld (00fd4h),a		;a4ab	32 d4 0f 	2 . .   				;
 ;; POI-010 a4cd seems to be some data or table section see POI-011
 	ld hl,var_word_a4cd		;a4ae	21 cd a4 	! . .   			; h1:=a4cdh
 	ld (00fd5h),hl		;a4b1	22 d5 0f 	" . .   				; (fd5):=hl
 	call fun_a9c7		;a4b4	cd c7 a9 	. . .   				;
 
 	; copy 0x1400 bytes starting _splash_screen_data to 0x2a00
-	ld hl,_splash_screen_data		;a4b7	21 00 c0 	! . .		; this will verwrite just copied _dll_stub code, which is no longer needed
+	ld hl,_splash_screen_data		;a4b7	21 00 c0 	! . .		; this will overwrite just copied _dll_stub code, which is no longer needed
 	ld de,02a00h		;a4ba	11 00 2a 	. . *
 
 	;ld bc,01400h		;a4bd	01 00 14 	. . .
@@ -481,14 +486,14 @@ loop_a4d4:
 	ldir		;a4ed	ed b0 	. .
 
 	call read_dbe0		;a4ef	cd 33 a5 	. 3 . 		; a533 -> read_dbe0
-	ld a,021h		;a4f2	3e 21 	> !                 ; a:=0x21 NAK
-	ld (07501h),a		;a4f4	32 01 75 	2 . u       ; (07501h):=a
+	ld a,021h		;a4f2	3e 21 	> !                 ; (07501h):=0x21
+	ld (07501h),a		;a4f4	32 01 75 	2 . u       ;
 	ei			;a4f7	fb 	.                           ; EI
 	
 	ld a,(03f12h)		;a4f8	3a 12 3f 	: . ?       ; a:=(3f12h), this address was populated by read_dbe0()
 	cp 003h		;a4fb	fe 03 	. .                     ; a==0x3 ?
 	jr z,$+33		;a4fd	28 1f 	( .                 ; yes, jump to l_a51e
-	call write_dbe0		;a4ff	cd 3f a5 	. ? . 		; a5ef -> write_dbe0 ; write back values as read, unchanged !?!
+	call write_dbe0		;a4ff	cd 3f a5 	. ? . 		; no, a5ef -> write_dbe0 ; write back values as read, unchanged !?!
 
     call f_2b23 + app_target_area-_splash_screen_data
 	;call 02b23h		;a502	cd 23 2b 	. # +
@@ -500,22 +505,21 @@ loop_a4d4:
 	ld (0110dh),hl		;a511	22 0d 11 	" . .       ; (0110f):=h1
 	ld hl,(var_word_a4cb)		;a514	2a cb a4 	* . .       ; h1:= (a4cb)
 	push hl			;a517	e5 	.                       ; save hl
-;; call main menu handler	
-	call 01109h		;a518	cd 09 11 	. . . 			; Patched to 02eceh
+	call 01109h		;a518	cd 09 11 	. . . 			; ;; call main menu handler	, Patched to 02eceh
 	pop hl			;a51b	e1 	.                       ; restore hl
 	jr $+11		;a51c	18 09 	. .                     ; uncoditioned jr to l_a527 (?!?)
 l_a51e:
-	call 0a8ech		;a51e	cd ec a8 	. . . 
+	call read_3f12		;a51e	cd ec a8 	. . . 
 	call write_dbe0		;a521	cd 3f a5 	. ? .
 
     call f_2cfc + app_target_area-_splash_screen_data
 	;call 02cfch		;a524	cd fc 2c 	. . ,
 
 l_a527:
-	ld hl,0761ch		;a527	21 1c 76 	! . v       ; hl:=0x761
-	ld (var_word_a4cb),hl		;a52a	22 cb a4 	" . .       ; (a4cbh):=hl
+	ld hl,0761ch		;a527	21 1c 76 	! . v       ; (a4cbh):=0x761
+	ld (var_word_a4cb),hl		;a52a	22 cb a4 	" . .   ;
 
-	jp loop_a4d4		;a52d	c3 d4 a4 	. . .           ;
+	jp loop_a4d4		;a52d	c3 d4 a4 	. . .           ; start loop again; this will also copy again 1400 bytes etc....
 
 	;; 0a530 used by line a4d5, it is a defb
 	;call 00000h		;a530	cd 00 00 	. . .
@@ -540,13 +544,16 @@ write_dbe0:
 	ldir		;a548	ed b0 	. . 
 	ret			;a54a	c9 	. 
 
-	ld hl,01234h		;a54b	21 34 12 	! 4 . 
+    ; delay, 0x1234 times looped
+	ld hl,01234h		;a54b	21 34 12 	! 4 .   ; hl:=0x1234
+loop_delay_a54e:
 	dec hl			;a54e	2b 	+ 
 	ld a,l			;a54f	7d 	} 
 	or h			;a550	b4 	. 
-	jr nz,$-3		;a551	20 fb 	  . 
-	call read_dbe0		;a553	cd 33 a5 	. 3 .
-	call 0a5f9h		;a556	cd f9 a5 	. . . 
+	jr nz,$-3		;a551	20 fb 	  .             ; -> loop_delay_a54e
+
+	call read_dbe0		;a553	cd 33 a5 	. 3 .   ; read back what we just wrote
+	call f_a5f9		;a556	cd f9 a5 	. . .
 	call 0a6e7h		;a559	cd e7 a6 	. . . 
 	call 0a6e7h		;a55c	cd e7 a6 	. . . 
 	call 0a702h		;a55f	cd 02 a7 	. . . 
@@ -621,7 +628,9 @@ write_dbe0:
 	call 0a6e7h		;a5ee	cd e7 a6 	. . . 
 	jr $+5		;a5f1	18 03 	. . 
 	call 0a9e0h		;a5f3	cd e0 a9 	. . . 
-	jp 0a56fh		;a5f6	c3 6f a5 	. o . 
+	jp 0a56fh		;a5f6	c3 6f a5 	. o .
+
+f_a5f9:
 	call fun_a9d7		;a5f9	cd d7 a9 	. . .
 	call 0a6d4h		;a5fc	cd d4 a6 	. . . 
 	call 0aee5h		;a5ff	cd e5 ae 	. . . 
@@ -629,11 +638,15 @@ write_dbe0:
 	ret			;a605	c9 	. 
 
 	call 0a8e3h		;a606	cd e3 a8 	. . . 
-	ret			;a609	c9 	. 
+	ret			;a609	c9 	.
+
+	; next bytes are variables
 	nop			;a60a	00 	. 
 	nop			;a60b	00 	. 
 	nop			;a60c	00 	. 
-	nop			;a60d	00 	. 
+	nop			;a60d	00 	.
+
+f_a60e:
 	call read_dbe0		;a60e	cd 33 a5 	. 3 .
 	call 0a87bh		;a611	cd 7b a8 	. { . 
 	call 0a8e3h		;a614	cd e3 a8 	. . . 
@@ -715,17 +728,21 @@ write_dbe0:
 	ld (0a6d3h),a		;a6e3	32 d3 a6 	2 . . 
 	ret			;a6e6	c9 	. 
 
-	ld a,(0a6d2h)		;a6e7	3a d2 a6 	: . . 
+f_a6e7:
+	ld a,(0a6d2h)		;a6e7	3a d2 a6 	: . .   ; (0a6d2h)==0x20 SPACE ?
 	cp 020h		;a6ea	fe 20 	.   
-	jr nz,$+6		;a6ec	20 04 	  . 
-	ld a,02ah		;a6ee	3e 2a 	> * 
-	jr $+4		;a6f0	18 02 	. . 
-	ld a,020h		;a6f2	3e 20 	>   
-	ld (0a6d2h),a		;a6f4	32 d2 a6 	2 . . 
-	call 0abb2h		;a6f7	cd b2 ab 	. . . 
-	ld a,(0a6d2h)		;a6fa	3a d2 a6 	: . . 
+	jr nz,$+6		;a6ec	20 04 	  .             ; no -> l_a6f2
+	ld a,02ah		;a6ee	3e 2a 	> *             ; yes , a:=2a
+	jr $+4		;a6f0	18 02 	. .                 ; -> l_a6f4
+l_a6f2:
+	ld a,020h		;a6f2	3e 20 	>               ; a:=0x20
+l_a6f4:
+	ld (0a6d2h),a		;a6f4	32 d2 a6 	2 . .   ; (0a6d2h):=a
+	call set_4346		;a6f7	cd b2 ab 	. . .   ; a -> 0x4346 var
+	ld a,(0a6d2h)		;a6fa	3a d2 a6 	: . .   ; read back 0a6d2h
 	ret			;a6fd	c9 	. 
 
+read_a6d2:
 	ld a,(0a6d2h)		;a6fe	3a d2 a6 	: . . 
 	ret			;a701	c9 	. 
 
@@ -904,10 +921,12 @@ write_dbe0:
 	dec e			;a84f	1d 	. 
 	ld e,01fh		;a850	1e 1f 	. .
 
+    ; is code
 	ld a,(07e00h)		;a852	3a 00 7e 	: . ~ 
 	or a			;a855	b7 	. 
 	ret z			;a856	c8 	. 
 
+    ;is code
 	ld bc,(07e01h)		;a857	ed 4b 01 7e 	. K . ~ 
 	xor a			;a85b	af 	. 
 	ld (07e00h),a		;a85c	32 00 7e 	2 . ~ 
@@ -976,11 +995,14 @@ out80_a89f:
 	out (080h),a		;a8e0	d3 80 	. .         ; out 80 (this outputs 0)
 	ret			;a8e2	c9 	. 
 
+    ; waits for dff0==0 an then writes 5 to it
 	call waitforz_dff0_a897		;a8e3	cd 97 a8 	. . .
-	ld a,005h		;a8e6	3e 05 	> . 
+	ld a,005h		;a8e6	3e 05 	> .             ; (0dff0h):=5
 	ld (0dff0h),a		;a8e8	32 f0 df 	2 . . 
 	ret			;a8eb	c9 	. 
 
+set_3f12_to_2:
+    ; (03f12h) := 2
 	ld a,002h		;a8ec	3e 02 	> . 
 	ld (03f12h),a		;a8ee	32 12 3f 	2 . ? 
 	ret			;a8f1	c9 	. 
@@ -992,6 +1014,7 @@ out80_a89f:
 	ld (03f12h),a		;a8fc	32 12 3f 	2 . ? 
 	ret			;a8ff	c9 	. 
 
+read_3f12:
 	ld a,(03f12h)		;a900	3a 12 3f 	: . ? 
 	or a			;a903	b7 	. 
 	ret z			;a904	c8 	. 
@@ -1033,7 +1056,7 @@ out80_a89f:
 	nop			;a942	00 	. 
 	nop			;a943	00 	.
 
-	; below does not look like code
+	; below does not look like code, a944 is a var
 	ld bc,00026h		;a944	01 26 00 	. & . 
 	add hl,hl			;a947	29 	) 
 	add hl,hl			;a948	29 	) 
@@ -1050,6 +1073,7 @@ out80_a89f:
 	call 0a991h		;a95a	cd 91 a9 	. . . 
 	ret			;a95d	c9 	. 
 
+    ; is code
 	ld hl,(0a940h)		;a95e	2a 40 a9 	* @ . 
 	ld (hl),c			;a961	71 	q 
 	inc l			;a962	2c 	, 
@@ -1451,6 +1475,8 @@ fun_aa9a:
 	cp b			;abaf	b8 	.
 	or h			;abb0	b4 	.
 	nop			;abb1	00 	.
+set_4346:
+    ;  (04346h) := a
 	ld (04346h),a		;abb2	32 46 43 	2 F C
 	ret			;abb5	c9 	.
 
@@ -1479,8 +1505,8 @@ fun_aa9a:
 	ld hl,0000fh		;abdf	21 0f 00 	! . .
 	ld de,0ac6fh		;abe2	11 6f ac 	. o .
 	call 0a945h		;abe5	cd 45 a9 	. E .
-	call 0a6feh		;abe8	cd fe a6 	. . .
-	call 0abb2h		;abeb	cd b2 ab 	. . .
+	call read_a6d2		;abe8	cd fe a6 	. . .
+	call set_4346		;abeb	cd b2 ab 	. . .
 	ret			;abee	c9 	.
 
     ;; "Cap  "
@@ -2830,7 +2856,7 @@ f_2cfc:
 	ld a,006h		;c317	3e 06 	> .             ; Load Page 6 (Application RAM)
 	call os_loadpage		;c319	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
 	call read_dbe0		;c31c	cd 33 a5 	. 3 .
-	call 0a900h		;c31f	cd 00 a9 	. . . 
+	call read_3f12		;c31f	cd 00 a9 	. . . 
 	call write_dbe0		;c322	cd 3f a5 	. ? .
 	ld a,021h		;c325	3e 21 	> !             ; (07501h):=0x21 '!'
 	ld (07501h),a		;c327	32 01 75 	2 . u   ;
@@ -2853,9 +2879,9 @@ f_2cfc:
 
 	ld a,006h		;c34d	3e 06 	> .             ; Load Page 6 (Application RAM)
 	call os_loadpage		;c34f	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
-	call 0a60eh		;c352	cd 0e a6 	. . .
-	ld a,022h		;c355	3e 22 	> "             ;  a:=0x22 ' " '
-	ld (07501h),a		;c357	32 01 75 	2 . u   ; (07501h):=a
+	call f_a60e		;c352	cd 0e a6 	. . .       ; large set up function, calls out(0xa80)
+	ld a,022h		;c355	3e 22 	> "             ;  (07501h):=0x22
+	ld (07501h),a		;c357	32 01 75 	2 . u   ;
 	ld a,(_tmp_page)		;c35a	3a 96 a4 	: . .  ; a:=tmp_page
 	call os_loadpage		;c35d	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in _tmp_page
 	ld hl,00001h		;c360	21 01 00 	! . . 
