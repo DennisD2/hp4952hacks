@@ -27,5 +27,5 @@ The whole disassembler comes in three files:
 
 
 # See also
-Small Computer Monitor Site - https://smallcomputercentral.com/small-computer-monitor/
-Monitor source code from http://www.vaxman.de/projects/tiny_z80/ .
+* Small Computer Monitor Site - https://smallcomputercentral.com/small-computer-monitor/
+* Monitor source code from http://www.vaxman.de/projects/tiny_z80/ .
