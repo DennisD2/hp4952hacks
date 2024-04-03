@@ -4,8 +4,11 @@
 	    org &8000
 
         PrintChar 	equ	    #bb5a
+        WaitChar    equ     #bb06
+        ClearScreen equ     #bc14
 
 mymain:
+        call    ClearScreen
         ld      hl,&8000    ; start address for disassembing
         ld      bc,&10      ; number of op codes to disassemble, "lines"
 
@@ -23,6 +26,16 @@ disloop:
         ld      a,b             ; line loop finished?
         or      c
         jr      nz,disloop      ; no, continue
+
+        call    WaitChar        ; wait for SPACE
+        cp      &20             ;
+        jr      nz,disloop_done ; no, other char -> done
+
+        ld      bc,&10          ; yes, continue
+        jp      disloop
+
+
+disloop_done:
         ret                     ; yes, we're done
 
 ; print a string located at kStrBuffer
