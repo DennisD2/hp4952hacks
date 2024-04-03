@@ -53,7 +53,5 @@ NewLine:
         call    PrintChar
         ret
 
-message:
-
         ; include disassembler source
 	    read "disassembler.asm"
