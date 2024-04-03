@@ -7,6 +7,12 @@ This directory contains my effort to extract disassembler
 code from another project and to make it usable for
 the monitor.
 
+Screenshot of PoC code in WinAPE. Disassembles next 0x10
+opcodes and then waits for a key. On Space, next 0x10 opcodes
+are disassembled. Any other key ends disassembly routine.
+
+![](doc/disassembler_screenshot_cpc.png)
+
 ## Origin of disassembler source
 The Z80 disassembler code, written in Z80 
 assembler, comes from SCM (Small
