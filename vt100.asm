@@ -358,7 +358,7 @@ _dll_stub:
 
 	ld a,002h		;a45b	3e 02 	> .             ; Load Page 2 - Application "ROM"
 	out (020h),a		;a45d	d3 20 	.
-	
+
 	ld hl,(02d0ch)		;a45f	2a 0c 2d 	* . -   ; Generate 17 more for 02e34h = 0d9f0h...0da20h
 	ld bc,00003h		;a462	01 03 00 	. . .   ; stepping 3 bytes
 	ld a,011h		;a465	3e 11 	> .             ;  amount to copy .. Source appears to be a jump table
@@ -509,7 +509,7 @@ loop_a4d4:
 	pop hl			;a51b	e1 	.                       ; restore hl
 	jr $+11		;a51c	18 09 	. .                     ; uncoditioned jr to l_a527 (?!?)
 l_a51e:
-	call read_3f12		;a51e	cd ec a8 	. . . 
+	call set_3f12_to_2		;a51e	cd ec a8 	. . .
 	call write_dbe0		;a521	cd 3f a5 	. ? .
 
     call f_2cfc + app_target_area-_splash_screen_data
@@ -743,7 +743,7 @@ l_a6f4:
 	ret			;a6fd	c9 	. 
 
 read_a6d2:
-	ld a,(0a6d2h)		;a6fe	3a d2 a6 	: . . 
+	ld a,(0a6d2h)		;a6fe	3a d2 a6 	: . .
 	ret			;a701	c9 	. 
 
 	ld a,(0a6d3h)		;a702	3a d3 a6 	: . . 
@@ -922,12 +922,12 @@ read_a6d2:
 	ld e,01fh		;a850	1e 1f 	. .
 
     ; is code
-	ld a,(07e00h)		;a852	3a 00 7e 	: . ~ 
+	ld a,(07e00h)		;a852	3a 00 7e 	: . ~
 	or a			;a855	b7 	. 
 	ret z			;a856	c8 	. 
 
     ;is code
-	ld bc,(07e01h)		;a857	ed 4b 01 7e 	. K . ~ 
+	ld bc,(07e01h)		;a857	ed 4b 01 7e 	. K . ~
 	xor a			;a85b	af 	. 
 	ld (07e00h),a		;a85c	32 00 7e 	2 . ~ 
 	bit 3,b		;a85f	cb 58 	. X 
@@ -1003,7 +1003,7 @@ out80_a89f:
 
 set_3f12_to_2:
     ; (03f12h) := 2
-	ld a,002h		;a8ec	3e 02 	> . 
+	ld a,002h		;a8ec	3e 02 	> .
 	ld (03f12h),a		;a8ee	32 12 3f 	2 . ? 
 	ret			;a8f1	c9 	. 
 
@@ -1015,7 +1015,7 @@ set_3f12_to_2:
 	ret			;a8ff	c9 	. 
 
 read_3f12:
-	ld a,(03f12h)		;a900	3a 12 3f 	: . ? 
+	ld a,(03f12h)		;a900	3a 12 3f 	: . ?
 	or a			;a903	b7 	. 
 	ret z			;a904	c8 	. 
 
@@ -1074,7 +1074,7 @@ read_3f12:
 	ret			;a95d	c9 	. 
 
     ; is code
-	ld hl,(0a940h)		;a95e	2a 40 a9 	* @ . 
+	ld hl,(0a940h)		;a95e	2a 40 a9 	* @ .
 	ld (hl),c			;a961	71 	q 
 	inc l			;a962	2c 	, 
 	ld (hl),b			;a963	70 	p 
@@ -2856,7 +2856,7 @@ f_2cfc:
 	ld a,006h		;c317	3e 06 	> .             ; Load Page 6 (Application RAM)
 	call os_loadpage		;c319	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
 	call read_dbe0		;c31c	cd 33 a5 	. 3 .
-	call read_3f12		;c31f	cd 00 a9 	. . . 
+	call read_3f12		;c31f	cd 00 a9 	. . .
 	call write_dbe0		;c322	cd 3f a5 	. ? .
 	ld a,021h		;c325	3e 21 	> !             ; (07501h):=0x21 '!'
 	ld (07501h),a		;c327	32 01 75 	2 . u   ;
