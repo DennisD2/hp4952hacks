@@ -563,6 +563,7 @@ loop_delay_a54e:
 	call write_dbe0		;a56b	cd 3f a5 	. ? .
 	ret			;a56e	c9 	. 
 
+    ; checks b against several values
 	call 0af71h		;a56f	cd 71 af 	. q . 
 	jr z,$+69		;a572	28 43 	( C 
 	ld a,(03f01h)		;a574	3a 01 3f 	: . ? 
@@ -615,6 +616,7 @@ loop_delay_a54e:
 	cp 0f8h		;a5d5	fe f8 	. . 
 	ret z			;a5d7	c8 	. 
 
+    ; checks a against 0xfa,fb,ff and calls functions
 	cp 0fah		;a5d8	fe fa 	. . 
 	jr nz,$+7		;a5da	20 05 	  . 
 	call 0a922h		;a5dc	cd 22 a9 	. " . 
@@ -747,7 +749,6 @@ read_a6d2:
 	ld a,(0a6d2h)		;a6fe	3a d2 a6 	: . .   ; a:=(0a6d2h)
 	ret			;a701	c9 	. 
 
-    ; large key read function?
 	ld a,(0a6d3h)		;a702	3a d3 a6 	: . .   : a:= (0a6d3)
 	cp 020h		;a705	fe 20 	.                   ; a==SPACE?
 	jr nz,$+6		;a707	20 04 	  .             ; no, -> l_a70d
@@ -768,7 +769,9 @@ l_a70f:
 	ret z			;a720	c8 	. 
 
 	ld l,a			;a721	6f 	o 
-	or l			;a722	b5 	. 
+	or l			;a722	b5 	.
+
+l_a723:
 	ret m			;a723	f8 	. 
 
 	ld a,(0a6d2h)		;a724	3a d2 a6 	: . .   ; a:=(0a6d2h)
@@ -795,8 +798,9 @@ l_a744:
 	ld a,l			;a744	7d 	}                   ; a:=l
 	ret			;a745	c9 	. 
 
-    ; looks like key input handling
+    ; looks like conversion of hl content to BCD encoded int in a
     ; who calls this?
+    ; some value in hl comes in, lower byte is checked first and 1x higher byte
 	ld a,l			;a746	7d 	}                   ; a:=l
 	cp 030h		;a747	fe 30 	. 0                 ; a<0x30 '0' ?
 	jr c,$+58		;a749	38 38 	8 8             ; yes -> l_7a1
@@ -804,60 +808,68 @@ l_a744:
 	jr c,$+18		;a74d	38 10 	8 .             ; yes -> l_765
 	cp 041h		;a74f	fe 41 	. A                 ; a<0x41 'A'
 	jr c,$+50		;a751	38 30 	8 0             ; yes -> l_7a1
-	cp 047h		;a753	fe 47 	. G                 ; a<0x47 'G' ?
+	cp 047h		;a753	fe 47 	. G                 ; a<0x47 'G' ? this selects 'a'..'f'
 	jr c,$+10		;a755	38 08 	8 .             ; yes -> l_765
 	cp 061h		;a757	fe 61 	. a                 ; a<0x61 'a' ?
-	jr c,$+42		;a759	38 28 	8 (             ; yes ->
-
-	cp 067h		;a75b	fe 67 	. g 
-	jr nc,$+38		;a75d	30 24 	0 $ 
-	ld a,h			;a75f	7c 	| 
-	cp 02ah		;a760	fe 2a 	. * 
-	ld a,l			;a762	7d 	} 
-	jr z,$+26		;a763	28 18 	( .
-l_765:
-	call 0a785h		;a765	cd 85 a7 	. . . 
-	ld l,a			;a768	6f 	o 
-	ld a,h			;a769	7c 	| 
-	call 0a785h		;a76a	cd 85 a7 	. . . 
-	add a,a			;a76d	87 	. 
+	jr c,$+42		;a759	38 28 	8 (             ; yes -> l_a79b
+	cp 067h		;a75b	fe 67 	. g                 ; a>=0x67 'F' this selects 'A'..'F'
+	jr nc,$+38		;a75d	30 24 	0 $             ; yes -> l_f795, BUT NO VALID OPCODE THERE
+	ld a,h			;a75f	7c 	|                   ; a:=h
+	cp 02ah		;a760	fe 2a 	. *                 ; a==0x2a '*' ?
+	ld a,l			;a762	7d 	}                   ; a:=l
+	jr z,$+26		;a763	28 18 	( .             ; yes, -> l_a789
+l_a765:
+	call 0a785h		;a765	cd 85 a7 	. . .       ; get num value of number e.g. 0x31->0x1
+	ld l,a			;a768	6f 	o                   ; l:=a, we save a in l
+	ld a,h			;a769	7c 	|                   ; a:=h
+	call 0a785h		;a76a	cd 85 a7 	. . .       ; again, get num value, now for h
+	add a,a			;a76d	87 	.                   ; shift a 4 times left (to upper nibble)
 	add a,a			;a76e	87 	. 
 	add a,a			;a76f	87 	. 
 	add a,a			;a770	87 	. 
-	add a,l			;a771	85 	. 
-	ld l,a			;a772	6f 	o 
-	ld a,02ah		;a773	3e 2a 	> * 
-	ld (0a6d3h),a		;a775	32 d3 a6 	2 . . 
+	add a,l			;a771	85 	.                   ; add l value to lower nibble; looks like we have created BCD code from h and l charcodes
+	ld l,a			;a772	6f 	o
+	ld a,02ah		;a773	3e 2a 	> *             ; (0a6d3h):= 0x2a *
+	ld (0a6d3h),a		;a775	32 d3 a6 	2 . .   ;
 	call set_byte_4372		;a778	cd b6 ab 	. . .
-	jr $-58		;a77b	18 c4 	. . 
+	jr $-58		;a77b	18 c4 	. .                 ; -> l_a723
+
+	; who calls this code below?
 	ld (0a6d3h),a		;a77d	32 d3 a6 	2 . . 
 	call set_byte_4372		;a780	cd b6 ab 	. . .
 	xor a			;a783	af 	. 
 	ret			;a784	c9 	. 
 
-	cp 03ah		;a785	fe 3a 	. : 
-	jr nc,$+5		;a787	30 03 	0 . 
-	sub 030h		;a789	d6 30 	. 0 
+    ;
+	cp 03ah		;a785	fe 3a 	. :         ; a>0x3a ':' ?
+	jr nc,$+5		;a787	30 03 	0 .     ; yes -> l_a78b
+l_a789:
+    ; a is a number
+    ; returns int value from '1'-'9', 0x31 -> 0x1
+	sub 030h		;a789	d6 30 	. 0
+l_a78b:
 	ret			;a78b	c9 	. 
 
 	sub 057h		;a78c	d6 57 	. W 
 	ret p			;a78e	f0 	. 
 
 	add a,020h		;a78f	c6 20 	.   
-	ret			;a791	c9 	. 
+	ret			;a791	c9 	.
+
 	ret m			;a792	f8 	. 
 	rst 38h			;a793	ff 	. 
-	cp 0fdh		;a794	fe fd 	. . 
+	cp 0fdh		;a794	fe fd 	. .     ; a795 is function entry from above !?!
 	call m,0fafbh		;a796	fc fb fa 	. . .
 	ld sp,hl			;a799	f9 	. 
-	rst 18h			;a79a	df 	. 
+	rst 18h			;a79a	df 	.
+l_a79b:
 	dec c			;a79b	0d 	. 
 	ex af,af'			;a79c	08 	. 
 	rst 18h			;a79d	df 	. 
 	dec c			;a79e	0d 	. 
 	dec c			;a79f	0d 	. 
 	dec c			;a7a0	0d 	.
-l_7a1:
+l_a7a1:
 	jr nz,$+50		;a7a1	20 30 	  0
 
 ;; character array follows, containing 0-9,a-z, A-Z,
