@@ -847,9 +847,10 @@ read_a6d2:
 	dec c			;a79e	0d 	. 
 	dec c			;a79f	0d 	. 
 	dec c			;a7a0	0d 	. 
-	
+	jr nz,$+50		;a7a1	20 30 	  0
+
 ;; character array follows, containing 0-9,a-z, A-Z,
-	defb " 0123456789:;,-./`"
+	defb "123456789:;,-./`"
 	defb "abcdefghijklmnopqrstuvwxyz"
 	defb "[\\]^_"
 	ret m			;a7d2	f8 	. 
@@ -1209,6 +1210,7 @@ fun_a9d7:
 	call fun_aa9a		;a9dc	cd 9a aa 	. . .
 	ret			;a9df	c9 	.
 
+    ; compares a against many values, key input part?
 	cp 0f7h		;a9e0	fe f7 	. .
 	jr nz,$+7		;a9e2	20 05 	  .
 	call 0ad19h		;a9e4	cd 19 ad 	. . .
@@ -1315,6 +1317,7 @@ var_byte_aa99:
 
 fun_aa9a:
 	;; fun_aa9a this is large function...
+	; could be a read in function from keybaord see cps to 013 and such
 	ld hl,(var_byte_a9bf)		;aa9a	2a bf a9 	* . .
 	call 0ace8h		;aa9d	cd e8 ac 	. . .
 	ld a,(var_byte_a9c0)		;aaa0	3a c0 a9 	: . .
@@ -1338,10 +1341,10 @@ fun_aa9a:
 	ld (var_byte_aa99),a		;aabe	32 99 aa 	2 . .
 	ld a,(var_byte_a9bf)		;aac1	3a bf a9 	: . .
 	ld l,013h		;aac4	2e 13 	. .
-	cp 015h		;aac6	fe 15 	. .
+	cp 015h		    ;aac6	fe 15 	. .
 	jr nc,$+11		;aac8	30 09 	0 .
 	ld l,008h		;aaca	2e 08 	. .
-	cp 013h		;aacc	fe 13 	. .
+	cp 013h		    ;aacc	fe 13 	. .
 	jr c,$+5		;aace	38 03 	8 .
 	ld hl,(var_byte_a9c4)		;aad0	2a c4 a9 	* . .
 	sub l			;aad3	95 	.
