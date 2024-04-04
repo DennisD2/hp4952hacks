@@ -63,7 +63,7 @@ kDisMask   equ &03           ;Mask type 0=&07,1=&18,2=&30,3=&38
 ;             A = Length of instruction in bytes
 ;             HL = Start address of next instruction
 ;             BC DE IX IY I AF' BC' DE' HL' preserved
-DisWrInstruction
+DisWrInstruction:
             PUSH BC
             PUSH DE
             LD   A,20           ;Select string for mnemonic...
