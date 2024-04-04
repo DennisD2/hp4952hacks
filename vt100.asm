@@ -642,19 +642,28 @@ f_a5f9:
 	call 0a8e3h		;a606	cd e3 a8 	. . . 
 	ret			;a609	c9 	.
 
+;var_byte_a60a:
 	; next bytes are variables
-	nop			;a60a	00 	. 
-	nop			;a60b	00 	. 
-	nop			;a60c	00 	. 
-	nop			;a60d	00 	.
+	defb        000h
+	;nop			;a60a	00 	.
+
+;var_byte_aa60b:
+	defb        000h
+	;nop			;a60b	00 	.
+
+;var_word_aa60c:
+	defw        000h
+	;nop			;a60c	00 	.
+	;nop			;a60d	00 	.
 
 f_a60e:
+    ; big setup like function
 	call read_dbe0		;a60e	cd 33 a5 	. 3 .
 	call 0a87bh		;a611	cd 7b a8 	. { . 
 	call 0a8e3h		;a614	cd e3 a8 	. . . 
 	call 0a92bh		;a617	cd 2b a9 	. + . 
 	call write_dbe0		;a61a	cd 3f a5 	. ? .
-	ld a,(0a609h)		;a61d	3a 09 a6 	: . . 
+	ld a,(0a609h)		;a61d	3a 09 a6 	: . .  ; hm, at 0a609 we have an op code, not a var !?!
 	ld (010b5h),a		;a620	32 b5 10 	2 . . 
 	ld (0112dh),a		;a623	32 2d 11 	2 - . 
 	ld (01067h),a		;a626	32 67 10 	2 g . 
@@ -798,6 +807,8 @@ l_a744:
 	ld a,l			;a744	7d 	}                   ; a:=l
 	ret			;a745	c9 	. 
 
+    ; POI-101 ; maybe this is hexchar readin???
+    ; SET BREAKPOINT HERE
     ; looks like conversion of hl content to BCD encoded int in a
     ; who calls this?
     ; some value in hl comes in, lower byte is checked first and 1x higher byte
@@ -834,13 +845,12 @@ l_a765:
 	call set_byte_4372		;a778	cd b6 ab 	. . .
 	jr $-58		;a77b	18 c4 	. .                 ; -> l_a723
 
-	; who calls this code below?
+	; who calls this code below? is this code?
 	ld (0a6d3h),a		;a77d	32 d3 a6 	2 . . 
 	call set_byte_4372		;a780	cd b6 ab 	. . .
-	xor a			;a783	af 	. 
-	ret			;a784	c9 	. 
+    xor a
+    ret
 
-    ;
 	cp 03ah		;a785	fe 3a 	. :         ; a>0x3a ':' ?
 	jr nc,$+5		;a787	30 03 	0 .     ; yes -> l_a78b
 l_a789:
@@ -856,12 +866,14 @@ l_a78b:
 	add a,020h		;a78f	c6 20 	.   
 	ret			;a791	c9 	.
 
+    ; this below does not look like code, opcodes all ff, fb etc.
 	ret m			;a792	f8 	. 
 	rst 38h			;a793	ff 	. 
 	cp 0fdh		;a794	fe fd 	. .     ; a795 is function entry from above !?!
 	call m,0fafbh		;a796	fc fb fa 	. . .
 	ld sp,hl			;a799	f9 	. 
 	rst 18h			;a79a	df 	.
+
 l_a79b:
 	dec c			;a79b	0d 	. 
 	ex af,af'			;a79c	08 	. 
@@ -870,7 +882,8 @@ l_a79b:
 	dec c			;a79f	0d 	. 
 	dec c			;a7a0	0d 	.
 l_a7a1:
-	jr nz,$+50		;a7a1	20 30 	  0
+	jr nz,$+50		;a7a1	20 30 	  0     ; --> a7f1, but there is data
+	                                        ; also, in case "z", we run into data
 
 ;; character array follows, containing 0-9,a-z, A-Z,
 	defb "123456789:;,-./`"
@@ -888,7 +901,8 @@ l_a7a1:
 	call p,00d0dh		;a7dd	f4 0d 0d 	. . . 
 	dec c			;a7e0	0d 	. 
 	jr nz,$+97		;a7e1	20 5f 	  _ 
-	
+
+
 	defb "!\"#$%&'()*+<=>?"
 	defb "@ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	defb "{|}~"

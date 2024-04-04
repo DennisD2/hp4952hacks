@@ -2,7 +2,8 @@
 check:
 	z80asm -o vt100c.app vt100.asm
 	z80dasm -t -a -g 0xa000 -o vt100.dasm vt100c.app
-	cmp -b -l vt100c.app VT100.no_header
+	cmp vt100c.app VT100.no_header
+	#cmp -b -l vt100c.app VT100.no_header
 
 # initial disassemble step
 vt100dis:
