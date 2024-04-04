@@ -889,44 +889,52 @@ l_a7a1:
 	defb "123456789:;,-./`"
 	defb "abcdefghijklmnopqrstuvwxyz"
 	defb "[\\]^_"
-	ret m			;a7d2	f8 	. 
 
+    defb 0f8h
+    ;ret m			;a7d2	f8 	.
     ; next lines until defb do not look like code
-	rst 38h			;a7d3	ff 	. 
-	cp 0fdh		;a7d4	fe fd 	. . 
-	call m,0fafbh		;a7d6	fc fb fa 	. . . 
-	ld sp,hl			;a7d9	f9 	. 
-	rst 30h			;a7da	f7 	. 
-	or 0f5h		;a7db	f6 f5 	. . 
-	call p,00d0dh		;a7dd	f4 0d 0d 	. . . 
-	dec c			;a7e0	0d 	. 
+    defb 0ffh, 0feh, 0fdh, 0fch, 0fbh, 0fah, 0f9h, 0f7h, 0f6h, 0f5h, 0f4h
+    defb 00dh, 00dh, 00dh
+	;rst 38h			;a7d3	ff 	.
+	;cp 0fdh		;a7d4	fe fd 	. .
+	;call m,0fafbh		;a7d6	fc fb fa 	. . .
+	;ld sp,hl			;a7d9	f9 	.
+	;rst 30h			;a7da	f7 	.
+	;or 0f5h		;a7db	f6 f5 	. .
+	;call p,00d0dh		;a7dd	f4 0d 0d 	. . .
+	;dec c			;a7e0	0d 	.
 	jr nz,$+97		;a7e1	20 5f 	  _ 
-
 
 	defb "!\"#$%&'()*+<=>?"
 	defb "@ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	defb "{|}~"
 
 	ld a,a			;a811	7f 	 
-	ret m			;a812	f8 	. 
-;; line above seems to be end of character array
+    ;; line above seems to be end of character array
 
-; lines below still do not look like code, but data
-	rst 38h			;a813	ff 	. 
-	cp 0fdh		;a814	fe fd 	. . 
-	call m,0fafbh		;a816	fc fb fa 	. . . 
-	ld sp,hl			;a819	f9 	. 
-	rst 30h			;a81a	f7 	. 
-	or 0f5h		;a81b	f6 f5 	. . 
-	call p,00d0dh		;a81d	f4 0d 0d 	. . . 
-	dec c			;a820	0d 	.
+    ; lines below still do not look like code, but data
+    defb 0f8h
+	;ret m			;a812	f8 	.
+    defb 0ffh, 0feh, 0fdh, 0fch, 0fbh, 0fah, 0f9h, 0f7h, 0f6h, 0f5h, 0f4h
+	;rst 38h			;a813	ff 	.
+	;cp 0fdh		;a814	fe fd 	. .
+	;call m,0fafbh		;a816	fc fb fa 	. . .
+	;ld sp,hl			;a819	f9 	.
+	;rst 30h			;a81a	f7 	.
+	;or 0f5h		;a81b	f6 f5 	. .
+	defb 00dh, 00dh, 00dh
+	;call p,00d0dh		;a81d	f4 0d 0d 	. . .
+	;dec c			;a820	0d 	.
+
 	;; 1,2,3,4,5..
-	jr nz,$+129		;a821	20 7f 	   
-	ld sp,03332h		;a823	31 32 33 	1 2 3 
-	inc (hl)			;a826	34 	4 
-	dec (hl)			;a827	35 	5 
-	ld (hl),037h		;a828	36 37 	6 7 
-	jr c,$+59		;a82a	38 39 	8 9
+	jr nz,$+129		;a821	20 7f 	  
+	defb '1', '2', '3', '4', '5', '6', '7', '8', '9'
+	;ld sp,03332h		;a823	31 32 33 	1 2 3
+	;inc (hl)			;a826	34 	4
+	;dec (hl)			;a827	35 	5
+	;ld (hl),037h		;a828	36 37 	6 7
+	;jr c,$+59		;a82a	38 39 	8 9
+
 	;; some ascii codes?
 	ld a,(de)			;a82c	1a 	. 
 	dec de			;a82d	1b 	. 
@@ -935,36 +943,36 @@ l_a7a1:
 	ld e,01fh		;a830	1e 1f 	. . 
 	nop			;a832	00 	.
 	;; 01..1f
-	ld bc,00302h		;a833	01 02 03 	. . . 
-	inc b			;a836	04 	. 
-	dec b			;a837	05 	. 
-	ld b,007h		;a838	06 07 	. . 
-	ex af,af'			;a83a	08 	. 
-	add hl,bc			;a83b	09 	. 
-	ld a,(bc)			;a83c	0a 	. 
-	dec bc			;a83d	0b 	. 
-	inc c			;a83e	0c 	. 
-	dec c			;a83f	0d 	. 
-	ld c,00fh		;a840	0e 0f 	. . 
-	djnz $+19		;a842	10 11 	. . 
-	ld (de),a			;a844	12 	. 
-	inc de			;a845	13 	. 
-	inc d			;a846	14 	. 
-	dec d			;a847	15 	. 
-	ld d,017h		;a848	16 17 	. . 
-	jr $+27		;a84a	18 19 	. . 
-	ld a,(de)			;a84c	1a 	. 
-	dec de			;a84d	1b 	. 
-	inc e			;a84e	1c 	. 
-	dec e			;a84f	1d 	. 
-	ld e,01fh		;a850	1e 1f 	. .
+	defb 001h, 002h, 003h, 004h, 005h, 006h, 007h, 008h, 009h, 00ah, 00bh, 00ch, 00dh, 00eh, 00fh, 010h
+	defb 011h, 012h, 013h, 014h, 015h, 016h, 017h, 018h, 019h, 01ah, 01bh, 01ch, 01dh, 01eh, 01fh
+	;ld bc,00302h		;a833	01 02 03 	. . .
+	;inc b			;a836	04 	.
+	;dec b			;a837	05 	.
+	;ld b,017h		;a838	06 07 	. .
+	;ex af,af'			;a83a	08 	.
+	;add hl,bc			;a83b	09 	.
+	;ld a,(bc)			;a83c	0a 	.
+	;dec bc			;a83d	0b 	. 
+	;inc c			;a83e	0c 	. 
+	;dec c			;a83f	0d 	. 
+	;ld c,01fh		;a840	0e 0f 	. . 
+	;djnz $+19		;a842	10 11 	. .
+	;ld (de),a			;a844	12 	.
+	;inc de			;a845	13 	.
+	;inc d			;a846	14 	.
+	;dec d			;a847	15 	.
+	;ld d,017h		;a848	16 17 	. .
+	;jr $+27		;a84a	18 19 	. .
+	;ld a,(de)			;a84c	1a 	.
+	;dec de			;a84d	1b 	.
+	;inc e			;a84e	1c 	.
+	;dec e			;a84f	1d 	.
+	;ld e,01fh		;a850	1e 1f 	. .
 
-    ; is code
-	ld a,(07e00h)		;a852	3a 00 7e 	: . ~
-	or a			;a855	b7 	. 
-	ret z			;a856	c8 	. 
-
-    ;is code
+    ; compares finally against 0dfh
+	ld a,(07e00h)		;a852	3a 00 7e 	: . ~   ; a:=(07e00h)
+	or a			;a855	b7 	.                   ;
+	ret z			;a856	c8 	.                   ; is (07e00h) zero? yes, return
 	ld bc,(07e01h)		;a857	ed 4b 01 7e 	. K . ~
 	xor a			;a85b	af 	. 
 	ld (07e00h),a		;a85c	32 00 7e 	2 . ~ 
