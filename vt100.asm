@@ -737,24 +737,28 @@ f_a6e7:
 l_a6f2:
 	ld a,020h		;a6f2	3e 20 	>               ; a:=0x20
 l_a6f4:
+    ; copies a to 0a6d2, calls a function and reads a from 0a6d2
 	ld (0a6d2h),a		;a6f4	32 d2 a6 	2 . .   ; (0a6d2h):=a
-	call set_4346		;a6f7	cd b2 ab 	. . .   ; a -> 0x4346 var
+	call set_byte_4346		;a6f7	cd b2 ab 	. . .   ; a -> 0x4346 var
 	ld a,(0a6d2h)		;a6fa	3a d2 a6 	: . .   ; read back 0a6d2h
 	ret			;a6fd	c9 	. 
 
 read_a6d2:
-	ld a,(0a6d2h)		;a6fe	3a d2 a6 	: . .
+	ld a,(0a6d2h)		;a6fe	3a d2 a6 	: . .   ; a:=(0a6d2h)
 	ret			;a701	c9 	. 
 
-	ld a,(0a6d3h)		;a702	3a d3 a6 	: . . 
-	cp 020h		;a705	fe 20 	.   
-	jr nz,$+6		;a707	20 04 	  . 
-	ld a,02ah		;a709	3e 2a 	> * 
-	jr $+4		;a70b	18 02 	. . 
-	ld a,020h		;a70d	3e 20 	>   
-	ld (0a6d3h),a		;a70f	32 d3 a6 	2 . . 
-	call 0abb6h		;a712	cd b6 ab 	. . . 
-	ld a,(0a6d3h)		;a715	3a d3 a6 	: . . 
+    ; large key read function?
+	ld a,(0a6d3h)		;a702	3a d3 a6 	: . .   : a:= (0a6d3)
+	cp 020h		;a705	fe 20 	.                   ; a==SPACE?
+	jr nz,$+6		;a707	20 04 	  .             ; no, -> l_a70d
+	ld a,02ah		;a709	3e 2a 	> *             ; yes, a:=0x2a, '*'
+	jr $+4		;a70b	18 02 	. .                 ; -> l_a70f
+l_a70d:
+	ld a,020h		;a70d	3e 20 	>               ; a:=0x20 SPACE
+l_a70f:
+	ld (0a6d3h),a		;a70f	32 d3 a6 	2 . . ^ ; a6d3h:=a
+	call set_byte_4372		;a712	cd b6 ab 	. . .
+	ld a,(0a6d3h)		;a715	3a d3 a6 	: . .   ; a:=a6d3h
 	ret			;a718	c9 	. 
 
 	ld a,(0a6d3h)		;a719	3a d3 a6 	: . . 
@@ -767,45 +771,51 @@ read_a6d2:
 	or l			;a722	b5 	. 
 	ret m			;a723	f8 	. 
 
-	ld a,(0a6d2h)		;a724	3a d2 a6 	: . . 
-	cp 02ah		;a727	fe 2a 	. * 
-	jr nz,$+14		;a729	20 0c 	  . 
-	ld a,l			;a72b	7d 	} 
-	cp 061h		;a72c	fe 61 	. a 
-	jr c,$+9		;a72e	38 07 	8 . 
-	cp 07bh		;a730	fe 7b 	. { 
-	jr nc,$+5		;a732	30 03 	0 . 
-	sub 020h		;a734	d6 20 	.   
-	ld l,a			;a736	6f 	o 
-	or a			;a737	b7 	. 
-	ret m			;a738	f8 	. 
+	ld a,(0a6d2h)		;a724	3a d2 a6 	: . .   ; a:=(0a6d2h)
+	cp 02ah		;a727	fe 2a 	. *                 ; a==2a '*' ?
+	jr nz,$+14		;a729	20 0c 	  .             ; no -> l_a736
+	ld a,l			;a72b	7d 	}                   ; a:=l
+	cp 061h		;a72c	fe 61 	. a                 ; a < 0x61 'a' ?
+	jr c,$+9		;a72e	38 07 	8 .             ;  -> l_a736
+	cp 07bh		;a730	fe 7b 	. {                 ; a > 7b?
+	jr nc,$+5		;a732	30 03 	0 .             ; yes, -> l_a736
+	sub 020h		;a734	d6 20 	.               ; a:=a-0x20
+l_a736:
+	ld l,a			;a736	6f 	o                   ; l:=a
+	or a			;a737	b7 	.
+	ret m			;a738	f8 	.                   ; ret if a  < 0 -> then a is control char SPACE
 
-	ld a,(0a6d3h)		;a739	3a d3 a6 	: . . 
-	ld h,a			;a73c	67 	g 
-	cp 020h		;a73d	fe 20 	.   
-	jr nz,$+7		;a73f	20 05 	  . 
-	or 0ffh		;a741	f6 ff 	. . 
-	scf			;a743	37 	7 
-	ld a,l			;a744	7d 	} 
+	ld a,(0a6d3h)		;a739	3a d3 a6 	: . .   ; a:=(0a6d3h)
+	ld h,a			;a73c	67 	g                   ; h:=a
+	cp 020h		;a73d	fe 20 	.                   ; a== 0x20 SPACE
+	jr nz,$+7		;a73f	20 05 	  .             ; no -> l_a744
+	or 0ffh		;a741	f6 ff 	. .                 ; a:=ff,
+	scf			;a743	37 	7                       ; set carry
+l_a744:
+	ld a,l			;a744	7d 	}                   ; a:=l
 	ret			;a745	c9 	. 
 
-	ld a,l			;a746	7d 	} 
-	cp 030h		;a747	fe 30 	. 0 
-	jr c,$+58		;a749	38 38 	8 8 
-	cp 03ah		;a74b	fe 3a 	. : 
-	jr c,$+18		;a74d	38 10 	8 . 
-	cp 041h		;a74f	fe 41 	. A 
-	jr c,$+50		;a751	38 30 	8 0 
-	cp 047h		;a753	fe 47 	. G 
-	jr c,$+10		;a755	38 08 	8 . 
-	cp 061h		;a757	fe 61 	. a 
-	jr c,$+42		;a759	38 28 	8 ( 
+    ; looks like key input handling
+    ; who calls this?
+	ld a,l			;a746	7d 	}                   ; a:=l
+	cp 030h		;a747	fe 30 	. 0                 ; a<0x30 '0' ?
+	jr c,$+58		;a749	38 38 	8 8             ; yes -> l_7a1
+	cp 03ah		;a74b	fe 3a 	. :                 ; a<0x3 ?
+	jr c,$+18		;a74d	38 10 	8 .             ; yes -> l_765
+	cp 041h		;a74f	fe 41 	. A                 ; a<0x41 'A'
+	jr c,$+50		;a751	38 30 	8 0             ; yes -> l_7a1
+	cp 047h		;a753	fe 47 	. G                 ; a<0x47 'G' ?
+	jr c,$+10		;a755	38 08 	8 .             ; yes -> l_765
+	cp 061h		;a757	fe 61 	. a                 ; a<0x61 'a' ?
+	jr c,$+42		;a759	38 28 	8 (             ; yes ->
+
 	cp 067h		;a75b	fe 67 	. g 
 	jr nc,$+38		;a75d	30 24 	0 $ 
 	ld a,h			;a75f	7c 	| 
 	cp 02ah		;a760	fe 2a 	. * 
 	ld a,l			;a762	7d 	} 
-	jr z,$+26		;a763	28 18 	( . 
+	jr z,$+26		;a763	28 18 	( .
+l_765:
 	call 0a785h		;a765	cd 85 a7 	. . . 
 	ld l,a			;a768	6f 	o 
 	ld a,h			;a769	7c 	| 
@@ -818,10 +828,10 @@ read_a6d2:
 	ld l,a			;a772	6f 	o 
 	ld a,02ah		;a773	3e 2a 	> * 
 	ld (0a6d3h),a		;a775	32 d3 a6 	2 . . 
-	call 0abb6h		;a778	cd b6 ab 	. . . 
+	call set_byte_4372		;a778	cd b6 ab 	. . .
 	jr $-58		;a77b	18 c4 	. . 
 	ld (0a6d3h),a		;a77d	32 d3 a6 	2 . . 
-	call 0abb6h		;a780	cd b6 ab 	. . . 
+	call set_byte_4372		;a780	cd b6 ab 	. . .
 	xor a			;a783	af 	. 
 	ret			;a784	c9 	. 
 
@@ -846,7 +856,8 @@ read_a6d2:
 	rst 18h			;a79d	df 	. 
 	dec c			;a79e	0d 	. 
 	dec c			;a79f	0d 	. 
-	dec c			;a7a0	0d 	. 
+	dec c			;a7a0	0d 	.
+l_7a1:
 	jr nz,$+50		;a7a1	20 30 	  0
 
 ;; character array follows, containing 0-9,a-z, A-Z,
@@ -1478,11 +1489,12 @@ fun_aa9a:
 	cp b			;abaf	b8 	.
 	or h			;abb0	b4 	.
 	nop			;abb1	00 	.
-set_4346:
+set_byte_4346:
     ;  (04346h) := a
 	ld (04346h),a		;abb2	32 46 43 	2 F C
 	ret			;abb5	c9 	.
 
+set_byte_4372:
 	ld (04372h),a		;abb6	32 72 43 	2 r C
 	ret			;abb9	c9 	.
 
@@ -1509,7 +1521,7 @@ set_4346:
 	ld de,0ac6fh		;abe2	11 6f ac 	. o .
 	call 0a945h		;abe5	cd 45 a9 	. E .
 	call read_a6d2		;abe8	cd fe a6 	. . .
-	call set_4346		;abeb	cd b2 ab 	. . .
+	call set_byte_4346		;abeb	cd b2 ab 	. . .
 	ret			;abee	c9 	.
 
     ;; "Cap  "
