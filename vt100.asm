@@ -809,7 +809,7 @@ l_a744:
 
     ; POI-101 ; maybe this is hexchar readin???
     ; SET BREAKPOINT HERE
-    ; looks like conversion of hl content to BCD encoded int in a
+    ; looks like conversion of hl chars content to BCD encoded byte value in a
     ; who calls this?
     ; some value in hl comes in, lower byte is checked first and 1x higher byte
 	ld a,l			;a746	7d 	}                   ; a:=l
