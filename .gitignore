@@ -17,3 +17,11 @@
 /monitor-vaxman/monitor-z80asm.dasm
 /monitor-with-disassembler/memdump.app
 /monitor-with-disassembler/memdump.dasm
+/hp4952tools/scripts/disassembler-cpca.asm
+/hp4952tools/scripts/disassembler-z80a.app
+/hp4952tools/scripts/disassembler-z80a.asm
+/hp4952tools/scripts/disassembler-z80a.dasm
+/hp4952tools/scripts/disdata-cpca.asm
+/hp4952tools/scripts/disdata-z80a.asm
+/hp4952tools/scripts/missing-cpca.asm
+/hp4952tools/scripts/missing-z80a.asm
