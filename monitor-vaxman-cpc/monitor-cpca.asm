@@ -353,6 +353,7 @@ dump_group:    cp      'D'             ; Dump group?
                cp      'D'             ; Disassemble?
                call    z, disassemble
                jp      z, main_loop
+
                jr      cmd_error       ; Unknown memory-group-command
 
 group_error:    ld      hl, group_err_msg
@@ -509,7 +510,7 @@ disloop:
                 jr      nz,disloop      ; no, continue
 
                 call    monitor_key     ; wait for SPACE
-                cp      &20             ;
+                cp      ' '             ; a blank?
                 jr      nz,disloop_done ; no, other char -> done
 
                 ld      bc,&10          ; yes, continue
@@ -520,6 +521,7 @@ disloop_done:
                 pop     de
                 pop     bc
                 pop     af
+
                 ret
 
 dis_msg_1:     defb    "DISASSEMBLE, START=", eos
