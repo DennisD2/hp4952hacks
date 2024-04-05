@@ -558,10 +558,15 @@ help_msg:       defb    "HELP: commandgroups+commands:", cr, lf
                 defb    "  C(ontrol group):", cr, lf
                 defb    "    I(nfo), S(tart), ", cr, lf
                 defb    "    E(X)it", cr, lf
+
+                defb    "  D(ump group):", cr, lf
+                defb    "    (M)emory, R(egister,)", cr, lf
+                defb    "    (D)isassemble", cr, lf
+
                 defb    "  M(emory group):", cr, lf
-                defb    "    D(ump), E(xamine), F(ill),", cr, lf
-                defb    "    L(oad),", cr, lf
-                defb    "    R(egister dump)", cr, lf
+                defb    "    E(xamine), F(ill),", cr, lf
+                defb    "    L(oad)", cr, lf
+
                 defb    "  H(elp)", cr, lf
                 defb    cr, lf, eos
 
