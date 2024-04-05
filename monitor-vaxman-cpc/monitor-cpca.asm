@@ -1024,3 +1024,6 @@ puts_end:       pop     hl
 app_exit:       call ClearScreen
                 ; jp &14d5				; Return to main menu. HP4592a
                 ret                     ; CPC
+
+; include disassembler source
+read "disassembler.asm"
