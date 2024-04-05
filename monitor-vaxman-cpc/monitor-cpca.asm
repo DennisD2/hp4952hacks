@@ -314,12 +314,12 @@ help_group:     cp      'H'             ; Help? (No further level expected.)
                 jp      z, main_loop
 
 memory_group:   cp      'M'             ; Memory group?
-                jp      nz, dump_group ; No - test next group
+                jp      nz, dump_group  ; No - test next group
                 ld      hl, mg_msg      ; Print group prompt
                 call    puts
                 call    monitor_key     ; Get command key
+                jp      z, main_loop    ; no input, continue
 
-                jp      z, main_loop
                 cp      'E'             ; Examine?
                 call    z, examine
                 jp      z, main_loop
@@ -328,14 +328,12 @@ memory_group:   cp      'M'             ; Memory group?
                 jp      z, main_loop
                 ;cp      'I'             ; INTEL-Hex load?
                 ;call    z, ih_load
-                jp      z, main_loop
+                ;jp      z, main_loop
                 cp      'L'             ; Load?
                 call    z, load
                 jp      z, main_loop
                 cp      'M'             ; Move?
                 call    z, move
-                jp      z, main_loop
-
                 jp      z, main_loop
                 jr      cmd_error       ; Unknown memory-group-command
 
@@ -344,14 +342,16 @@ dump_group:    cp      'D'             ; Dump group?
                ld      hl, dg_msg      ; Print group prompt
                call    puts
                call    monitor_key     ; Get command key
+               jp      z, main_loop    ; no input, continue
 
                cp      'R'             ; Register dump?
                call    z, rdump
+               jp      z, main_loop
                cp      'M'             ; Memory dump?
                call    z, mdump
+               jp      z, main_loop
                cp      'D'             ; Disassemble?
                call    z, disassemble
-
                jp      z, main_loop
                jr      cmd_error       ; Unknown memory-group-command
 
