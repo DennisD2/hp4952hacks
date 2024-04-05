@@ -471,9 +471,10 @@ disassemble:    push    af
 
                 ld      hl, dis_msg_1
                 call    puts            ; Print prompt
-
-                ld      hl,&8000    ; start address for disassembing
-                ld      bc,&10      ; number of op codes to disassemble, "lines"
+                call    get_word        ; Read start address
+                call    crlf
+                push    hl              ; Save start address
+                ld      bc,&10          ; number of op codes to disassemble, "lines"
 
 ; disassemble code
 ; hi is start of code, bc number of opcodes to disassemble
@@ -521,7 +522,7 @@ disloop_done:
                 pop     af
                 ret
 
-dis_msg_1:     defb    "DISASSEMBLE", eos
+dis_msg_1:     defb    "DISASSEMBLE, START=", eos
 
 ;
 ; Examine a memory location;
