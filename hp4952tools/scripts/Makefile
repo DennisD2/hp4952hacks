@@ -1,5 +1,7 @@
+# conversion tasks, currently more a simple demonstration
 SRCDIR=../../disassembler-test
 
+# convert z80 asm assembler flavour to CPC-WinApe flavour
 z80asm-to-cpc-assembler: cpc-assembler-to-z80asm
 	sed -E -f z80asm-to-cpc-assembler.sed \
 		<./disassembler-z80a.asm >disassembler-cpca.asm
@@ -11,7 +13,7 @@ z80asm-to-cpc-assembler: cpc-assembler-to-z80asm
 	#z80dasm -t -a -g 0x0 disassembler.app -o disassembler.dasm
 
 
-# conversion tasks, currently more a simple demonstration
+# convert CPC-WinApe assembler flavour to z80 asm flavour
 cpc-assembler-to-z80asm:
 	sed -E -f cpc-assembler-to-z80asm.sed \
 		<$(SRCDIR)/disassembler.asm >disassembler-z80a.asm
