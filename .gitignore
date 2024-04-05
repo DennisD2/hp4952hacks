@@ -11,10 +11,10 @@
 
 /hp4952tools/.idea/
 /hp4952tools/testee.out
-/monitor-vaxman/monitor.app
-/monitor-vaxman/monitor.dasm
-/monitor-vaxman/monitor-z80asm.app
-/monitor-vaxman/monitor-z80asm.dasm
+/monitor-vaxman-hp4952a/monitor.app
+/monitor-vaxman-hp4952a/monitor.dasm
+/monitor-vaxman-hp4952a/monitor-z80asm.app
+/monitor-vaxman-hp4952a/monitor-z80asm.dasm
 /monitor-with-disassembler/memdump.app
 /monitor-with-disassembler/memdump.dasm
 /hp4952tools/scripts/disassembler-cpca.asm
