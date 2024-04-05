@@ -291,9 +291,11 @@ main_loop:      ld      hl, monitor_prompt
                 cp      'C'             ; Control group?
                 jr      nz, help_group  ; No - test next group
                 ;jr      nz, disk_group  ; No - test next group
+
                 ld      hl, cg_msg      ; Print group prompt
                 call    puts
                 call    monitor_key     ; Get command key
+
                 ;cp      'C'             ; Cold start?
                 ;jp      z, cold_start
                 ;cp      'W'             ; Warm start?
@@ -312,12 +314,11 @@ help_group:     cp      'H'             ; Help? (No further level expected.)
                 jp      z, main_loop
 
 memory_group:   cp      'M'             ; Memory group?
-                jp      nz, group_error ; No - print an error message
+                jp      nz, dump_group ; No - test next group
                 ld      hl, mg_msg      ; Print group prompt
                 call    puts
                 call    monitor_key     ; Get command key
-                cp      'D'             ; Dump?
-                call    z, mdump
+
                 jp      z, main_loop
                 cp      'E'             ; Examine?
                 call    z, examine
@@ -334,10 +335,25 @@ memory_group:   cp      'M'             ; Memory group?
                 cp      'M'             ; Move?
                 call    z, move
                 jp      z, main_loop
-                cp      'R'             ; Register dump?
-                call    z, rdump
+
                 jp      z, main_loop
                 jr      cmd_error       ; Unknown memory-group-command
+
+dump_group:    cp      'D'             ; Dump group?
+               jp      nz, group_error ; No - print an error message
+               ld      hl, dg_msg      ; Print group prompt
+               call    puts
+               call    monitor_key     ; Get command key
+
+               cp      'R'             ; Register dump?
+               call    z, rdump
+               cp      'M'             ; Memory dump?
+               call    z, mdump
+               cp      'D'             ; Disassemble?
+               call    z, disassemble
+
+               jp      z, main_loop
+               jr      cmd_error       ; Unknown memory-group-command
 
 group_error:    ld      hl, group_err_msg
                 jr      print_error
@@ -356,6 +372,7 @@ monitor_prompt:  defb    cr, lf
                  defb     "Z> ", eos
 cg_msg:          defb    "CONTROL/", eos
 mg_msg:          defb    "MEMORY/", eos
+dg_msg:          defb    "DUMP/", eos
 command_err_msg: defb    ": Syntax error - command not found!", cr, lf, eos
 group_err_msg:   defb    ": Syntax error - group not found!", cr, lf, eos
 ;
@@ -379,7 +396,7 @@ n_dump_bytes             equ     &05             ; dumped bytes per line
 ;
 ; Dump a memory area
 ;
-mdump:           push    af
+mdump:          push    af
                 push    bc
                 push    de
                 push    hl
@@ -442,6 +459,27 @@ dump_al_1:      call    putc            ; Print the character
 dump_msg_1:      defb    "DUMP: START=", eos
 dump_msg_2:      defb    " END=", eos
 dump_msg_3:      defb    ": ", eos
+
+;
+; Disassemble a memory part
+; SPACE character shows next disassembled opcodes
+;
+disassemble:    push    af
+                push    bc
+                push    de
+                push    hl
+
+                ld      hl, dis_msg_1
+                call    puts            ; Print prompt
+
+                pop     hl
+                pop     de
+                pop     bc
+                pop     af
+                ret
+
+dis_msg_1:     defb    "DISASSEMBLE", eos
+
 ;
 ; Examine a memory location;
 ; SPACE character shows next byte
@@ -560,12 +598,12 @@ help_msg:       defb    "HELP: commandgroups+commands:", cr, lf
                 defb    "    E(X)it", cr, lf
 
                 defb    "  D(ump group):", cr, lf
-                defb    "    (M)emory, R(egister,)", cr, lf
-                defb    "    (D)isassemble", cr, lf
+                defb    "    M(emory), (R)egister,", cr, lf
+                defb    "    D(isassemble)", cr, lf
 
                 defb    "  M(emory group):", cr, lf
                 defb    "    E(xamine), F(ill),", cr, lf
-                defb    "    L(oad)", cr, lf
+                defb    "    L(oad), M(ove)", cr, lf
 
                 defb    "  H(elp)", cr, lf
                 defb    cr, lf, eos
