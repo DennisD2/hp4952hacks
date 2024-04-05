@@ -472,47 +472,47 @@ disassemble:    push    af
                 ld      hl, dis_msg_1
                 call    puts            ; Print prompt
 
-        ld      hl,&8000    ; start address for disassembing
-        ld      bc,&10      ; number of op codes to disassemble, "lines"
+                ld      hl,&8000    ; start address for disassembing
+                ld      bc,&10      ; number of op codes to disassemble, "lines"
 
 ; disassemble code
 ; hi is start of code, bc number of opcodes to disassemble
 disloop:
-        ; DisWrInstruction, call with address to disassemble in hl
-        call    DisWrInstruction
-        ; a = length of instruction
-        ; hl = address of next instruction
-        ; kStrBuffer contains disassembled opcode string
+                ; DisWrInstruction, call with address to disassemble in hl
+                call    DisWrInstruction
+                ; a = length of instruction
+                ; hl = address of next instruction
+                ; kStrBuffer contains disassembled opcode string
 
-        ; terminate string with 0x0 for puts call
-        push    hl
-        push    bc
+                ; terminate string with 0x0 for puts call
+                push    hl
+                push    bc
 
-        ld      hl,kStrBuffer
-        ld      b,0             ; bc=length of string (is not null trerminated)
-        ld      c,(hl)          ;  c=length byte of string
-        add     hl,bc           ; add length to hl to get end of string location
-        inc     hl
-        ld      (hl),&00        ; terminate with zero
-        ld      hl,kStrBuffer   ; prepare puts call
-        inc     hl              ; step over length byte
-        call    puts
-        call    crlf
+                ld      hl,kStrBuffer
+                ld      b,0             ; bc=length of string (is not null trerminated)
+                ld      c,(hl)          ;  c=length byte of string
+                add     hl,bc           ; add length to hl to get end of string location
+                inc     hl
+                ld      (hl),&00        ; terminate with zero
+                ld      hl,kStrBuffer   ; prepare puts call
+                inc     hl              ; step over length byte
+                call    puts
+                call    crlf
 
-        pop     bc
-        pop     hl
+                pop     bc
+                pop     hl
 
-        dec     bc              ; lines--
-        ld      a,b             ; line loop finished? bc==0
-        or      c
-        jr      nz,disloop      ; no, continue
+                dec     bc              ; lines--
+                ld      a,b             ; line loop finished? bc==0
+                or      c
+                jr      nz,disloop      ; no, continue
 
-        call    monitor_key     ; wait for SPACE
-        cp      &20             ;
-        jr      nz,disloop_done ; no, other char -> done
+                call    monitor_key     ; wait for SPACE
+                cp      &20             ;
+                jr      nz,disloop_done ; no, other char -> done
 
-        ld      bc,&10          ; yes, continue
-        jp      disloop
+                ld      bc,&10          ; yes, continue
+                jp      disloop
 
 disloop_done:
                 pop     hl
