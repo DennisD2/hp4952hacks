@@ -705,6 +705,9 @@ rdump:          push    af
                 call    puts
                 pop     hl
                 call    rdump_one_set
+
+                ; CPC does not like the register set swap...
+                ; I guess this would mixes up regular interrupts, not sure
                 ;exx
                 ;ex      af, af'
                 ;push    hl
