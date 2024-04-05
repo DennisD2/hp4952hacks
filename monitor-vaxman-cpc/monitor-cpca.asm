@@ -490,14 +490,14 @@ disloop:
 
         ld      hl,kStrBuffer
         ld      b,0             ; bc=length of string (is not null trerminated)
-        ld      c,(hl)          ;  c=lenght byte of string
+        ld      c,(hl)          ;  c=length byte of string
         add     hl,bc           ; add length to hl to get end of string location
         inc     hl
         ld      (hl),&00        ; terminate with zero
         ld      hl,kStrBuffer   ; prepare puts call
         inc     hl              ; step over length byte
         call    puts
-        call    NewLine
+        call    crlf
 
         pop     bc
         pop     hl
@@ -1111,13 +1111,6 @@ app_exit:       call ClearScreen
                 ; jp &14d5				; Return to main menu. HP4592a
                 ret                     ; CPC
 
-; print a newline char
-NewLine:
-        ld      a,13
-        call    PrintChar
-        ld      a,10
-        call    PrintChar
-        ret
 
 ; include disassembler source
 read "disassembler.asm"
