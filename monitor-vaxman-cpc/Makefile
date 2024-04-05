@@ -1,7 +1,7 @@
 
 
 convert-asm-flavour:
-	sed -E -f ../hp4952atools/scipts/z80asm-to-cpc-assembler.sed \
+	sed -E -f ../hp4952tools/scripts/z80asm-to-cpc-assembler.sed \
 		<monitor.asm >monitor-cpca.asm
 
 clean:
