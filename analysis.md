@@ -80,6 +80,18 @@ Here it is interesting that the first two entries point to 0x0000,
 supposed to be system reset. Entries 3 and 4 point to 0x1..., which
 is supposed to be in RAM. 
 
+#### U502
+128KB ROM. also contain valid code.
+
+#### U503
+128KB ROM. also contain valid code.
+
+#### U204
+maybe not Z80 code.
+
+#### U304
+Code for 87C51.
+
 ### Data transfer to/from ports
 In application code, many out/in calls can be seen.
 
