@@ -1,5 +1,5 @@
 
-
+# extract and disassemble lower+upper part of U500 ROM
 u500:
 	split -b 32768 U500_04952-10028_MBM27C512.BIN
 	mv xaa U500_04952-10028_MBM27C512-lower.BIN
