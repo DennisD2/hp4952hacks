@@ -7,7 +7,7 @@ The original monitor source is from http://www.vaxman.de/projects/tiny_z80/ .
 ## Files
 
 * [monitor-orig.asm](monitor-orig.asm): Original source downloaded from www.vaxman.de
-* [monitor-z80asm.asm](monitor-z80asm.asm): Original source, but manually adjusted regarding syntax to compile with z80asm assembler from savannah.org.
+* [monitor-orig-z80asm.asm](monitor-orig-z80asm.asm): Original source, but manually adjusted regarding syntax to compile with z80asm assembler from savannah.org.
 * [monitor.asm](monitor.asm): Source adjusted to run on HP4952A, based on monitor-z80asm.asm .
 
 ## Changes between HP4952A and original version
