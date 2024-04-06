@@ -138,7 +138,7 @@ Error! Entry Mode=User
 Run Aborted! Mode=User
 ```
 
-Example "11010 Exception", I found this somewhere in the Internet:
+Example "1010 Exception", I found this somewhere in the Internet:
 
 *Opcodes beginning with Hex 'A' (1010_xxxx_xxxx_xxxx) and Hex 'F' 
 were traditionally used on the 68000 architecture to implement
@@ -157,7 +157,7 @@ handling 68000 exceptions. So I suppose U204 contains
 
 
 #### U304
-This chip is the 87C51 CPU, it contains also a ROM part,
+This chip is the 87C51 CPU, it contains also a 4KB ROM part,
 with code for it.
 
 ### Data transfer to/from ports

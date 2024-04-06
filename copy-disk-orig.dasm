@@ -354,17 +354,31 @@
 	nop			;a179	00 	. 
 	nop			;a17a	00 	. 
 	nop			;a17b	00 	. 
-	nop			;a17c	00 	. 
-	ld bc,0fb58h		;a17d	01 58 fb 	. X . 
-	ld b,a			;a180	47 	G 
-	nop			;a181	00 	. 
-	ld e,d			;a182	5a 	Z 
-	and d			;a183	a2 	. 
+	nop			;a17c	00 	.
+
+	defb 001h
+
+	defw 0fb58h
+	;ld bc,0fb58h		;a17d	01 58 fb 	. X .
+
+	; start dll fixups; #fixups=0x47, 0x47*6 bytes
+	defw    00047h
+	;ld b,a			;a180	47 	G
+	;nop			;a181	00 	.
+
+	; location of patches
+	defw    0a25ah
+	;ld e,d			;a182	5a 	Z
+	;and d			;a183	a2 	.
+
 	di			;a184	f3 	. 
 	call 0a1d4h		;a185	cd d4 a1 	. . . 
 	ld de,02000h		;a188	11 00 20 	. .   
-	ld hl,0a800h		;a18b	21 00 a8 	! . . 
-	ld bc,00200h		;a18e	01 00 02 	. . . 
+	ld hl,0a800h		;a18b	21 00 a8 	! . .
+
+	defb                001, 000, 002
+	;ld bc,00200h		;a18e	01 00 02 	. . .
+
 	ldir		;a191	ed b0 	. . 
 	jp 02000h		;a193	c3 00 20 	. .   
 	ld hl,0a800h		;a196	21 00 a8 	! . . 
@@ -460,6 +474,7 @@
 	jr nz,$-10		;a257	20 f4 	  . 
 	ret			;a259	c9 	. 
 
+__dll_fixups:
 	ld (0002dh),a		;a25a	32 2d 00 	2 - . 
 	nop			;a25d	00 	. 
 	ld bc,06ea8h		;a25e	01 a8 6e 	. . n 
@@ -832,7 +847,8 @@
 	adc a,02eh		;a3fe	ce 2e 	. . 
 	nop			;a400	00 	. 
 	nop			;a401	00 	. 
-	adc a,0a1h		;a402	ce a1 	. . 
+	adc a,0a1h		;a402	ce a1 	. .
+__dll_fixups_end:
 	nop			;a404	00 	. 
 	nop			;a405	00 	. 
 	nop			;a406	00 	. 
