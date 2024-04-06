@@ -1,7 +1,7 @@
 ; **********************************************************************
 ; **  Disassembler support                      by Stephen C Cousins  **
 ; **********************************************************************
-include "missing-z80a.asm"
+include "missing.asm"
 
 kData:          equ 09000h         ;Typically 0FC00h (to 0FFFFh)
 kStrBuffer:     equ kData+00180h   ;String buffer              (to +001FFh)
@@ -655,7 +655,7 @@ DisConTab:  defb  040h           ;xZxxxxxx   NZ,        Z=0,  Not Zero
 ;    11xx xxxx = Precode 0EDh
 ; Precodes are used by the processor's extended instructions
 ;#INCLUDE    Monitor\DisData.asm
-include "disdata-z80a.asm"
+include "disdata.asm"
 
 
 ; **********************************************************************

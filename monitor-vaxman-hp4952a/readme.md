@@ -29,10 +29,27 @@ with Wine under Linux. Therefore, there is also a Amstrad CPC version [in anothe
 See [Makefile](Makefile). The make target also copies build result to a dosbox directory for
 upload, you may delete this line.
 
-Execute make to create ```monitor-new``` binary, which can run on HP4952A.
+Execute make to create ```monitor``` binary, which can run on HP4952A.
 ```
 make
 ```
+
+## How to develop
+This is cross platform development in a somehow silly way, will improve that, but for now...
+
+Development is done under Linux, using as Z80 Emulator WinAPE. WinAPE includes an assembler, so that is being used.
+Leading source code in therefore in [../monitor-vaxman-cpc](../monitor-vaxman-cpc) .
+
+If a version of the monitor needs to be tested on HP4952A, go to directory 
+[../monitor-vaxman-hp4952a](../monitor-vaxman-hp4952a), i.e. this directory. A make started here will 
+read the newest version of the monitor sources from the cpc directory, converts them to z80asm flavour code
+Use make goal ``convert-to-asm-flavour``
+
+Root source file here is ```monitor.asm```, so one manual step is needed. There is a marker section in source file 
+monitor.asm, called ```start wrapper``` and ```end wrapper```. The new code, located in
+```monitor-z80asm.asm``` must go between these two markers. Do this manually.
+
+After manual inclusion run make goal ```monitor```.
 
 ## Related work
 * This work uses the libraries for HP4952A created here: https://github.com/dkgrizzly/4952oss .

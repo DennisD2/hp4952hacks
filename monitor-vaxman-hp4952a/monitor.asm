@@ -1208,8 +1208,7 @@ app_exit:       call ClearScreen
 
 
 ; include disassembler source
-include "disassembler-z80asm.asm"
-
+include "disassembler.asm"
 ;****************************************************************************************
 ;****************************************************************************************
 ;

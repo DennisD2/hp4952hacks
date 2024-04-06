@@ -1,4 +1,4 @@
-; collection of all missing-z80a parts from SCM source related to disassembler file.
+; collection of all missing parts from SCM source related to disassembler file.
 ; defines are from various source files.
 
 kNull:          equ 0              ;Null character/byte (000h)
