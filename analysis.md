@@ -1,5 +1,7 @@
 # Analysis of HP4952A code
 
+This is work in progress. Not much is yet known.
+
 ### Application startup
 Application file bytes uploaded by remore feature (and I suppose, also by loading it from disk),
 are put to RAM address 0xa0000. This seems standard behaviour of HP4952A.
@@ -27,7 +29,7 @@ like 0x2acf . If this code would be executed at its initial location, without co
 it to app_target_area, it would fail.
 
 ### System Memory map
-This is work in progress. Not much is yet known.
+
 
 | 0x000-0x7fff  | Application RAM     |
 |---------------|---------------------|
@@ -46,7 +48,7 @@ These are mapped into the address space by an out opcode with a special
 address with some value.
 Some decoding logic at the special address then will use the value to
 select the correct RAM/ROM, and enable its ```Chip Enable``` pin. By doing
-this, the CPU has access to more than 64KB, despite having only a 65KB
+this, the CPU has access to more than 64KB, despite having only a 64KB
 address space.
 
 #### U500 chip
@@ -74,6 +76,9 @@ Same for upper part, it has the jump table at offset 0 too:
 	jp 081b9h		;800f	c3 b9 81 	. . . 
 	jp 08187h		;8012	c3 87 81 	. . .
 ```
+Here it is interesting that the first two entries point to 0x0000,
+supposed to be system reset. Entries 3 and 4 point to 0x1..., which
+is supposed to be in RAM. 
 
 ### Data transfer to/from ports
 In application code, many out/in calls can be seen.
