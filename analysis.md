@@ -26,6 +26,55 @@ It can be seen that e.g. all ```call``` op codes use addresses of the target are
 like 0x2acf . If this code would be executed at its initial location, without copying
 it to app_target_area, it would fail.
 
+### System Memory map
+This is work in progress. Not much is yet known.
+
+| 0x000-0x7fff  | Application RAM     |
+|---------------|---------------------|
+| 0x8000-0xffff | U500 ROM lower 32KB |
+|               | U500 ROM upper 32KB |
+
+### ROM content
+There are various ROMs in the device, several on each of the boards.
+
+At https://github.com/VintageProject/HP4952A, the ROM dumps are available.
+I haven't dumped all my ROMs so far, but will do it later.
+
+Of most interest are the ROMs on the RAM/ROM board.
+
+These are mapped into the address space by an out opcode with a special 
+address with some value.
+Some decoding logic at the special address then will use the value to
+select the correct RAM/ROM, and enable its ```Chip Enable``` pin. By doing
+this, the CPU has access to more than 64KB, despite having only a 65KB
+address space.
+
+#### U500 chip
+The ROM chip U500 looks interesting. It has 64KB size. Either its lower 32KB or
+its upper 32KB can be mapped in at 0x8000.
+
+This can be derived by examining its content. Both parts start with some
+jump table (example for lower part):
+```c
+	jp 08352h		;8000	c3 52 83 	. R . 
+	jp 083d2h		;8003	c3 d2 83 	. . . 
+	jp 083d8h		;8006	c3 d8 83 	. . . 
+	jp 0843eh		;8009	c3 3e 84 	. > . 
+	jp 08482h		;800c	c3 82 84 	. . .
+```
+And at e.g. 0x8352 or 0x83d2, we find real code.
+
+Same for upper part, it has the jump table at offset 0 too:
+```c
+	jp 00000h		;8000	c3 00 00 	. . . 
+	jp 00000h		;8003	c3 00 00 	. . . 
+	jp 011c6h		;8006	c3 c6 11 	. . . 
+	jp 011bfh		;8009	c3 bf 11 	. . . 
+	jp 08080h		;800c	c3 80 80 	. . . 
+	jp 081b9h		;800f	c3 b9 81 	. . . 
+	jp 08187h		;8012	c3 87 81 	. . .
+```
+
 ### Data transfer to/from ports
 In application code, many out/in calls can be seen.
 
@@ -45,7 +94,7 @@ So I checked all the ROM code and found a single function doing that, in ROM U50
 a MBM27C512 64KB ROM.
 
 Disassembled ROM:
-[U500_04952-10028_MBM27C512.BIN.dasm](ROMs/RAM-ROM%20Board/U500_04952-10028_MBM27C512.BIN.dasm)
+[U500_04952-10028_MBM27C512-lower.BIN.dasm](ROMs/RAM-ROM%20Board/U500_04952-10028_MBM27C512-lower.BIN.dasm)
 
 Code piece found:
 ```asm
@@ -54,16 +103,16 @@ Code piece found:
     ;; b from hl
     ;; c from hl+1
     ;; a from hl+2
-    ld b,(hl)			;5369	46 	F 
-    inc hl			;536a	23 	# 
-    ld c,(hl)			;536b	4e 	N 
-    inc hl			;536c	23 	#
-l_536d:
-    ld a,(hl)			;536d	7e 	~ 
-    out (c),a		;536e	ed 79 	. y 
-    inc hl			;5370	23 	# 
-    djnz $-4		;5371	10 fa 	. .     ; -> l_536d
-    ret			;5373	c9 	. 
+	ld b,(hl)			;d369	46 	F 
+	inc hl			;d36a	23 	# 
+	ld c,(hl)			;d36b	4e 	N 
+	inc hl			;d36c	23 	# 
+l_d36d:
+	ld a,(hl)			;d36d	7e 	~ 
+	out (c),a		;d36e	ed 79 	. y 
+	inc hl			;d370	23 	# 
+	djnz $-4		;d371	10 fa 	. . 
+	ret			;d373	c9 	. 
 ```
 
 SCC also uses address bits 9 and 8 for D/~C and A/~B. 
