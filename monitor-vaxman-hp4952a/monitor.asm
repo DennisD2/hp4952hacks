@@ -158,18 +158,22 @@ _main_entry:
 ;  +-------+
 
 ; CPC
-PrintChar: 	    equ	    0bb5ah
-WaitChar:       equ     0bb06h
-ClearScreen:    equ     0bc14h
+;PrintChar: 	    equ	    0bb5ah
+;WaitChar:       equ     0bb06h
+;ClearScreen:    equ     0bc14h
 
+; HP4952A
+PrintChar:        equ       _writechar
+WaitChar:         equ       _getkey_wait
+ClearScreen:      equ       _clear_screen
 ;
-monitor_start:   equ     08000h           ; 00000h -> ROM, 08000h -> Test image
+;monitor_start:   equ     08000h           ; 00000h -> ROM, 08000h -> Test image
 ;
-                org     monitor_start
+;                org     monitor_start
 ;
 ;rom_start:       equ     00h
 ;rom_end:         equ     07fffh
-ram_start:       equ     09000h
+ram_start:       equ     09400h
 ;ram_end:         equ     0ffffh
 
 

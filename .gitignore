@@ -25,3 +25,5 @@
 /hp4952tools/scripts/disdata-z80a.asm
 /hp4952tools/scripts/missing-cpca.asm
 /hp4952tools/scripts/missing-z80a.asm
+/monitor-vaxman/monitor-orig-z80asm.app
+/monitor-vaxman/monitor-orig-z80asm.dasm
