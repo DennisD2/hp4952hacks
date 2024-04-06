@@ -31,13 +31,38 @@ it to app_target_area, it would fail.
 ### System Memory map
 
 
-| 0x000-0x7fff  | Application RAM     |
-|---------------|---------------------|
-| 0x8000-0xffff | U500 ROM lower 32KB |
-|               | U500 ROM upper 32KB |
+| Range           | Content                    |
+|-----------------|----------------------------|
+| 0x0000 - 0x7fff | Application RAM            |
+| 0x8000 - 0xffff | U500 ROM lower 32KB        |
+|                 | U500 ROM upper 32KB        |
+| 0xa000 - ?      | Non-Application RAM 32KB   |
+| ? - ?           | U502 ROM 64KB              |
+| ? - ?           | U503 ROM 64KB              |
+| ? - ?           | Data Capture RAM           |
+| ? - ?           | RAM from Extension Options |
+
+U500 clearly contains code.
+
+Besides U500, there are also ROMs U502 and U503 
+that look like they contain Z80 code (maybe boot+"OS" code)
+They have each 64KB too.
+
+There is also some non-application RAM, where e.g.
+disk files are loaded into. This starts always at 
+0xa000.
+
+Finally, there is data capture RAM, and
+maybe RAM from the RAM extension card (if present in a HP4952).
+
+So memory map is complex.
 
 ### ROM content
 There are various ROMs in the device, several on each of the boards.
+Only a subset contains Z80 code.
+
+Because there are also 8080,68000,87C51 CPUs built in the
+HP4952A, some of the ROMs contain code for these CPUs.
 
 At https://github.com/VintageProject/HP4952A, the ROM dumps are available.
 I haven't dumped all my ROMs so far, but will do it later.
@@ -57,7 +82,7 @@ its upper 32KB can be mapped in at 0x8000.
 
 This can be derived by examining its content. Both parts start with some
 jump table (example for lower part):
-```c
+```
 	jp 08352h		;8000	c3 52 83 	. R . 
 	jp 083d2h		;8003	c3 d2 83 	. . . 
 	jp 083d8h		;8006	c3 d8 83 	. . . 
@@ -67,7 +92,7 @@ jump table (example for lower part):
 And at e.g. 0x8352 or 0x83d2, we find real code.
 
 Same for upper part, it has the jump table at offset 0 too:
-```c
+```
 	jp 00000h		;8000	c3 00 00 	. . . 
 	jp 00000h		;8003	c3 00 00 	. . . 
 	jp 011c6h		;8006	c3 c6 11 	. . . 
@@ -81,16 +106,59 @@ supposed to be system reset. Entries 3 and 4 point to 0x1..., which
 is supposed to be in RAM. 
 
 #### U502
-128KB ROM. also contain valid code.
+64KB ROM. also contain valid Z80 code.
+
+It looks like this ROM contains boot code,
+i.e. the "main appliation" running after switching on,
+with main menu and the built-in apps for setup,
+remote functionality, printing etc.
+
 
 #### U503
-128KB ROM. also contain valid code.
+64KB ROM. also contain valid Z80 code.
+
+Looks like also boot code: floppy handling, self test, 
+
 
 #### U204
-maybe not Z80 code.
+This 32KB ROM seems to contain 68000 CPU code. These are the only strings to be found
+in the ROM:
+```
+Error! Entry Mode=User
+---Bus Error---#
+---Address Error---#
+---Illegal Instruction---#
+---Zero Divide---#
+---CHK Instruction---#
+---TRAPV Instruction---#
+---Privilege  Violation--- #
+---Trace---#
+---1010 Exception---
+---1111 Exception---
+Run Aborted! Mode=User
+```
+
+Example "11010 Exception", I found this somewhere in the Internet:
+
+*Opcodes beginning with Hex 'A' (1010_xxxx_xxxx_xxxx) and Hex 'F' 
+were traditionally used on the 68000 architecture to implement
+coprocessors.
+For example, the 680x0 family originally had a separate Floating 
+Point processor. All opcodes for floating point operations had an 
+'F' as the top nibble, and the 680x0 handed them off to the 
+coprocessor for execution. If you tried to execute floating point 
+code on a 680x0 processor without an FPU, you would get an 
+"Unimplementd F-Line Opcode" exception.*
+
+
+And that looks like some text strings in code
+handling 68000 exceptions. So I suppose U204 contains
+68000 code, but very low level functions.
+
 
 #### U304
-Code for 87C51.
+This chip is the 87C51 CPU, it contains also a ROM part,
+with code for it.
 
 ### Data transfer to/from ports
 In application code, many out/in calls can be seen.
@@ -107,29 +175,28 @@ For register b from bc register, then bit 0 (A14) and bit 1 (A15) are to be set.
 
 What I did not find in vt100 app code, was a call using a 16 bit port address.
 
-So I checked all the ROM code and found a single function doing that, in ROM U500,
-a MBM27C512 64KB ROM.
+So I checked all the ROM code and found a single function doing that, in ROM U500.
 
 Disassembled ROM:
 [U500_04952-10028_MBM27C512-lower.BIN.dasm](ROMs/RAM-ROM%20Board/U500_04952-10028_MBM27C512-lower.BIN.dasm)
 
 Code piece found:
 ```asm
-    ;; outputs to any port at address bc, a sequence of bytes. Ends with 0x00.
-    ;; all args in (hl)
-    ;; b from hl
-    ;; c from hl+1
-    ;; a from hl+2
-	ld b,(hl)			;d369	46 	F 
-	inc hl			;d36a	23 	# 
-	ld c,(hl)			;d36b	4e 	N 
-	inc hl			;d36c	23 	# 
+    ; outputs to any port at address bc, a sequence of bytes. Ends with 0x00.
+    ; all args in (hl)
+    ; b from hl
+    ; c from hl+1
+    ; a from hl+2
+    ld b,(hl)		;d369	46 	F 
+    inc hl		;d36a	23 	# 
+    ld c,(hl)		;d36b	4e 	N 
+    inc hl		;d36c	23 	# 
 l_d36d:
-	ld a,(hl)			;d36d	7e 	~ 
-	out (c),a		;d36e	ed 79 	. y 
-	inc hl			;d370	23 	# 
-	djnz $-4		;d371	10 fa 	. . 
-	ret			;d373	c9 	. 
+    ld a,(hl)		;d36d	7e 	~ 
+    out (c),a		;d36e	ed 79 	. y 
+    inc hl		;d370	23 	# 
+    djnz $-4		;d371	10 fa 	. . 
+    ret			;d373	c9 	. 
 ```
 
 SCC also uses address bits 9 and 8 for D/~C and A/~B. 
