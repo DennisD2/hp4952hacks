@@ -2,6 +2,8 @@
 HP_4952_Target:      equ 0x01
 CPC_Target:          equ 0x00
 
+DISASS:                 equ 0x00
+
 if HP_4952_Target == 0x01
 ;****************************************************************************************
 ; HP4952 header start
@@ -466,8 +468,10 @@ dump_group:    cp      'D'             ; Dump group?
                cp      'M'             ; Memory dump?
                call    z, mdump
                jp      z, main_loop
+if DISASS == 0x01
                cp      'D'             ; Disassemble?
                call    z, disassemble
+endif
                jp      z, main_loop
 
                jr      cmd_error       ; Unknown memory-group-command
@@ -577,6 +581,7 @@ dump_msg_1:      defb    "DUMP: START=", eos
 dump_msg_2:      defb    " END=", eos
 dump_msg_3:      defb    ": ", eos
 
+if DISASS == 0x01
 ;
 ; Disassemble a memory part
 ; SPACE character shows next disassembled opcodes
@@ -640,6 +645,8 @@ disloop_done:
                 ret
 
 dis_msg_1:     defb    "DISASSEMBLE, START=", eos
+
+endif
 
 ;
 ; Examine a memory location;
@@ -1227,10 +1234,12 @@ app_exit:       call ClearScreen
 if HP_4952_Target == 0x01
                 jp 014d5h				; Return to main menu. HP4592a
 endif
+if CPC_Target == 0x01
                 ret                     ; CPC
+endif
 
     ; include disassembler source
-    include "disassembler.asm"
+    ;include "disassembler.asm"
 
 
 if HP_4952_Target == 0x01
@@ -1246,13 +1255,21 @@ _code_end:
 	defb 033h
 ;; End of Main Application
 
+; 5194 dec = 144a ;;;; / 0x100 * 0x100 = 1400 -> 1500
+; org = a0000+b1500 = b500
+; seek = 1500
+; wegen der 3 bytes die ich noch anhänge
+; org = b500-3 = b4fd
+; seek = 1500-3 = 14fd
 
 ;; Fill to end of file
 if HP_4952_Target == 0x01
 endif
 	;org 0b0ffh
-	org 0acfdh
-	seek 1cfdh
+	;seek 010ffh
+	org 0b4fdh
+	seek 14fdh
+
 	defb 000h
 
 	defw 0affeh
