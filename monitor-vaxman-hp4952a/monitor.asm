@@ -570,7 +570,6 @@ disassemble:    push    af
                 call    puts            ; Print prompt
                 call    get_word        ; Read start address
                 call    crlf
-                push    hl              ; Save start address
                 ld      bc,010h          ; number of op codes to disassemble, "lines"
 
 ; disassemble code
