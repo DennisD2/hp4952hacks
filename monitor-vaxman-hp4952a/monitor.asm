@@ -1,5 +1,5 @@
 
-HP_4952_Target:     equ 0x01
+HP_4952_Target:      equ 0x01
 CPC_Target:          equ 0x00
 
 if HP_4952_Target == 0x01
@@ -192,7 +192,7 @@ if CPC_Target == 0x01
 ram_start:       equ     09400h
 endif
 if HP_4952_Target == 0x01
-ram_start:       equ     02200h
+ram_start:       equ     05000h
 endif
 ;ram_end:         equ     0ffffh
 
@@ -1250,8 +1250,9 @@ _code_end:
 ;; Fill to end of file
 if HP_4952_Target == 0x01
 endif
-	org 0b0ffh
-	seek 16ffh
+	;org 0b0ffh
+	org 0acfdh
+	seek 1cfdh
 	defb 000h
 
 	defw 0affeh
