@@ -1,5 +1,13 @@
-include "lib/header.asm"
-include "lib/strap.asm"
+
+HP_4952_Target:     equ 0x01
+CPC_Target:          equ 0x00
+
+if HP_4952_Target == 0x01
+;****************************************************************************************
+; HP4952 header start
+;****************************************************************************************
+    include "lib/header.asm"
+    include "lib/strap.asm"
 
 	org 02071h
 	seek 00871h
@@ -17,7 +25,7 @@ _splash_screen_data:
 	defb 00ch, 008h, _scrattr_ascii_n
 	defb "Hacking the 4952", 000h
 	defb 00dh, 009h, _scrattr_ascii_n
-	defb "based on hackaday.io", 000h
+	defb "A system monitor app", 000h
 
 	defb 000h							;; End of Screen Data
 
@@ -83,12 +91,11 @@ _main_entry:
 	call initialize
 
 ;****************************************************************************************
+; HP4952 header end
 ;****************************************************************************************
-;
-; end wrapper
-;
-;****************************************************************************************
-;****************************************************************************************
+endif
+
+
 
 ;******************************************************************************
 ;
@@ -157,23 +164,36 @@ _main_entry:
 ;  ! 00000h !    RST 000h restarts the monitor
 ;  +-------+
 
-; CPC
-;PrintChar: 	    equ	    0bb5ah
-;WaitChar:       equ     0bb06h
-;ClearScreen:    equ     0bc14h
 
+if CPC_Target == 0x01
+; CPC
+PrintChar: 	    equ	    0bb5ah
+WaitChar:       equ     0bb06h
+ClearScreen:    equ     0bc14h
+endif
+
+if HP_4952_Target == 0x01
 ; HP4952A
 PrintChar:        equ       _writechar
 WaitChar:         equ       _getkey_wait
 ClearScreen:      equ       _clear_screen
+endif
 ;
-;monitor_start:   equ     08000h           ; 00000h -> ROM, 08000h -> Test image
+if CPC_Target == 0x01
+monitor_start:   equ     08000h           ; 00000h -> ROM, 08000h -> Test image
 ;
-;                org     monitor_start
+                 org     monitor_start
+endif
 ;
 ;rom_start:       equ     00h
 ;rom_end:         equ     07fffh
+
+if CPC_Target == 0x01
 ram_start:       equ     09400h
+endif
+if HP_4952_Target == 0x01
+ram_start:       equ     02200h
+endif
 ;ram_end:         equ     0ffffh
 
 
@@ -890,17 +910,19 @@ rdump:          push    af
                 pop     hl
                 call    rdump_one_set
 
+if HP_4952_Target == 0x01
                 ; CPC does not like the register set swap...
                 ; I guess this would mixes up regular interrupts, not sure
-                ;exx
-                ;ex      af, af'
-                ;push    hl
-                ;ld      hl, rdump_msg_2
-                ;call    puts
-                ;pop     hl
-                ;call    rdump_one_set
-                ;ex      af, af'
-                ;exx
+                exx
+                ex      af, af'
+                push    hl
+                ld      hl, rdump_msg_2
+                call    puts
+                pop     hl
+                call    rdump_one_set
+                ex      af, af'
+                exx
+endif
 
                 push    hl
                 ld      hl, rdump_msg_3
@@ -1069,9 +1091,7 @@ crlf:           push    af
 getc:           ;call    rx_ready
                 ;in      a, (uart_register_0)
 
-                ; call _getkey_wait HP4952A
-
-                call WaitChar ; CPC
+                call WaitChar
 
                 ret
 ;
@@ -1186,8 +1206,6 @@ print_word:     push    hl
 putc:           ;call    tx_ready
                 ;out     (uart_register_0), a
 
-                ;call    _writechar ; HP4952A
-
                 call    PrintChar   ; CPC
                 ret
 ;
@@ -1206,24 +1224,23 @@ puts_end:       pop     hl
                 ret
 
 app_exit:       call ClearScreen
-                ; jp 014d5h				; Return to main menu. HP4592a
+if HP_4952_Target == 0x01
+                jp 014d5h				; Return to main menu. HP4592a
+endif
                 ret                     ; CPC
 
+    ; include disassembler source
+    include "disassembler.asm"
 
-; include disassembler source
-include "disassembler.asm"
-;****************************************************************************************
-;****************************************************************************************
-;
-; end wrapper
-;
-;****************************************************************************************
-;****************************************************************************************
 
-include "lib/string.asm"
-include "lib/screen.asm"
-include "lib/printf.asm"
-include "lib/keyb.asm"
+if HP_4952_Target == 0x01
+;****************************************************************************************
+; HP4952 footer start
+;****************************************************************************************
+    include "lib/string.asm"
+    include "lib/screen.asm"
+    include "lib/printf.asm"
+    include "lib/keyb.asm"
 
 _code_end:
 	defb 033h
@@ -1231,9 +1248,15 @@ _code_end:
 
 
 ;; Fill to end of file
+if HP_4952_Target == 0x01
+endif
 	org 0b0ffh
 	seek 16ffh
 	defb 000h
 
 	defw 0affeh
 _file_end:
+;****************************************************************************************
+; HP4952 footer end
+;****************************************************************************************
+endif
