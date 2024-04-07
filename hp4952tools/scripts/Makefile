@@ -3,7 +3,7 @@ SRCDIR=../../disassembler-test
 
 # convert z80 asm assembler flavour to CPC-WinApe flavour
 z80asm-to-cpc-assembler: cpc-assembler-to-z80asm
-	sed -E -f z80asm-to-cpc-assembler.sed \
+	sed -E -f z80asm-to-cpc-assembler.sed -f z80asm-test-only-additions.sed \
 		<./disassembler-z80a.asm >disassembler-cpca.asm
 	sed -E -f z80asm-to-cpc-assembler.sed \
 		<./disdata-z80a.asm >disdata-cpca.asm
@@ -15,12 +15,13 @@ z80asm-to-cpc-assembler: cpc-assembler-to-z80asm
 
 # convert CPC-WinApe assembler flavour to z80 asm flavour
 cpc-assembler-to-z80asm:
-	sed -E -f cpc-assembler-to-z80asm.sed \
+	sed -E -f cpc-assembler-to-z80asm.sed -f cpc-test-only-additions.sed \
 		<$(SRCDIR)/disassembler.asm >disassembler-z80a.asm
 	sed -E -f cpc-assembler-to-z80asm.sed \
 		<$(SRCDIR)/disdata.asm >disdata-z80a.asm
 	sed -E -f cpc-assembler-to-z80asm.sed \
 		<$(SRCDIR)/missing.asm >missing-z80a.asm
+	# test conversion result - should assemble without errors
 	z80asm -o disassembler-z80a.app disassembler-z80a.asm
 	z80dasm -t -a -g 0x0 disassembler-z80a.app -o disassembler-z80a.dasm
 
