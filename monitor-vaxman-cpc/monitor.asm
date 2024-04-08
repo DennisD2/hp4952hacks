@@ -167,6 +167,17 @@ endif
 ;  ! &0000 !    RST &00 restarts the monitor
 ;  +-------+
 
+if HP_4952_Target
+    key_next_page   equ ' '         ; evtl also: _key_dn
+    key_prev_page   equ 'B'         ; _key_up
+    key_next_line   equ '.'         ; _key_rt
+else
+ if CPC_Target
+    key_next_page   equ ' '
+    key_prev_page   equ 'B'
+    key_next_line   equ '.'
+ endif
+endif
 
 if CPC_Target
 ;if CPC_Target == &01
@@ -633,11 +644,6 @@ disloop:
                 ld      a,b             ; line loop finished? bc==0
                 or      c
                 jr      nz,disloop      ; no, continue
-
-key_next_page   equ ' '
-key_prev_page   equ 'B'
-key_next_line   equ '.'
-
 
                 call    monitor_key     ; wait for SPACE
                 cp      key_next_page   ; a blank? -> next page
