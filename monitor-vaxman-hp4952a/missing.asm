@@ -229,7 +229,7 @@ StrWrAddress:
             PUSH AF
             CALL StrWrHexWord   ;Write start address of this line
             LD   A,':'
-            CALL StrWrChar      ;Write colon
+            ;CALL StrWrChar      ;Write colon   ; NOT for HP4952
             CALL StrWrSpace     ;Write space
             POP  AF
             RET
