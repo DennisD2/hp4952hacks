@@ -167,7 +167,7 @@ endif
 ;  +-------+
 
 if HP_4952_Target
-    key_next_page   equ ' '         ; evtl also: _key_dn
+    key_next_page   equ ' '         ; evtl also; _key_dn
     key_prev_page   equ 'B'         ; _key_up
     key_next_line   equ '.'         ; _key_rt
 else
@@ -592,7 +592,7 @@ dump_msg_3:      defb    ": ", eos
 if DISASS
 ;
 ; Disassemble a memory part
-; after displaying some disassembled lines, user can input a char:
+; after displaying some disassembled lines, user can input a char;
 ; SPACE     shows next disassembled opcodes
 ; B         30 bytes back in memory
 ; .         shows next single disassembled opcode
