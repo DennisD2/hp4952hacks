@@ -1,2 +1,2 @@
 ; WinAPE wrapper to allow using external editor
-read "monitor-cpca.asm"
+read "monitor.asm"

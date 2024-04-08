@@ -1,7 +1,109 @@
+
+HP_4952_Target      equ &00
+CPC_Target          equ &01
+
+DISASS                 equ &01
+
+if HP_4952_Target
+;if HP_4952_Target
+;****************************************************************************************
+; HP4952 header start
+;****************************************************************************************
+    read "lib/header.asm"
+    read "lib/strap.asm"
+
+	org &2071
+	seek &0871
+_splash_screen_data:
+	defb &ff
+
+	defb &02, &0d, _scrattr_ascii_n
+	defb "HP 4952A", &00
+	defb &03, &07, _scrattr_ascii_n
+	defb "Open Source Software", &00
+
+	defb &07, &0b, _scrattr_ascii_n
+	defb "Monitor", &00
+
+	defb &0c, &08, _scrattr_ascii_n
+	defb "Hacking the 4952", &00
+	defb &0d, &09, _scrattr_ascii_n
+	defb "A system monitor app", &00
+
+	defb &00							;; End of Screen Data
+
+_splash_menu_data:
+	defb "Re-!BERT!Remote!Mass !Moni!Self~"
+	defb "set!Menu!&Print!Store!tor !Test|"
+
+_p_main_menu_page_one:
+	defw &8336			;; First Page Menu Data
+_p_mm_autoconfig:
+	defw &141c			;; Ordinal 120h Auto Config
+_p_mm_setup:
+	defw &b5a8			;; Entry Point for Setup
+_p_mm_mon:
+	defw &100d			;; Entry Point for Monitor Menu
+_p_mm_sim:
+	defw &1013			;; Entry Point for Sim Menu
+_p_mm_run:
+	defw &b9ff			;; Entry Point for Run Menu
+_p_mm_exam:
+	defw &13cd			;; Ordinal 12eh Examine Data
+_p_mm_next1:
+	defw _p_main_menu_page_two	;; Next Page
+
+_p_main_menu_page_two:
+	defw _splash_menu_data		;; Second Page Menu Data
+_p_mm_reset:
+	defw &bb1a			;; Entry Point for Re-Set
+_p_mm_bert:
+	defw &b22c			;; Entry Point for BERT Menu
+_p_mm_remote:
+	defw &d963			;; Entry Point for Remote & Print
+_p_mm_masstorage:
+	defw &0f0c			;; Entry Point for Mass Storage
+_p_mm_launch_app:
+	defw _launch_app		;; Entry Point for Application
+_p_mm_selftest:
+	defw &136f			;; Ordinal 12ah Self Test
+_p_mm_next2:
+	defw _p_main_menu_page_one	;; Next Page
+
+_launch_app:
+	ld a, &06
+	call &0e60			; Page in 6
+	ld hl,&aa00			; Copy application to Work RAM
+	ld de,_code_start		;
+	ld bc,_code_end-_code_start	;
+	ldir				;
+	jp _main_entry			; Run the application
+
+_splash_end:
+;; End of menu section
+
+;; Main Application
+	org 22&0
+	seek &a00
+_code_start:
+
+_str_exit:
+	defb "Are you sure you wish to exit?", &00
+
+_main_entry:
+	call initialize
+
+;****************************************************************************************
+; HP4952 header end
+;****************************************************************************************
+endif
+
+
+
 ;******************************************************************************
 ;
 ;  Small monitor for the Z80 single board computer consisting of 32 kB ROM
-; (00000h to 0ffffh), 32 kBADD32 RAM (08000h to 0ffffh) and a 16c550 UART.
+; (&0000 to &ffff), 32 kBADD32 RAM (&8000 to &ffff) and a 16c550 UART.
 ;
 ; B. Ulmann, 28-SEP-2011, 29-SEP-2011, 01-OCT-2011, 02-OCT-2011, 30-OCT-2011,
 ;            01-NOV-2011, 02-NOV-2011, 03-NOV-2011, 06/07/08-JAN-2012
@@ -12,106 +114,118 @@
 ;
 ;******************************************************************************
 ;
-; TODO:
+; TODO;
 ;       Read and print IDE error status codes in case of error!
 ;
-; Known issues:
+; Known issues;
 ;       Memory Dump has a problem when the end address is >= FF00
 ;
 ;******************************************************************************
 ;
-;  RST 000h will enter the monitor (do not care about the return address pushed
+;  RST &00 will enter the monitor (do not care about the return address pushed
 ; onto the stack - the stack pointer will be reinitialized during cold as well
 ; as during warm starts.
 ;
 ;  Monitor routines will generally called by placing the necessary parameters
-; into some processor registers and then issuing RST 008h. More about this later.
+; into some processor registers and then issuing RST &08. More about this later.
 ;
-;  Memory layout is as follows:
+;  Memory layout is as follows;
 ;
 ;  +-------+
-;  ! 0FFFFh !    General purpose 512 byte buffer
+;  ! &FFFF !    General purpose 512 byte buffer
 ;  !  ---  !
-;  ! 0FE00h !
+;  ! &FE00 !
 ;  +-------+
-;  ! 0DFFFh !    FAT control block
+;  ! &DFFF !    FAT control block
 ;  !  ---  !
-;  ! 0FDDCh !
+;  ! &FDDC !
 ;  +-------+
-;  ! 0FDDBh !    File control block
+;  ! &FDDB !    File control block
 ;  !  ---  !
-;  ! 0FBBEh !
+;  ! &FBBE !
 ;  +-------+
-;  ! 0FBBDh !    81 byte string buffer
+;  ! &FBBD !    81 byte string buffer
 ;  !  ---  !
-;  ! 0FB6Dh !
+;  ! &FB6D !
 ;  +-------+
-;  ! 0FB6Ch !    12 byte string buffer
+;  ! &FB6C !    12 byte string buffer
 ;  !  ---  !
-;  ! 0FB61h !
+;  ! &FB61 !
 ;  +-------+
-;  ! 0FB60h !    Buffers for various routines
+;  ! &FB60 !    Buffers for various routines
 ;  !  ---  !
-;  ! 0FB4Dh !
+;  ! &FB4D !
 ;  +-------+
-;  ! 0FB4Ch !    Cold/warm start control (1 byte)
+;  ! &FB4C !    Cold/warm start control (1 byte)
 ;  +-------+
-;  ! 0FBBDh !    Stack
+;  ! &FBBD !    Stack
 ;  !  ...  !
-;  ! 08000h !    Begin of RAM
+;  ! &8000 !    Begin of RAM
 ;  +-------+
-;  ! 07FFFh !    ROM area
-;  !  ---  !    RST 008h calls a system routine
-;  ! 00000h !    RST 000h restarts the monitor
+;  ! &7FFF !    ROM area
+;  !  ---  !    RST &08 calls a system routine
+;  ! &0000 !    RST &00 restarts the monitor
 ;  +-------+
 
+
+if CPC_Target
+;if CPC_Target == &01
 ; CPC
-PrintChar: 	    equ	    0bb5ah
-WaitChar:       equ     0bb06h
-ClearScreen:    equ     0bc14h
+PrintChar 	    equ	    &bb5a
+WaitChar       equ     &bb06
+ClearScreen    equ     &bc14
+endif
+
+if CPC_Target
+;if CPC_Target == &01
+monitor_start   equ     &8000           ; &0000 -> ROM, &8000 -> Test image
+                 org     monitor_start
+endif
+;
+;rom_start       equ     &0
+;rom_end         equ     &7fff
+
+if CPC_Target
+;if CPC_Target == &01
+ram_start       equ     &9400
+endif
+if HP_4952_Target
+ram_start       equ     &5000
+endif
+;ram_end         equ     &ffff
+
 
 ;
-monitor_start:   equ     08000h           ; 00000h -> ROM, 08000h -> Test image
+eos             equ     &00             ; End of string
+cr              equ     &0d             ; Carriage return
+lf              equ     &0a             ; Line feed
+space           equ     &20             ; Space
+tab             equ     &09             ; Tabulator
 ;
-;                org     monitor_start
-;
-;rom_start:       equ     00h
-;rom_end:         equ     07fffh
-ram_start:       equ     09000h
-;ram_end:         equ     0ffffh
-
-
-;
-eos:             equ     000h             ; End of string
-cr:              equ     00dh             ; Carriage return
-lf:              equ     00ah             ; Line feed
-space:           equ     020h             ; Space
-tab:             equ     009h             ; Tabulator
-;
-; Main entry point (RST 00H):
+; Main entry point (RST 00H);
 ;
 rst_00:         di                      ; Disable interrupts
                 jr      initialize      ; Jump over the RST-area
 ;
 ;  RST-area - here is the main entry point into the monitor. The calling
-; standard looks like this:
+; standard looks like this;
 ;
 ; 1) Set register IX to the number of the system routine to be called.
 ; 2) Set the remaining registers according to the routine's documentation.
-; 3) Execute RST 008h to actually call the system routine.
+; 3) Execute RST &08 to actually call the system routine.
 ; 4) Evaluate the values returned in the registers as described by the
 ;    Routine's documentation.
 ;
 ;  (Currently there are no plans to use more RST entry points, so this routine
 ; just runs as long as necessary in memory. If more RSTs will be used, this
 ; routine should to be moved to the end of the used ROM area with only a
-; simple jump at the RST 008h-location.)
+; simple jump at the RST &08-location.)
 ;
 ;  This technique of calling system routines can be used as the following
 ; example program that just echos characters read from the serial line
-; demonstrates:
+; demonstrates;
 ;
-;         org     08000h           ; Start in lower RAM
+;         org     &8000           ; Start in lower RAM
 ; loop    ld      ix, 5           ; Prepare call to getc
 ;         rst     08              ; Execute getc
 ;         cp      3               ; CTRL-C pressed?
@@ -125,32 +239,32 @@ rst_00:         di                      ; Disable interrupts
 ;         ld      ix, 7           ; Prepare calling puts
 ;         rst     08              ; Call puts
 ;         rst     00              ; Restart monitor (warm start)
-; msg:     defb    "That's all folks.", 0dh, 0ah, 0
+; msg;     defb    "That's all folks.", &d, &a, 0
 ;
 ;  Currently the following functions are available (a more detailed description
-; can be found in the dispatch table itself):
+; can be found in the dispatch table itself);
 ;
-;       0:      cold_start
-;       1:      is_hex
-;       2:      is_print
-;       3:      to_upper
-;       4:      crlf
-;       5:      getc
-;       6:      putc
-;       7:      puts
-;       8:      strcmp
-;       9:      gets
-;       A:      fgetc
-;       B:      dump_fcb
-;       C:      fopen
-;       D:      dirlist
-;       E:      fatmount
-;       F:      fatunmount
+;       0;      cold_start
+;       1;      is_hex
+;       2;      is_print
+;       3;      to_upper
+;       4;      crlf
+;       5;      getc
+;       6;      putc
+;       7;      puts
+;       8;      strcmp
+;       9;      gets
+;       A;      fgetc
+;       B;      dump_fcb
+;       C;      fopen
+;       D;      dirlist
+;       E;      fatmount
+;       F;      fatunmount
 ;
-;                org     monitor_start + 008h
-                nop                     ; Beware: zasm is buggy concerning
+;                org     monitor_start + &08
+                nop                     ; Beware; zasm is buggy concerning
                 nop                     ; the org pseudo-statement. Therefore
-                nop                     ; The displacement to the RST 008h
+                nop                     ; The displacement to the RST &08
                 nop                     ; entry point is generated by this
                 nop                     ; NOP-sequence.
 rst_08:         push    bc              ; Save bc and hl
@@ -165,8 +279,8 @@ rst_08:         push    bc              ; Save bc and hl
                 push ix         ; save ix
                 push hl         ; move hl to ix via stack
                 pop ix          ;
-                ld b,(ix+0)     ; b := (ix)
-                ld c,(ix+1)     ; c := (ix+1)
+                ld b,(ix+0)     ; b ;= (ix)
+                ld c,(ix+1)     ; c ;= (ix+1)
                 pop ix          ; restore ix
 
                 push    bc
@@ -174,96 +288,102 @@ rst_08:         push    bc              ; Save bc and hl
                 pop     hl              ; Restore hl
                 pop     bc              ; and bc
                 jp      (ix)            ; Jump to the destination routine
-dispatch_table: ; defw    cold_start      ; 000h = clear etc.
-                ; Parameters:    N/A
-                ; Action:        Performs a cold start (memory is cleared!)
-                ; Return values: N/A
+dispatch_table: ; defw    cold_start      ; &00 = clear etc.
+                ; Parameters;    N/A
+                ; Action;        Performs a cold start (memory is cleared!)
+                ; Return values; N/A
                 ;
                 defw    is_hex
-                ; Parameters:    A contains a character code
-                ; Action:        Tests ('0' <= A <= '9) || ('A' <= A <= 'F')
-                ; Return values: Carry bit is set if A contains a hex char.
+                ; Parameters;    A contains a character code
+                ; Action;        Tests ('0' <= A <= '9) || ('A' <= A <= 'F')
+                ; Return values; Carry bit is set if A contains a hex char.
                 ;
                 defw    is_print
-                ; Parameters:    A contains a charater code
-                ; Action:        Tests if the character is printable
-                ; Return values: Carry bit is set if A contains a valid char.
+                ; Parameters;    A contains a charater code
+                ; Action;        Tests if the character is printable
+                ; Return values; Carry bit is set if A contains a valid char.
                 ;
                 defw    to_upper
-                ; Parameters:    A contains a character code
-                ; Action:        Converts an ASCII character into upper case
-                ; Return values: Converted character code in A
+                ; Parameters;    A contains a character code
+                ; Action;        Converts an ASCII character into upper case
+                ; Return values; Converted character code in A
                 ;
                 defw    crlf
-                ; Parameters:    N/A
-                ; Action:        Sends a CR/LF to the serial line
-                ; Return values: N/A
+                ; Parameters;    N/A
+                ; Action;        Sends a CR/LF to the serial line
+                ; Return values; N/A
                 ;
                 defw    getc
-                ; Parameters:    A contains a character code
-                ; Action:        Reads a character code from the serial line
-                ; Return values: N/A
+                ; Parameters;    A contains a character code
+                ; Action;        Reads a character code from the serial line
+                ; Return values; N/A
                 ;
                 defw    putc
-                ; Parameters:    A contains a character code
-                ; Action:        Sends the character code to the serial line
-                ; Return values: N/A
+                ; Parameters;    A contains a character code
+                ; Action;        Sends the character code to the serial line
+                ; Return values; N/A
                 ;
                 defw    puts
-                ; Parameters:    HL contains the address of a 0-terminated
+                ; Parameters;    HL contains the address of a 0-terminated
                 ;                string
-                ; Action:        Send the string to the serial line (excluding
+                ; Action;        Send the string to the serial line (excluding
                 ;                the termination byte, of course)
-                ; Return values: N/A
+                ; Return values; N/A
                 ;
                 defw    strcmp
-                ; Parameters:    HL and DE contain the addresses of two strings
-                ; Action:        Compare both strings.
-                ; Return values: A contains return value, <0 / 0 / >0
+                ; Parameters;    HL and DE contain the addresses of two strings
+                ; Action;        Compare both strings.
+                ; Return values; A contains return value, <0 / 0 / >0
                 ;
                 defw    gets
-                ; Parameters:    HL contains a buffer address, B contains the
+                ; Parameters;    HL contains a buffer address, B contains the
                 ;                buffer length (including the terminating
                 ;                null byte!)
-                ; Action:        Reads a string from STDIN. Terminates when
+                ; Action;        Reads a string from STDIN. Terminates when
                 ;                either the buffer is full or the string is
                 ;                terminated by CR/LF.
-                ; Return values: N/A
+                ; Return values; N/A
                 ;
 ;
 ;  The stackpointer will be predecremented by a push instruction. Since we need
 ; a 512 byte buffer for data transfers to and from the IDE disk, the stack
 ; pointer is initialized to start at the beginning of this buffer space.
 ;
-initialize:      ;ld      sp, start_type - 01h
+initialize:      ;ld      sp, start_type - &1
 ;
-; Initialize UART to 9600,8N1:
+; Initialize UART to 9600,8N1;
 ;
-                ;ld      a, 080h
+                ;ld      a, &80
                 ;out     (uart_register_3), a
-                ;ld      a, 0ch           ; 1843200 / (16 * 9600)
+                ;ld      a, &c           ; 1843200 / (16 * 9600)
                 ;out     (uart_register_0), a
                 ;xor     a
                 ;out     (uart_register_1), a
-                ;ld      a, 03h           ; 8N1
+                ;ld      a, &3           ; 8N1
                 ;out     (uart_register_3), a
 ;
-; Print welcome message:
-;
-                call    ClearScreen
+; Print welcome message;
+if HP_4952_Target
+                 call    _clear_screen
+else
+ if CPC_Target
+ ;if CPC_Target == &01
+                 call    ClearScreen
+ endif
+endif
                 ld      hl, hello_msg
                 call    puts
 ;
-;  If this is a cold start (the location start_type does not contain 0aah)
-; all available RAM will be reset to 000h and a message will be printed.
+;  If this is a cold start (the location start_type does not contain &aa)
+; all available RAM will be reset to &00 and a message will be printed.
 ;
                 ;ld      a, (start_type)
-                ;cp      0aah             ; Warm start?
+                ;cp      &aa             ; Warm start?
                 ;jr      z, main_loop    ; Yes - enter command loop
                 jr      main_loop
                 ;ld      hl, cold_start_msg
                 ;call    puts            ; Print cold start message
-                ;ld      hl, ram_start   ; Start of block to be filled with 000h
+                ;ld      hl, ram_start   ; Start of block to be filled with &00
 
                 ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
                 ;;;;;;;;;ld      de, hl          ; End address of block
@@ -273,16 +393,16 @@ initialize:      ;ld      sp, start_type - 01h
 
                 ;inc     de              ; plus 1 (for ldir)
                 ;ld      bc, ram_end - ram_start
-                ;ld      (hl), 000h       ; Load first memory location
+                ;ld      (hl), &00       ; Load first memory location
                 ;ldir                    ; And copy this value down
                 ;ld      hl, start_type
-                ;ld      (hl), 0aah       ; Cold start done, remember this
+                ;ld      (hl), &aa       ; Cold start done, remember this
 ;
-; Read characters from the serial line and send them just back:
+; Read characters from the serial line and send them just back;
 ;
 main_loop:      ld      hl, monitor_prompt
                 call    puts
-; The monitor is rather simple: All commands are just one or two letters.
+; The monitor is rather simple; All commands are just one or two letters.
 ; The first character selects a command group, the second the desired command
 ; out of that group. When a command is recognized, it will be spelled out
 ; automatically and the user will be prompted for arguments if applicable.
@@ -291,9 +411,11 @@ main_loop:      ld      hl, monitor_prompt
                 cp      'C'             ; Control group?
                 jr      nz, help_group  ; No - test next group
                 ;jr      nz, disk_group  ; No - test next group
+
                 ld      hl, cg_msg      ; Print group prompt
                 call    puts
                 call    monitor_key     ; Get command key
+
                 ;cp      'C'             ; Cold start?
                 ;jp      z, cold_start
                 ;cp      'W'             ; Warm start?
@@ -308,17 +430,16 @@ main_loop:      ld      hl, monitor_prompt
                 jp      cmd_error       ; Unknown control-group-command
 
 help_group:     cp      'H'             ; Help? (No further level expected.)
-                call    z, help         ; Yes :-)
+                call    z, help         ; Yes ;-)
                 jp      z, main_loop
 
 memory_group:   cp      'M'             ; Memory group?
-                jp      nz, group_error ; No - print an error message
+                jp      nz, dump_group  ; No - test next group
                 ld      hl, mg_msg      ; Print group prompt
                 call    puts
                 call    monitor_key     ; Get command key
-                cp      'D'             ; Dump?
-                call    z, dump
-                jp      z, main_loop
+                jp      z, main_loop    ; no input, continue
+
                 cp      'E'             ; Examine?
                 call    z, examine
                 jp      z, main_loop
@@ -327,17 +448,35 @@ memory_group:   cp      'M'             ; Memory group?
                 jp      z, main_loop
                 ;cp      'I'             ; INTEL-Hex load?
                 ;call    z, ih_load
-                jp      z, main_loop
+                ;jp      z, main_loop
                 cp      'L'             ; Load?
                 call    z, load
                 jp      z, main_loop
                 cp      'M'             ; Move?
                 call    z, move
                 jp      z, main_loop
-                cp      'R'             ; Register dump?
-                call    z, rdump
-                jp      z, main_loop
                 jr      cmd_error       ; Unknown memory-group-command
+
+dump_group:    cp      'D'             ; Dump group?
+               jp      nz, group_error ; No - print an error message
+               ld      hl, dg_msg      ; Print group prompt
+               call    puts
+               call    monitor_key     ; Get command key
+               jp      z, main_loop    ; no input, continue
+
+               cp      'R'             ; Register dump?
+               call    z, rdump
+               jp      z, main_loop
+               cp      'M'             ; Memory dump?
+               call    z, mdump
+               jp      z, main_loop
+if DISASS
+               cp      'D'             ; Disassemble?
+               call    z, disassemble
+endif
+               jp      z, main_loop
+
+               jr      cmd_error       ; Unknown memory-group-command
 
 group_error:    ld      hl, group_err_msg
                 jr      print_error
@@ -346,20 +485,21 @@ print_error:    call    putc            ; Echo the illegal character
                 call    puts            ; and print the error message
                 jp      main_loop
 ;
-; Some constants for the monitor:
+; Some constants for the monitor;
 ;                defb    "                                ", cr, lf,
 hello_msg:       defb    cr, lf, cr, lf
-                 defb    "Simple Z80-monitor - V 0.8 ", cr, lf
+                 defb    "Simple Z80-monitor - V 0.9.6", cr, lf
                  defb    " (B. Ulmann, Sep.2011-Jan.2012)", cr, lf
                  defb    " adapted Apr. 2024 spurtikus.de", cr, lf, eos
 monitor_prompt:  defb    cr, lf
                  defb     "Z> ", eos
 cg_msg:          defb    "CONTROL/", eos
 mg_msg:          defb    "MEMORY/", eos
+dg_msg:          defb    "DUMP/", eos
 command_err_msg: defb    ": Syntax error - command not found!", cr, lf, eos
 group_err_msg:   defb    ": Syntax error - group not found!", cr, lf, eos
 ;
-; Read a key for command group and command:
+; Read a key for command group and command;
 ;
 monitor_key:    call    getc
                 cp      lf              ; Ignore LF
@@ -375,11 +515,11 @@ monitor_key:    call    getc
 ;*** The following routines are used in the interactive part of the monitor
 ;***
 ;******************************************************************************
-n_dump_bytes:             equ     005h             ; dumped bytes per line
+n_dump_bytes             equ     &05             ; dumped bytes per line
 ;
 ; Dump a memory area
 ;
-dump:           push    af
+mdump:          push    af
                 push    bc
                 push    de
                 push    hl
@@ -442,8 +582,76 @@ dump_al_1:      call    putc            ; Print the character
 dump_msg_1:      defb    "DUMP: START=", eos
 dump_msg_2:      defb    " END=", eos
 dump_msg_3:      defb    ": ", eos
+
+if DISASS
 ;
-; Examine a memory location:
+; Disassemble a memory part
+; SPACE character shows next disassembled opcodes
+;
+disassemble:    push    af
+                push    bc
+                push    de
+                push    hl
+
+                ld      hl, dis_msg_1
+                call    puts            ; Print prompt
+                call    get_word        ; Read start address
+                call    crlf
+                ld      bc,&10          ; number of op codes to disassemble, "lines"
+
+; disassemble code
+; hi is start of code, bc number of opcodes to disassemble
+disloop:
+                ; DisWrInstruction, call with address to disassemble in hl
+                call    DisWrInstruction
+                ; a = length of instruction
+                ; hl = address of next instruction
+                ; kStrBuffer contains disassembled opcode string
+
+                ; terminate string with 0x0 for puts call
+                push    hl
+                push    bc
+
+                ld      hl,kStrBuffer
+                ld      b,0             ; bc=length of string (is not null trerminated)
+                ld      c,(hl)          ;  c=length byte of string
+                add     hl,bc           ; add length to hl to get end of string location
+                inc     hl
+                ld      (hl),&00        ; terminate with zero
+                ld      hl,kStrBuffer   ; prepare puts call
+                inc     hl              ; step over length byte
+                call    puts
+                call    crlf
+
+                pop     bc
+                pop     hl
+
+                dec     bc              ; lines--
+                ld      a,b             ; line loop finished? bc==0
+                or      c
+                jr      nz,disloop      ; no, continue
+
+                call    monitor_key     ; wait for SPACE
+                cp      ' '             ; a blank?
+                jr      nz,disloop_done ; no, other char -> done
+
+                ld      bc,&10          ; yes, continue
+                jp      disloop
+
+disloop_done:
+                pop     hl
+                pop     de
+                pop     bc
+                pop     af
+
+                ret
+
+dis_msg_1:     defb    "DISASSEMBLE, START=", eos
+
+endif
+
+;
+; Examine a memory location;
 ; SPACE character shows next byte
 ;
 examine:        push    af
@@ -495,7 +703,7 @@ fill:           push    af              ; We will need nearly all registers
 fill_get_length: ld      hl, fill_msg_2  ; Prompt for length information
                 call    puts
                 call    get_word        ; Get the length of the block
-                ; Now make sure that start + length is still in RAM:
+                ; Now make sure that start + length is still in RAM;
 
                 ;;;;;;;;;ld      bc, hl          ; BC contains the length
                 push hl         ; move hl to bc via stack
@@ -529,7 +737,7 @@ fill_get_value:  ld      hl, fill_msg_3  ; Prompt for fill value
                 ; HL = start address
                 ; DE = destination address = HL + 1
                 ;      Please note that this is necessary - LDIR does not
-                ;      work with DE == HL. :-)
+                ;      work with DE == HL. ;-)
                 ; A  = fill value
                 ld      (hl), a         ; Store A into first memory location
                 ldir                    ; Fill the memory
@@ -558,10 +766,15 @@ help_msg:       defb    "HELP: commandgroups+commands:", cr, lf
                 defb    "  C(ontrol group):", cr, lf
                 defb    "    I(nfo), S(tart), ", cr, lf
                 defb    "    E(X)it", cr, lf
+
+                defb    "  D(ump group):", cr, lf
+                defb    "    M(emory), (R)egister,", cr, lf
+                defb    "    D(isassemble)", cr, lf
+
                 defb    "  M(emory group):", cr, lf
-                defb    "    D(ump), E(xamine), F(ill),", cr, lf
-                defb    "    L(oad),", cr, lf
-                defb    "    R(egister dump)", cr, lf
+                defb    "    E(xamine), F(ill),", cr, lf
+                defb    "    L(oad), M(ove)", cr, lf
+
                 defb    "  H(elp)", cr, lf
                 defb    cr, lf, eos
 
@@ -647,7 +860,7 @@ load_msg_3:      defb    " Illegal address!", eos
 
 
 ;
-; Move a memory block - the user is prompted for all necessary data:
+; Move a memory block - the user is prompted for all necessary data;
 ;
 move:           push    af              ; We won't even destroy the flags!
                 push    bc
@@ -697,7 +910,7 @@ move_msg_2:      defb    " TO=", eos
 move_msg_3:      defb    " LENGTH=", eos
 move_msg_4:      defb    " Illegal destination address!", eos
 ;
-; Dump the contents of both register banks:
+; Dump the contents of both register banks;
 ;
 rdump:          push    af
                 push    hl
@@ -705,6 +918,10 @@ rdump:          push    af
                 call    puts
                 pop     hl
                 call    rdump_one_set
+
+if HP_4952_Target
+                ; CPC does not like the register set swap...
+                ; I guess this would mixes up regular interrupts, not sure
                 exx
                 ex      af, af'
                 push    hl
@@ -714,6 +931,8 @@ rdump:          push    af
                 call    rdump_one_set
                 ex      af, af'
                 exx
+endif
+
                 push    hl
                 ld      hl, rdump_msg_3
                 call    puts
@@ -753,8 +972,8 @@ rdump_one_set:  push    hl              ; Print one register set
                 call    puts
 
                 ;;;;;;;;;ld      hl, bc
-                push bc        ; move bc to hl via stack
-                pop hl          ;
+                push    bc        ; move bc to hl via stack
+                pop     hl          ;
 
                 call    print_word      ; Print contents of BC
                 ld      hl, rdump_os_msg_3
@@ -777,7 +996,7 @@ rdump_os_msg_3:  defb    " DE=", eos
 rdump_os_msg_4:  defb    " HL=", eos
 ;
 ; Start a program - this will prompt for a four digital hexadecimal start
-; address. A program should end with "jp 00h" to enter the monitor again.
+; address. A program should end with "jp &0" to enter the monitor again.
 ;
 start:          ld      hl, start_msg
                 call    puts
@@ -819,7 +1038,7 @@ is_print:       cp      space
                 jr      nc, is_print_1
                 ccf
                 ret
-is_print_1:     cp      07fh
+is_print_1:     cp      &7f
                 ret
 ;
 ; nibble2val expects a hexadecimal digit (upper case!) in A and returns the
@@ -829,16 +1048,16 @@ nibble2val:     cp      '9' + 1         ; Is it a digit (less or equal '9')?
                 jr      c, nibble2val_1 ; Yes
                 sub     7               ; Adjust for A-F
 nibble2val_1:   sub     '0'             ; Fold back to 0..15
-                and     0fh              ; Only return lower 4 bits
+                and     &f              ; Only return lower 4 bits
                 ret
 ;
-; Convert a single character contained in A to upper case:
+; Convert a single character contained in A to upper case;
 ;
 to_upper:       cp      'a'             ; Nothing to do if not lower case
                 ret     c
                 cp      'z' + 1         ; > 'z'?
                 ret     nc              ; Nothing to do, either
-                and     05fh             ; Convert to upper case
+                and     &5f             ; Convert to upper case
                 ret
 ;
 ;  Compare two null terminated strings, return >0 / 0 / <0 in A, works like
@@ -866,7 +1085,7 @@ strcmp_exit:    sub     (hl)
 ;***
 ;******************************************************************************
 ;
-; Send a CR/LF pair:
+; Send a CR/LF pair;
 ;
 crlf:           push    af
                 ld      a, cr
@@ -876,15 +1095,18 @@ crlf:           push    af
                 pop     af
                 ret
 ;
-; Read a single character from the serial line, result is in A:
+; Read a single character from the serial line, result is in A;
 ;
 getc:           ;call    rx_ready
                 ;in      a, (uart_register_0)
-
-                ; call _getkey_wait HP4952A
-
-                call WaitChar ; CPC
-
+if HP_4952_Target
+                call _getkey_wait
+else
+ if CPC_Target
+ ;if CPC_Target == &01
+                call WaitChar
+ endif
+endif
                 ret
 ;
 ; Get a byte in hexadecimal notation. The result is returned in A. Since
@@ -968,14 +1190,14 @@ print_byte:     push    af              ; Save the contents of the registers
                 ret
 ;
 ; print_nibble prints a single hex nibble which is contained in the lower
-; four bits of A:
+; four bits of A;
 ;
 print_nibble:   push    af              ; We won't destroy the contents of A
-                and     0fh              ; Just in case...
+                and     &f              ; Just in case...
                 add     '0'             ; If we have a digit we are done here.
                 cp      '9' + 1         ; Is the result > 9?
                 jr      c, print_nibble_1
-                add     'A' - '0' - 0ah  ; Take care of A-F
+                add     'A' - '0' - &a  ; Take care of A-F
 print_nibble_1: call    putc            ; Print the nibble and
                 pop     af              ; restore the original value of A
                 ret
@@ -993,17 +1215,21 @@ print_word:     push    hl
                 pop     hl
                 ret
 ;
-; Send a single character to the serial line (a contains the character):
+; Send a single character to the serial line (a contains the character);
 ;
 putc:           ;call    tx_ready
                 ;out     (uart_register_0), a
-
-                ;call    _writechar ; HP4952A
-
-                call    PrintChar   ; CPC
+if HP_4952_Target
+                call    _writechar
+else
+ if CPC_Target
+ ;if CPC_Target == &01
+                call PrintChar
+ endif
+endif
                 ret
 ;
-; Send a string to the serial line, HL contains the pointer to the string:
+; Send a string to the serial line, HL contains the pointer to the string;
 ;
 puts:           push    af
                 push    hl
@@ -1017,6 +1243,48 @@ puts_end:       pop     hl
                 pop     af
                 ret
 
-app_exit:       call ClearScreen
-                ; jp 014d5h				; Return to main menu. HP4592a
+app_exit:
+if HP_4952_Target
+                call    _clear_screen
+                jp      &14d5				; Return to main menu. HP4592a
+else
+if CPC_Target
+;if CPC_Target == &01
                 ret                     ; CPC
+ endif
+endif
+
+if DISASS
+    ; include disassembler source
+    read "disassembler.asm"
+endif
+
+if HP_4952_Target
+;****************************************************************************************
+; HP4952 footer start
+;****************************************************************************************
+    read "lib/string.asm"
+    read "lib/screen.asm"
+    read "lib/printf.asm"
+    read "lib/keyb.asm"
+
+_code_end:
+	defb &33
+;; End of Main Application
+
+
+;; Fill to end of file; file size must be multiple of 0x100 = 256
+    ; this is a0000 + seek value calculated below; I guess its just to define a valid org value, even if not being used
+	org &bcfe
+	; 1) check size of resulting file
+	; 2) divide by 256 0x100
+	; 3) add 1, multiply with 0x100 ; this is (filesize/0x100 + 1)*0x100 (so 0x100-bytes-page partally started is filled up)
+	; 4) subtract 2, for the word at end
+	seek &1cfe
+    ; final world with magic value
+	defw &affe
+_file_end:
+;****************************************************************************************
+; HP4952 footer end
+;****************************************************************************************
+endif

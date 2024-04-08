@@ -52,6 +52,9 @@ kDisWord   equ 3              ;Immediate value is word (not byte) flag
 kDisLength equ 2              ;Substite two characters (not one) flag
 kDisMask   equ &03           ;Mask type 0=&07,1=&18,2=&30,3=&38
 
+kDisColOpCode  equ 17          ; column after OpCode, orig=19
+kDisColOpCodeAscii  equ 21          ; column after OpCode, orig=25
+
 ; Should create EQUates for all numeric values used below. It's the law!
 
 ; **********************************************************************
@@ -79,21 +82,21 @@ DisWrInstruction:
             CALL StrInitDefault ;Select default string for opcodes
             LD   D,H            ;Get start of instruction..
             LD   E,L
-            CALL StrWrAddress   ;Write address, colon and space
+            CALL StrWrAddress   ;Write address, colon and space         ; needs 6 chars
             LD   B,C            ;Get length of instruction
 _Opcode:    LD   A,(HL)         ;Get instruction opcode
             CALL StrWrHexByte   ;Write as hex byte
-            CALL StrWrSpace     ;Write space
+            CALL StrWrSpace     ;Write space                            ; needs 9 chars
             INC  HL             ;Point to next byte 
             DJNZ _Opcode        ;Loop until all hex bytes written
-            LD   A,19           ;Column number
+            LD   A,kDisColOpCode           ;Column number                          ; ~4 spaces before orig=19
             CALL StrWrPadding   ;Pad with spaces to specified column
             LD   B,C            ;Get length of instruction
 _Ascii:     LD   A,(DE)         ;Get instruction opcode
-            CALL StrWrAsciiChar ;Write as ASCII character
+            CALL StrWrAsciiChar ;Write as ASCII character                           ; needs 3 chars, maybe 4?
             INC  DE             ;Point to next byte 
             DJNZ _Ascii         ;Loop until all characters written
-            LD   A,25           ;Column number
+            LD   A,kDisColOpCodeAscii           ;Column number                      ; ~ 3 spaces before opcode
             CALL StrWrPadding   ;Pad with spaces to specified column
 _Mnemonic:  LD   DE,kStrBuffer+80
             CALL StrAppend      ;Append disassembly string
@@ -270,7 +273,7 @@ _Condition: LD   A,(iDisOpcode) ;Get instruction's primary opcode
             RRA                 ;  for each coded condition
             RRA                 ;  plus flag state in Carry
             LD   B,A            ;Set up table loop counter
-; Condition table contains one byte for each flag condition:
+; Condition table contains one byte for each flag condition;
 ; 0=NZ/Z, 1=NC/C,2=PO/PE, 3=P/M and C set for Z, C, PE and M
 ; The values in the table are bit masks for the flags register
 ; which is ORed with Flags register to test if flag is set, and 

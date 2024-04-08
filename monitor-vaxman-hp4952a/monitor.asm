@@ -1,10 +1,10 @@
 
-HP_4952_Target:      equ 0x01
-CPC_Target:          equ 0x00
+HP_4952_Target:      equ 001h
+CPC_Target:          equ 000h
 
-DISASS:                 equ 0x01
+DISASS:                 equ 001h
 
-if HP_4952_Target == 0x01
+if HP_4952_Target
 ;****************************************************************************************
 ; HP4952 header start
 ;****************************************************************************************
@@ -167,14 +167,14 @@ endif
 ;  +-------+
 
 
-if CPC_Target == 0x01
+if CPC_Target
 ; CPC
 PrintChar: 	    equ	    0bb5ah
 WaitChar:       equ     0bb06h
 ClearScreen:    equ     0bc14h
 endif
 
-if CPC_Target == 0x01
+if CPC_Target
 monitor_start:   equ     08000h           ; 00000h -> ROM, 08000h -> Test image
                  org     monitor_start
 endif
@@ -182,10 +182,10 @@ endif
 ;rom_start:       equ     00h
 ;rom_end:         equ     07fffh
 
-if CPC_Target == 0x01
+if CPC_Target
 ram_start:       equ     09400h
 endif
-if HP_4952_Target == 0x01
+if HP_4952_Target
 ram_start:       equ     05000h
 endif
 ;ram_end:         equ     0ffffh
@@ -359,10 +359,10 @@ initialize:      ;ld      sp, start_type - 01h
                 ;out     (uart_register_3), a
 ;
 ; Print welcome message;
-if HP_4952_Target == 0x01
+if HP_4952_Target
                  call    _clear_screen
 else
- if CPC_Target == 0x01
+ if CPC_Target
                  call    ClearScreen
  endif
 endif
@@ -465,7 +465,7 @@ dump_group:    cp      'D'             ; Dump group?
                cp      'M'             ; Memory dump?
                call    z, mdump
                jp      z, main_loop
-if DISASS == 0x01
+if DISASS
                cp      'D'             ; Disassemble?
                call    z, disassemble
 endif
@@ -578,7 +578,7 @@ dump_msg_1:      defb    "DUMP: START=", eos
 dump_msg_2:      defb    " END=", eos
 dump_msg_3:      defb    ": ", eos
 
-if DISASS == 0x01
+if DISASS
 ;
 ; Disassemble a memory part
 ; SPACE character shows next disassembled opcodes
@@ -914,7 +914,7 @@ rdump:          push    af
                 pop     hl
                 call    rdump_one_set
 
-if HP_4952_Target == 0x01
+if HP_4952_Target
                 ; CPC does not like the register set swap...
                 ; I guess this would mixes up regular interrupts, not sure
                 exx
@@ -1094,10 +1094,10 @@ crlf:           push    af
 ;
 getc:           ;call    rx_ready
                 ;in      a, (uart_register_0)
-if HP_4952_Target == 0x01
+if HP_4952_Target
                 call _getkey_wait
 else
- if CPC_Target == 0x01
+ if CPC_Target
                 call WaitChar
  endif
 endif
@@ -1213,10 +1213,10 @@ print_word:     push    hl
 ;
 putc:           ;call    tx_ready
                 ;out     (uart_register_0), a
-if HP_4952_Target == 0x01
+if HP_4952_Target
                 call    _writechar
 else
- if CPC_Target == 0x01
+ if CPC_Target
                 call PrintChar
  endif
 endif
@@ -1237,21 +1237,21 @@ puts_end:       pop     hl
                 ret
 
 app_exit:
-if HP_4952_Target == 0x01
+if HP_4952_Target
                 call    _clear_screen
                 jp      014d5h				; Return to main menu. HP4592a
 else
- if CPC_Target == 0x01
+ if CPC_Target
                 ret                     ; CPC
  endif
 endif
 
-if DISASS == 0x01
+if DISASS
     ; include disassembler source
     include "disassembler.asm"
 endif
 
-if HP_4952_Target == 0x01
+if HP_4952_Target
 ;****************************************************************************************
 ; HP4952 footer start
 ;****************************************************************************************

@@ -5,13 +5,13 @@ kNull          equ 0              ;Null character/byte (&00)
 kSpace         equ 32             ;Space character (&20)
 
 
-iHL        defw  &0005         ;Register pair HL
-iAF        defw  &0002         ;Register pair AF
-iBC        defw  &0003         ;Register pair BC
-iSP        defw  &0011         ;Register pair SP (Stack Pointer)
+iHL:        defw  &0005         ;Register pair HL
+iAF:        defw  &0002         ;Register pair AF
+iBC:        defw  &0003         ;Register pair BC
+iSP:        defw  &0011         ;Register pair SP (Stack Pointer)
 
-iStrStart  defw  &0000         ;Start of current string buffer
-iStrSize   defw  &00           ;Size of current string buffer (0 to Len-1)
+iStrStart:  defw  &0000         ;Start of current string buffer
+iStrSize:   defw  &00           ;Size of current string buffer (0 to Len-1)
 
 
 ; String Write character
@@ -229,7 +229,7 @@ StrWrAddress:
             PUSH AF
             CALL StrWrHexWord   ;Write start address of this line
             LD   A,':'
-            CALL StrWrChar      ;Write colon
+            ;CALL StrWrChar      ;Write colon   ; NOT for HP4952
             CALL StrWrSpace     ;Write space
             POP  AF
             RET
