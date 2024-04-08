@@ -442,11 +442,11 @@ initialize:      ;ld      sp, start_type - 01h
                 ;ld      hl, start_type
                 ;ld      (hl), 0aah       ; Cold start done, remember this
 ;
-; Read characters from the serial line and send them just back:
+; Read characters from the serial line and send them just back;
 ;
 main_loop:      ld      hl, monitor_prompt
                 call    puts
-; The monitor is rather simple: All commands are just one or two letters.
+; The monitor is rather simple; All commands are just one or two letters.
 ; The first character selects a command group, the second the desired command
 ; out of that group. When a command is recognized, it will be spelled out
 ; automatically and the user will be prompted for arguments if applicable.
@@ -455,13 +455,15 @@ main_loop:      ld      hl, monitor_prompt
                 cp      'C'             ; Control group?
                 jr      nz, help_group  ; No - test next group
                 ;jr      nz, disk_group  ; No - test next group
+
                 ld      hl, cg_msg      ; Print group prompt
                 call    puts
                 call    monitor_key     ; Get command key
-                cp      'C'             ; Cold start?
-                jp      z, cold_start
-                cp      'W'             ; Warm start?
-                jp      z, warm_start
+
+                ;cp      'C'             ; Cold start?
+                ;jp      z, cold_start
+                ;cp      'W'             ; Warm start?
+                ;jp      z, warm_start
                 cp      'S'             ; Start?
                 jp      z, start
                 cp      'X'             ; exit app?
@@ -471,53 +473,54 @@ main_loop:      ld      hl, monitor_prompt
                 jr      z, main_loop
                 jp      cmd_error       ; Unknown control-group-command
 
-;disk_group:     cp      'D'             ; Disk group?
-;                jr      nz, file_group  ; No - file group?
-;                ld      hl, dg_msg      ; Print group prompt
-;                call    puts
-;                call    monitor_key     ; Get command
-;                jr      z, main_loop
-;                jr      cmd_error       ; Unknown disk-group-command
-;
-;file_group:     cp      'F'             ; File group?
-;                jr      nz, help_group  ; No - help group?
-;                ld      hl, fg_msg      ; Print group prompt
-;                call    puts
-;                call    monitor_key     ; Get command key
-;                jr      z, main_loop
-;                jr      cmd_error       ; Unknown file-group-command
-
 help_group:     cp      'H'             ; Help? (No further level expected.)
-                call    z, help         ; Yes :-)
+                call    z, help         ; Yes ;-)
                 jp      z, main_loop
 
 memory_group:   cp      'M'             ; Memory group?
-                jp      nz, group_error ; No - print an error message
+                jp      nz, dump_group  ; No - test next group
                 ld      hl, mg_msg      ; Print group prompt
                 call    puts
                 call    monitor_key     ; Get command key
-                cp      'D'             ; Dump?
-                call    z, dump
-                jp      z, main_loop
+                jp      z, main_loop    ; no input, continue
+
                 cp      'E'             ; Examine?
                 call    z, examine
                 jp      z, main_loop
                 cp      'F'             ; Fill?
                 call    z, fill
                 jp      z, main_loop
-                cp      'I'             ; INTEL-Hex load?
-                call    z, ih_load
-                jp      z, main_loop
+                ;cp      'I'             ; INTEL-Hex load?
+                ;call    z, ih_load
+                ;jp      z, main_loop
                 cp      'L'             ; Load?
                 call    z, load
                 jp      z, main_loop
                 cp      'M'             ; Move?
                 call    z, move
                 jp      z, main_loop
-                cp      'R'             ; Register dump?
-                call    z, rdump
-                jp      z, main_loop
                 jr      cmd_error       ; Unknown memory-group-command
+
+dump_group:    cp      'D'             ; Dump group?
+               jp      nz, group_error ; No - print an error message
+               ld      hl, dg_msg      ; Print group prompt
+               call    puts
+               call    monitor_key     ; Get command key
+               jp      z, main_loop    ; no input, continue
+
+               cp      'R'             ; Register dump?
+               call    z, rdump
+               jp      z, main_loop
+               cp      'M'             ; Memory dump?
+               call    z, mdump
+               jp      z, main_loop
+if DISASS == 0x01
+               cp      'D'             ; Disassemble?
+               call    z, disassemble
+endif
+               jp      z, main_loop
+
+               jr      cmd_error       ; Unknown memory-group-command
 
 group_error:    ld      hl, group_err_msg
                 jr      print_error
@@ -526,23 +529,21 @@ print_error:    call    putc            ; Echo the illegal character
                 call    puts            ; and print the error message
                 jp      main_loop
 ;
-; Some constants for the monitor:
+; Some constants for the monitor;
 ;                defb    "                                ", cr, lf,
 hello_msg:       defb    cr, lf, cr, lf
-                 defb    "Simple Z80-monitor - V 0.9.1", cr, lf
+                 defb    "Simple Z80-monitor - V 0.9.2", cr, lf
                  defb    " (B. Ulmann, Sep.2011-Jan.2012)", cr, lf
                  defb    " adapted Apr. 2024 spurtikus.de", cr, lf, eos
 monitor_prompt:  defb    cr, lf
                  defb     "Z> ", eos
 cg_msg:          defb    "CONTROL/", eos
-;dg_msg:          defb    "DISK/", eos
-;fg_msg:          defb    "FILE/", eos
 mg_msg:          defb    "MEMORY/", eos
+dg_msg:          defb    "DUMP/", eos
 command_err_msg: defb    ": Syntax error - command not found!", cr, lf, eos
 group_err_msg:   defb    ": Syntax error - group not found!", cr, lf, eos
-cold_start_msg:  defb    "Cold start, clearing memory.", cr, lf, eos
 ;
-; Read a key for command group and command:
+; Read a key for command group and command;
 ;
 monitor_key:    call    getc
                 cp      lf              ; Ignore LF
@@ -562,7 +563,7 @@ n_dump_bytes:             equ     005h             ; dumped bytes per line
 ;
 ; Dump a memory area
 ;
-dump:           push    af
+mdump:          push    af
                 push    bc
                 push    de
                 push    hl
@@ -576,15 +577,13 @@ dump:           push    af
                 call    crlf
                 inc     hl              ; Increment stop address for comparison
 
-                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
                 ;;;;;;;;;ld      de, hl          ; DE now contains the stop address
-                ;;;;;;;;; relacement code
                 push hl         ; move hl to de via stack
                 pop de          ;
 
                 pop     hl              ; HL is the start address again
                 ; This loop will dump 16 memory locations at once - even
-                ; if this turns out to be more than requested.
+                ; if this turns out to be more than r:equested.
 dump_line:      ld      b, n_dump_bytes          ; This loop will process n_dump_bytes bytes
                 push    hl              ; Save HL again
                 call    print_word      ; Print address
@@ -680,11 +679,9 @@ fill:           push    af              ; We will need nearly all registers
 fill_get_length: ld      hl, fill_msg_2  ; Prompt for length information
                 call    puts
                 call    get_word        ; Get the length of the block
-                ; Now make sure that start + length is still in RAM:
+                ; Now make sure that start + length is still in RAM;
 
-                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
                 ;;;;;;;;;ld      bc, hl          ; BC contains the length
-                ;;;;;;;;; relacement code
                 push hl         ; move hl to bc via stack
                 pop bc          ;
 
@@ -707,9 +704,7 @@ fill_get_value:  ld      hl, fill_msg_3  ; Prompt for fill value
                 pop     bc              ; Get the length from the stack
                 pop     hl              ; Get the start address again
 
-                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
                 ;;;;;;;;;ld      de, hl          ; DE = HL + 1
-                ;;;;;;;;; relacement code
                 push hl         ; move hl to de via stack
                 pop de          ;
 
@@ -718,7 +713,7 @@ fill_get_value:  ld      hl, fill_msg_3  ; Prompt for fill value
                 ; HL = start address
                 ; DE = destination address = HL + 1
                 ;      Please note that this is necessary - LDIR does not
-                ;      work with DE == HL. :-)
+                ;      work with DE == HL. ;-)
                 ; A  = fill value
                 ld      (hl), a         ; Store A into first memory location
                 ldir                    ; Fill the memory
@@ -745,106 +740,20 @@ help:           push    hl
 ;               defb    "                                ", cr, lf,
 help_msg:       defb    "HELP: commandgroups+commands:", cr, lf
                 defb    "  C(ontrol group):", cr, lf
-                defb    "    C(old start), I(nfo),",cr,lf
-                defb    "    S(tart), W(arm start),", cr, lf
-                defb    "    W(arm start), E(X)it", cr, lf
-                ;defb    "         D(isk group):", cr, lf
-                ;defb    "             I(nfo), M(ount), T(ransfer),"
-                ;defb    "         U(nmount)", cr, lf
-                ;defb    "                                  R(ead), W(rite)"
-                ;defb    cr, lf
-                ;defb    "         F(ile group):", cr, lf
-                ;defb    "             C(at), D(irectory), L(oad)", cr, lf
+                defb    "    I(nfo), S(tart), ", cr, lf
+                defb    "    E(X)it", cr, lf
+
+                defb    "  D(ump group):", cr, lf
+                defb    "    M(emory), (R)egister,", cr, lf
+                defb    "    D(isassemble)", cr, lf
+
                 defb    "  M(emory group):", cr, lf
-                defb    "    D(ump), E(xamine), F(ill),", cr, lf
-                defb    "    I(ntel Hex Load), L(oad),", cr, lf
-                defb    "    R(egister dump)", cr, lf
+                defb    "    E(xamine), F(ill),", cr, lf
+                defb    "    L(oad), M(ove)", cr, lf
+
                 defb    "  H(elp)", cr, lf
                 defb    cr, lf, eos
-;
-; Load an INTEL-Hex file (a ROM image) into memory. This routine has been
-; more or less stolen from a boot program written by Andrew Lynch and adapted
-; to this simple Z80 based machine.
-;
-; The INTEL-Hex format looks a bit awkward - a single line contains these
-; parts:
-; ':', Record length (2 hex characters), load address field (4 hex characters),
-; record type field (2 characters), data field (2 * n hex characters),
-; checksum field. Valid record types are 0 (data) and 1 (end of file).
-;
-; Please note that this routine will not echo what it read from stdin but
-; what it "understood". :-)
-;
-ih_load:        push    af
-                push    de
-                push    hl
-                ld      hl, ih_load_msg_1
-                call    puts
-ih_load_loop:   call    getc            ; Get a single character
-                cp      cr              ; Don't care about CR
-                jr      z, ih_load_loop
-                cp      lf              ; ...or LF
-                jr      z, ih_load_loop
-                cp      space           ; ...or a space
-                jr      z, ih_load_loop
-                call    to_upper        ; Convert to upper case
-                call    putc            ; Echo character
-                cp      ':'             ; Is it a colon?
-                jr      nz, ih_load_error
-                call    get_byte        ; Get record length into A
-                ld      d, a            ; Length is now in D
-                ld      e, 00h           ; Clear checksum
-                call    ih_load_chk     ; Compute checksum
-                call    get_word        ; Get load address into HL
-                ld      a, h            ; Update checksum by this address
-                call    ih_load_chk
-                ld      a, l
-                call    ih_load_chk
-                call    get_byte        ; Get the record type
-                call    ih_load_chk     ; Update checksum
-                cp      01h              ; Have we reached the EOF marker?
-                jr      nz, ih_load_data; No - get some data
-                call    get_byte        ; Yes - EOF, read checksum data
-                call    ih_load_chk     ; Update our own checksum
-                ld      a, e
-                and     a               ; Is our checksum zero (as expected)?
-                jr      z, ih_load_exit ; Yes - exit this routine
-ih_load_chk_err: ld      hl, ih_load_msg_3
-                call    puts            ; No - print an error message
-                jr      ih_load_exit    ; and exit
-ih_load_data:   ld      a, d            ; Record length is now in A
-                and     a               ; Did we process all bytes?
-                jr      z, ih_load_eol  ; Yes - process end of line
-                call    get_byte        ; Read two hex digits into A
-                call    ih_load_chk     ; Update checksum
-                ld      (hl), a         ; Store byte into memory
-                inc     hl              ; Increment pointer
-                dec     d               ; Decrement remaining record length
-                jr      ih_load_data    ; Get next byte
-ih_load_eol:    call    get_byte        ; Read the last byte in the line
-                call    ih_load_chk     ; Update checksum
-                ld      a, e
-                and     a               ; Is the checksum zero (as expected)?
-                jr      nz, ih_load_chk_err
-                call    crlf
-                jr      ih_load_loop    ; Yes - read next line
-ih_load_error:  ld      hl, ih_load_msg_2
-                call    puts            ; Print error message
-ih_load_exit:   call    crlf
-                pop     hl              ; Restore registers
-                pop     de
-                pop     af
-                ret
-;
-ih_load_chk:    ld      c, a            ; All in all compute E = E - A
-                ld      a, e
-                sub     c
-                ld      e, a
-                ld      a, c
-                ret
-ih_load_msg_1:   defb    "INTEL HEX LOAD: ", eos
-ih_load_msg_2:   defb    " Syntax error!", eos
-ih_load_msg_3:   defb    " Checksum error!", eos
+
 ;
 ; Print version information etc.
 ;
@@ -858,7 +767,7 @@ info:           push    hl
 info_msg:        defb    "INFO: ", eos
 ;
 ; Load data into memory. The user is prompted for a 16 bit start address. Then
-; a sequence of bytes in hexadecimal notation may be entered until a character
+; a s:equence of bytes in hexadecimal notation may be entered until a character
 ; that is not 0-9 or a-f is encountered.
 ;
 load:           push    af
@@ -909,9 +818,7 @@ load_loop:      ld      a, ' '
                 jr      load_loop       ; Get next byte (or at least try to)
 load_exit:      call    crlf            ; Finished...
 
-                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
                 ;;;;;;;;;ld      hl, de          ; Print number of bytes loaded
-                ;;;;;;;;; relacement code
                 push de         ; move hl to de via stack
                 pop hl          ;
 
