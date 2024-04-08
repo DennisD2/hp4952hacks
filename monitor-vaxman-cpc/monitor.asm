@@ -627,7 +627,7 @@ disloop:
                 push    bc
 
                 ld      hl,kStrBuffer
-                ld      b,0             ; bc=length of string (is not null trerminated)
+                ld      b,0             ; bc=length of string (is not null terminated)
                 ld      c,(hl)          ;  c=length byte of string
                 add     hl,bc           ; add length to hl to get end of string location
                 inc     hl
@@ -652,6 +652,26 @@ disloop:
                 jr      z,prev_page
                 cp      key_next_line   ; 1 line down , key _key_pgup on HP
                 jr      z,next_line
+
+                ; START code for testing key input
+                push    hl
+                push    bc
+                CALL    StrInitialise
+                CALL    StrWrHexByte
+                ld      hl,kStrBuffer
+                ld      b,0             ; bc=length of string (is not null terminated)
+                ld      c,(hl)          ;  c=length byte of string
+                add     hl,bc           ; add length to hl to get end of string location
+                inc     hl
+                ld      (hl),&00        ; terminate with zero
+                ld      hl,kStrBuffer   ; prepare puts call
+                inc     hl              ; step over length byte
+                call    puts
+                call    crlf
+                pop     bc
+                pop     hl
+                ; END code for testing key input
+
                 jr      nz,disloop_done ; no, other char -> done
 
 next_line:      ld      bc,&1           ; 1 opcode more
