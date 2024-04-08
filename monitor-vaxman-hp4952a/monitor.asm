@@ -2,7 +2,7 @@
 HP_4952_Target:      equ 0x01
 CPC_Target:          equ 0x00
 
-DISASS:                 equ 0x00
+DISASS:                 equ 0x01
 
 if HP_4952_Target == 0x01
 ;****************************************************************************************
@@ -1246,9 +1246,10 @@ else
  endif
 endif
 
+if DISASS == 0x01
     ; include disassembler source
-    ;include "disassembler.asm"
-
+    include "disassembler.asm"
+endif
 
 if HP_4952_Target == 0x01
 ;****************************************************************************************
@@ -1265,8 +1266,8 @@ _code_end:
 
 
 ;; Fill to end of file
-	org 0b6feh
-	seek 016feh
+	org 0bcfeh
+	seek 01cfeh
     ; final world with magic value
 	defw 0affeh
 _file_end:
