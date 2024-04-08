@@ -1265,8 +1265,13 @@ _code_end:
 ;; End of Main Application
 
 
-;; Fill to end of file
+;; Fill to end of file; file size must be multiple of 0x100 = 256
+    ; this is a0000 + seek value calculated below; I guess its just to define a valid org value, even if not being used
 	org 0bcfeh
+	; 1) check size of resulting file
+	; 2) divide by 256 0x100
+	; 3) add 1, multiply with 0x100 ; this is (filesize/0x100 + 1)*0x100 (so 0x100-bytes-page partally started is filled up)
+	; 4) subtract 2, for the word at end
 	seek 01cfeh
     ; final world with magic value
 	defw 0affeh
