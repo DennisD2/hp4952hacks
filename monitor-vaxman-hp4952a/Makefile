@@ -11,7 +11,7 @@ monitor:
 
 convert-to-asm-flavour:
 	sed -E -f ../hp4952tools/scripts/cpc-assembler-to-z80asm.sed \
-		<$(MON_SRCDIR)/monitor-cpca.asm >monitor-z80asm.asm
+		<$(MON_SRCDIR)/monitor.asm >monitor.asm
 	sed -E -f ../hp4952tools/scripts/cpc-assembler-to-z80asm.sed \
 		$(MON_SRCDIR)/disassembler.asm >disassembler.asm
 	sed -E -f ../hp4952tools/scripts/cpc-assembler-to-z80asm.sed \

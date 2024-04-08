@@ -166,6 +166,17 @@ endif
 ;  ! 00000h !    RST 000h restarts the monitor
 ;  +-------+
 
+if HP_4952_Target
+    key_next_page:   equ ' '         ; evtl also: _key_dn
+    key_prev_page:   equ 'B'         ; _key_up
+    key_next_line:   equ '.'         ; _key_rt
+else
+ if CPC_Target
+    key_next_page:   equ ' '
+    key_prev_page:   equ 'B'
+    key_next_line:   equ '.'
+ endif
+endif
 
 if CPC_Target
 ; CPC
@@ -581,7 +592,10 @@ dump_msg_3:      defb    ": ", eos
 if DISASS
 ;
 ; Disassemble a memory part
-; SPACE character shows next disassembled opcodes
+; after displaying some disassembled lines, user can input a char:
+; SPACE     shows next disassembled opcodes
+; B         30 bytes back in memory
+; .         shows next single disassembled opcode
 ;
 disassemble:    push    af
                 push    bc
@@ -627,10 +641,26 @@ disloop:
                 jr      nz,disloop      ; no, continue
 
                 call    monitor_key     ; wait for SPACE
-                cp      ' '             ; a blank?
+                cp      key_next_page   ; a blank? -> next page
+                jr      z,next_page
+                cp      key_prev_page   ; page up , key _key_pgup on HP
+                jr      z,prev_page
+                cp      key_next_line   ; 1 line down , key _key_pgup on HP
+                jr      z,next_line
                 jr      nz,disloop_done ; no, other char -> done
 
-                ld      bc,010h          ; yes, continue
+next_line:      ld      bc,01h           ; 1 opcode more
+                jp      disloop
+
+prev_page:      ld      bc,010h          ; 10 opcodes more
+                push    de              ; save de
+                ld      de,020h          ; with start address, some bytes less, not very exact...
+                sbc     hl,de
+                pop     de              ; restore de
+                call    crlf
+                jp      disloop
+
+next_page:      ld      bc,010h          ; 10 opcodes more
                 jp      disloop
 
 disloop_done:
@@ -1241,7 +1271,7 @@ if HP_4952_Target
                 call    _clear_screen
                 jp      014d5h				; Return to main menu. HP4592a
 else
- if CPC_Target
+if CPC_Target
                 ret                     ; CPC
  endif
 endif

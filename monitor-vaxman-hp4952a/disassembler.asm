@@ -273,7 +273,7 @@ _Condition: LD   A,(iDisOpcode) ;Get instruction's primary opcode
             RRA                 ;  for each coded condition
             RRA                 ;  plus flag state in Carry
             LD   B,A            ;Set up table loop counter
-; Condition table contains one byte for each flag condition:
+; Condition table contains one byte for each flag condition;
 ; 0=NZ/Z, 1=NC/C,2=PO/PE, 3=P/M and C set for Z, C, PE and M
 ; The values in the table are bit masks for the flags register
 ; which is ORed with Flags register to test if flag is set, and 
