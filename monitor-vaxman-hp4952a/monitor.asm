@@ -532,7 +532,7 @@ print_error:    call    putc            ; Echo the illegal character
 ; Some constants for the monitor;
 ;                defb    "                                ", cr, lf,
 hello_msg:       defb    cr, lf, cr, lf
-                 defb    "Simple Z80-monitor - V 0.9.2", cr, lf
+                 defb    "Simple Z80-monitor - V 0.9.4", cr, lf
                  defb    " (B. Ulmann, Sep.2011-Jan.2012)", cr, lf
                  defb    " adapted Apr. 2024 spurtikus.de", cr, lf, eos
 monitor_prompt:  defb    cr, lf
@@ -836,7 +836,7 @@ load_msg_3:      defb    " Illegal address!", eos
 
 
 ;
-; Move a memory block - the user is prompted for all necessary data:
+; Move a memory block - the user is prompted for all necessary data;
 ;
 move:           push    af              ; We won't even destroy the flags!
                 push    bc
@@ -850,9 +850,7 @@ move:           push    af              ; We won't even destroy the flags!
                 call    puts
                 call    get_word        ; Get destination start address
 
-                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
-                ;;;;;;;;;ld      de, hl          ; LDIR requires this in DE
-                ;;;;;;;;; relacement code
+                ;;;;;;;;;ld      de, hl          ; LDIR r:equires this in DE
                 push hl         ; move hl to de via stack
                 pop de          ;
 
@@ -869,9 +867,7 @@ move_get_length: ld      hl, move_msg_3
                 call    puts
                 call    get_word        ; Get length of block
 
-                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
-                ;;;;;;;;;ld      bc, hl          ; LDIR requires the length in BC XXX
-                ;;;;;;;;; relacement code
+                ;;;;;;;;;ld      bc, hl          ; LDIR r:equires the length in BC XXX
                 push hl         ; move hl to bc via stack
                 pop bc          ;
 
@@ -890,7 +886,7 @@ move_msg_2:      defb    " TO=", eos
 move_msg_3:      defb    " LENGTH=", eos
 move_msg_4:      defb    " Illegal destination address!", eos
 ;
-; Dump the contents of both register banks:
+; Dump the contents of both register banks;
 ;
 rdump:          push    af
                 push    hl
@@ -898,6 +894,10 @@ rdump:          push    af
                 call    puts
                 pop     hl
                 call    rdump_one_set
+
+if HP_4952_Target == 0x01
+                ; CPC does not like the register set swap...
+                ; I guess this would mixes up regular interrupts, not sure
                 exx
                 ex      af, af'
                 push    hl
@@ -907,6 +907,8 @@ rdump:          push    af
                 call    rdump_one_set
                 ex      af, af'
                 exx
+endif
+
                 push    hl
                 ld      hl, rdump_msg_3
                 call    puts
@@ -945,19 +947,15 @@ rdump_one_set:  push    hl              ; Print one register set
                 ld      hl, rdump_os_msg_2
                 call    puts
 
-                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
                 ;;;;;;;;;ld      hl, bc
-                ;;;;;;;;; relacement code
-                push bc        ; move bc to hl via stack
-                pop hl          ;
+                push    bc        ; move bc to hl via stack
+                pop     hl          ;
 
                 call    print_word      ; Print contents of BC
                 ld      hl, rdump_os_msg_3
                 call    puts
 
-                ;;;;;;;;; next line is in original source, but it is not a valid Z80 op code ?!?
                 ;;;;;;;;;ld      hl, de
-                ;;;;;;;;; relacement code
                 push de         ; move de to hl via stack
                 pop hl          ;
 
@@ -1000,7 +998,7 @@ is_hex:         cp      'F' + 1         ; Greater than 'F'?
                 jr      nc, is_hex_1    ; No, continue
                 ccf                     ; Complement carry (i.e. clear it)
                 ret
-is_hex_1:       cp      '9' + 1         ; Less or equal '9*?
+is_hex_1:       cp      '9' + 1         ; Less or: equal '9*?
                 ret     c               ; Yes
                 cp      'A'             ; Less than 'A'?
                 jr      nc, is_hex_2    ; No, continue
@@ -1022,14 +1020,14 @@ is_print_1:     cp      07fh
 ; nibble2val expects a hexadecimal digit (upper case!) in A and returns the
 ; corresponding value in A.
 ;
-nibble2val:     cp      '9' + 1         ; Is it a digit (less or equal '9')?
+nibble2val:     cp      '9' + 1         ; Is it a digit (less or: equal '9')?
                 jr      c, nibble2val_1 ; Yes
                 sub     7               ; Adjust for A-F
 nibble2val_1:   sub     '0'             ; Fold back to 0..15
                 and     0fh              ; Only return lower 4 bits
                 ret
 ;
-; Convert a single character contained in A to upper case:
+; Convert a single character contained in A to upper case;
 ;
 to_upper:       cp      'a'             ; Nothing to do if not lower case
                 ret     c
@@ -1063,7 +1061,7 @@ strcmp_exit:    sub     (hl)
 ;***
 ;******************************************************************************
 ;
-; Send a CR/LF pair:
+; Send a CR/LF pair;
 ;
 crlf:           push    af
                 ld      a, cr
@@ -1073,7 +1071,7 @@ crlf:           push    af
                 pop     af
                 ret
 ;
-; Read a single character from the serial line, result is in A:
+; Read a single character from the serial line, result is in A;
 ;
 getc:           ;call    rx_ready
                 ;in      a, (uart_register_0)
@@ -1161,7 +1159,7 @@ print_byte:     push    af              ; Save the contents of the registers
                 ret
 ;
 ; print_nibble prints a single hex nibble which is contained in the lower
-; four bits of A:
+; four bits of A;
 ;
 print_nibble:   push    af              ; We won't destroy the contents of A
                 and     0fh              ; Just in case...
@@ -1186,14 +1184,14 @@ print_word:     push    hl
                 pop     hl
                 ret
 ;
-; Send a single character to the serial line (a contains the character):
+; Send a single character to the serial line (a contains the character);
 ;
 putc:           ;call    tx_ready
                 ;out     (uart_register_0), a
                 call    _writechar
                 ret
 ;
-; Send a string to the serial line, HL contains the pointer to the string:
+; Send a string to the serial line, HL contains the pointer to the string;
 ;
 puts:           push    af
                 push    hl
@@ -1206,58 +1204,27 @@ puts_loop:      ld      a, (hl)
 puts_end:       pop     hl
                 pop     af
                 ret
-;
-; Wait for an incoming character on the serial line:
-;
-;rx_ready:       ;push    af
-;rx_ready_loop:  ;in      a, (uart_register_5)
-                ;bit     0, a
-                ;jr      z, rx_ready_loop
-                ;pop     af
-                ;ret
-;
-; Wait for UART to become ready to transmit a byte:
-;
-;tx_ready:       ;push    af
-;tx_ready_loop:  ;in      a, (uart_register_5)
-                ;bit     5, a
-                ;jr      z, tx_ready_loop
-                ;pop af
-                ;ret
 
-;******************************************************************************
-;***
-;*** Miscellaneous functions
-;***
-;******************************************************************************
-;
-; Clear the computer (not to be called - jump into this routine):
-;
-cold_start:     ld      hl, start_type
-                ld      (hl), 000h
-warm_start:     ld      hl, clear_msg
-                call    puts
-                ld      a, 000h
-                ld      (ram_end), a
-                rst     000h
-clear_msg:      defb    "CLEAR", cr, lf, eos
+app_exit:       ;call ClearScreen
+if HP_4952_Target == 0x01
+                jp 014d5h				; Return to main menu. HP4592a
+endif
+if CPC_Target == 0x01
+                ret                     ; CPC
+endif
 
-app_exit:       call _clear_screen
-                jp 014d5h				; Return to main menu.
+    ; include disassembler source
+    ;include "disassembler.asm"
 
 
+if HP_4952_Target == 0x01
 ;****************************************************************************************
+; HP4952 footer start
 ;****************************************************************************************
-;
-; end wrapper
-;
-;****************************************************************************************
-;****************************************************************************************
-
-include "lib/string.asm"
-include "lib/screen.asm"
-include "lib/printf.asm"
-include "lib/keyb.asm"
+    include "lib/string.asm"
+    include "lib/screen.asm"
+    include "lib/printf.asm"
+    include "lib/keyb.asm"
 
 _code_end:
 	defb 033h
@@ -1271,3 +1238,7 @@ _code_end:
 
 	defb 0affeh
 _file_end:
+;****************************************************************************************
+; HP4952 footer end
+;****************************************************************************************
+endif
