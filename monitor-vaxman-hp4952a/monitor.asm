@@ -1265,11 +1265,10 @@ _code_end:
 
 
 ;; Fill to end of file
-	org 0b0ffh
-	seek 16ffh
-	defb 000h
-
-	defb 0affeh
+	org 0b6feh
+	seek 016feh
+    ; final world with magic value
+	defw 0affeh
 _file_end:
 ;****************************************************************************************
 ; HP4952 footer end
