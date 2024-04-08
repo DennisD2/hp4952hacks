@@ -174,16 +174,8 @@ WaitChar:       equ     0bb06h
 ClearScreen:    equ     0bc14h
 endif
 
-if HP_4952_Target == 0x01
-; HP4952A
-PrintChar:        equ       _writechar
-WaitChar:         equ       _getkey_wait
-ClearScreen:      equ       _clear_screen
-endif
-;
 if CPC_Target == 0x01
 monitor_start:   equ     08000h           ; 00000h -> ROM, 08000h -> Test image
-;
                  org     monitor_start
 endif
 ;
@@ -367,8 +359,13 @@ initialize:      ;ld      sp, start_type - 01h
                 ;out     (uart_register_3), a
 ;
 ; Print welcome message;
-;
-                call    _clear_screen
+if HP_4952_Target == 0x01
+                 call    _clear_screen
+else
+ if CPC_Target == 0x01
+                 call    ClearScreen
+ endif
+endif
                 ld      hl, hello_msg
                 call    puts
 ;
@@ -486,7 +483,7 @@ print_error:    call    putc            ; Echo the illegal character
 ; Some constants for the monitor;
 ;                defb    "                                ", cr, lf,
 hello_msg:       defb    cr, lf, cr, lf
-                 defb    "Simple Z80-monitor - V 0.9.5", cr, lf
+                 defb    "Simple Z80-monitor - V 0.9.6", cr, lf
                  defb    " (B. Ulmann, Sep.2011-Jan.2012)", cr, lf
                  defb    " adapted Apr. 2024 spurtikus.de", cr, lf, eos
 monitor_prompt:  defb    cr, lf
@@ -1097,7 +1094,13 @@ crlf:           push    af
 ;
 getc:           ;call    rx_ready
                 ;in      a, (uart_register_0)
+if HP_4952_Target == 0x01
                 call _getkey_wait
+else
+ if CPC_Target == 0x01
+                call WaitChar
+ endif
+endif
                 ret
 ;
 ; Get a byte in hexadecimal notation. The result is returned in A. Since
@@ -1210,7 +1213,13 @@ print_word:     push    hl
 ;
 putc:           ;call    tx_ready
                 ;out     (uart_register_0), a
+if HP_4952_Target == 0x01
                 call    _writechar
+else
+ if CPC_Target == 0x01
+                call PrintChar
+ endif
+endif
                 ret
 ;
 ; Send a string to the serial line, HL contains the pointer to the string;
@@ -1227,12 +1236,14 @@ puts_end:       pop     hl
                 pop     af
                 ret
 
-app_exit:       ;call ClearScreen
+app_exit:
 if HP_4952_Target == 0x01
-                jp 014d5h				; Return to main menu. HP4592a
-endif
-if CPC_Target == 0x01
+                call    _clear_screen
+                jp      014d5h				; Return to main menu. HP4592a
+else
+ if CPC_Target == 0x01
                 ret                     ; CPC
+ endif
 endif
 
     ; include disassembler source
