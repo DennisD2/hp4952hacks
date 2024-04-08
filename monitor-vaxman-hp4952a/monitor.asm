@@ -165,86 +165,40 @@ endif
 ;  !  ---  !    RST 008h calls a system routine
 ;  ! 00000h !    RST 000h restarts the monitor
 ;  +-------+
+
+
+if CPC_Target == 0x01
+; CPC
+PrintChar: 	    equ	    0bb5ah
+WaitChar:       equ     0bb06h
+ClearScreen:    equ     0bc14h
+endif
+
+if HP_4952_Target == 0x01
+; HP4952A
+PrintChar:        equ       _writechar
+WaitChar:         equ       _getkey_wait
+ClearScreen:      equ       _clear_screen
+endif
 ;
+if CPC_Target == 0x01
+monitor_start:   equ     08000h           ; 00000h -> ROM, 08000h -> Test image
 ;
-;monitor_start:   equ     00000h           ; 00000h -> ROM, 08000h -> Test image
-;
-;                org     monitor_start
+                 org     monitor_start
+endif
 ;
 ;rom_start:       equ     00h
 ;rom_end:         equ     07fffh
-ram_start:       equ     08000h
-ram_end:         equ     0ffffh
-buffer:          equ     ram_end - 01ffh  ; 512 byte IDE general purpose buffer
-;
-; Define the FAT control block memory addresses:
-;
-datastart:       equ     buffer - 4      ; Data area start vector
-rootstart:       equ     datastart - 4   ; Root directory start vector
-fat1start:       equ     rootstart - 4   ; Start vector to first FAT
-psiz:            equ     fat1start - 4   ; Size of partition (in sectors)
-pstart:          equ     psiz - 4        ; First sector of partition
-rootlen:         equ     pstart - 2      ; Maximum number of entries in directory
-fatsec:          equ     rootlen - 2     ; FAT size in sectors
-ressec:          equ     fatsec - 2      ; Number of reserved sectors
-clusiz:          equ     ressec - 1      ; Size of a cluster (in sectors)
-fatname:         equ     clusiz - 9      ; Name of the FAT (null terminated)
-fatcb:           equ     fatname         ; Start of the FATCB
-;
-; Define a file control block (FCB) memory addresses and displacements:
-;
-file_buffer:     equ     fatcb - 0200h            ; 512 byte sector buffer
-cluster_sector:  equ     file_buffer - 1         ; Current sector in cluster
-current_sector:  equ     cluster_sector - 4      ; Current sector address
-current_cluster: equ     current_sector - 2      ; Current cluster number
-file_pointer:    equ     current_cluster - 4     ; Pointer for file position
-file_type:       equ     file_pointer - 1        ; 0 -> not found, else OK
-first_cluster:   equ     file_type - 2           ; First cluster of file
-file_size:       equ     first_cluster - 4       ; Size of file
-file_name:       equ     file_size - 12          ; Canonical name of file
-fcb:             equ     file_name               ; Start of the FCB
-;
-;fcb_filename:            equ     0
-;fcb_file_size:           equ     0ch
-;fcb_first_cluster:       equ     010h
-;fcb_file_type:           equ     012h
-;fcb_file_pointer:        equ     013h
-;fcb_current_cluster:     equ     017h
-;fcb_current_sector:      equ     019h
-;fcb_cluster_sector:      equ     01dh
-;fcb_file_buffer:         equ     01eh
-;
-; We also need some general purpose string buffers:
-;
-string_81_bfr:   equ     fcb - 81
-string_12_bfr:   equ     string_81_bfr - 12
-;
-;  A number of routines need a bit of scratch RAM, too. Since these are
-; sometimes interdependent, each routine gets its own memory cells (only
-; possible since the routines are not recursive).
-;
-load_file_scrat: equ     string_12_bfr - 2       ; Two bytes for load_file
-str2filename_de: equ     load_file_scrat - 2     ; Two bytes for str2filename
-fopen_eob:       equ     str2filename_de - 2     ; Eight bytes for fopen
-fopen_rsc:       equ     fopen_eob - 4
-fopen_scr:       equ     fopen_rsc - 2
-dirlist_scratch: equ     fopen_scr - 2           ; Eight bytes for fopen
-dirlist_eob:     equ     dirlist_scratch - 2
-dirlist_rootsec: equ     dirlist_eob - 4
-;
-start_type:      equ     dirlist_rootsec  - 01h   ; Distinguish cold/warm start
-;
-;uart_base:       equ     00h
-;ide_base:        equ     010h
-;
-;uart_register_0: equ     uart_base + 0
-;uart_register_1: equ     uart_base + 1
-;uart_register_2: equ     uart_base + 2
-;uart_register_3: equ     uart_base + 3
-;uart_register_4: equ     uart_base + 4
-;uart_register_5: equ     uart_base + 5
-;uart_register_6: equ     uart_base + 6
-;uart_register_7: equ     uart_base + 7
+
+if CPC_Target == 0x01
+ram_start:       equ     09400h
+endif
+if HP_4952_Target == 0x01
+ram_start:       equ     05000h
+endif
+;ram_end:         equ     0ffffh
+
+
 ;
 eos:             equ     000h             ; End of string
 cr:              equ     00dh             ; Carriage return
@@ -532,7 +486,7 @@ print_error:    call    putc            ; Echo the illegal character
 ; Some constants for the monitor;
 ;                defb    "                                ", cr, lf,
 hello_msg:       defb    cr, lf, cr, lf
-                 defb    "Simple Z80-monitor - V 0.9.4", cr, lf
+                 defb    "Simple Z80-monitor - V 0.9.5", cr, lf
                  defb    " (B. Ulmann, Sep.2011-Jan.2012)", cr, lf
                  defb    " adapted Apr. 2024 spurtikus.de", cr, lf, eos
 monitor_prompt:  defb    cr, lf
@@ -626,8 +580,76 @@ dump_al_1:      call    putc            ; Print the character
 dump_msg_1:      defb    "DUMP: START=", eos
 dump_msg_2:      defb    " END=", eos
 dump_msg_3:      defb    ": ", eos
+
+if DISASS == 0x01
 ;
-; Examine a memory location:
+; Disassemble a memory part
+; SPACE character shows next disassembled opcodes
+;
+disassemble:    push    af
+                push    bc
+                push    de
+                push    hl
+
+                ld      hl, dis_msg_1
+                call    puts            ; Print prompt
+                call    get_word        ; Read start address
+                call    crlf
+                ld      bc,010h          ; number of op codes to disassemble, "lines"
+
+; disassemble code
+; hi is start of code, bc number of opcodes to disassemble
+disloop:
+                ; DisWrInstruction, call with address to disassemble in hl
+                call    DisWrInstruction
+                ; a = length of instruction
+                ; hl = address of next instruction
+                ; kStrBuffer contains disassembled opcode string
+
+                ; terminate string with 0x0 for puts call
+                push    hl
+                push    bc
+
+                ld      hl,kStrBuffer
+                ld      b,0             ; bc=length of string (is not null trerminated)
+                ld      c,(hl)          ;  c=length byte of string
+                add     hl,bc           ; add length to hl to get end of string location
+                inc     hl
+                ld      (hl),000h        ; terminate with zero
+                ld      hl,kStrBuffer   ; prepare puts call
+                inc     hl              ; step over length byte
+                call    puts
+                call    crlf
+
+                pop     bc
+                pop     hl
+
+                dec     bc              ; lines--
+                ld      a,b             ; line loop finished? bc==0
+                or      c
+                jr      nz,disloop      ; no, continue
+
+                call    monitor_key     ; wait for SPACE
+                cp      ' '             ; a blank?
+                jr      nz,disloop_done ; no, other char -> done
+
+                ld      bc,010h          ; yes, continue
+                jp      disloop
+
+disloop_done:
+                pop     hl
+                pop     de
+                pop     bc
+                pop     af
+
+                ret
+
+dis_msg_1:     defb    "DISASSEMBLE, START=", eos
+
+endif
+
+;
+; Examine a memory location;
 ; SPACE character shows next byte
 ;
 examine:        push    af
