@@ -586,7 +586,10 @@ dump_msg_3:      defb    ": ", eos
 if DISASS
 ;
 ; Disassemble a memory part
-; SPACE character shows next disassembled opcodes
+; after displaying some disassembled lines, user can input a char:
+; SPACE     shows next disassembled opcodes
+; B         30 bytes back in memory
+; .         shows next single disassembled opcode
 ;
 disassemble:    push    af
                 push    bc
@@ -631,11 +634,32 @@ disloop:
                 or      c
                 jr      nz,disloop      ; no, continue
 
+key_next_page   equ ' '
+key_prev_page   equ 'B'
+key_next_line   equ '.'
+
+
                 call    monitor_key     ; wait for SPACE
-                cp      ' '             ; a blank?
+                cp      key_next_page   ; a blank? -> next page
+                jr      z,next_page
+                cp      key_prev_page   ; page up , key _key_pgup on HP
+                jr      z,prev_page
+                cp      key_next_line   ; 1 line down , key _key_pgup on HP
+                jr      z,next_line
                 jr      nz,disloop_done ; no, other char -> done
 
-                ld      bc,&10          ; yes, continue
+next_line:      ld      bc,&1           ; 1 opcode more
+                jp      disloop
+
+prev_page:      ld      bc,&10          ; 10 opcodes more
+                push    de              ; save de
+                ld      de,&20          ; with start address, some bytes less, not very exact...
+                sbc     hl,de
+                pop     de              ; restore de
+                call    crlf
+                jp      disloop
+
+next_page:      ld      bc,&10          ; 10 opcodes more
                 jp      disloop
 
 disloop_done:
