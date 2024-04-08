@@ -5,7 +5,6 @@ CPC_Target          equ &01
 DISASS                 equ &01
 
 if HP_4952_Target
-;if HP_4952_Target
 ;****************************************************************************************
 ; HP4952 header start
 ;****************************************************************************************
@@ -180,7 +179,6 @@ else
 endif
 
 if CPC_Target
-;if CPC_Target == &01
 ; CPC
 PrintChar 	    equ	    &bb5a
 WaitChar       equ     &bb06
@@ -188,7 +186,6 @@ ClearScreen    equ     &bc14
 endif
 
 if CPC_Target
-;if CPC_Target == &01
 monitor_start   equ     &8000           ; &0000 -> ROM, &8000 -> Test image
                  org     monitor_start
 endif
@@ -197,7 +194,6 @@ endif
 ;rom_end         equ     &7fff
 
 if CPC_Target
-;if CPC_Target == &01
 ram_start       equ     &9400
 endif
 if HP_4952_Target
@@ -378,7 +374,6 @@ if HP_4952_Target
                  call    _clear_screen
 else
  if CPC_Target
- ;if CPC_Target == &01
                  call    ClearScreen
  endif
 endif
@@ -1153,7 +1148,6 @@ if HP_4952_Target
                 call _getkey_wait
 else
  if CPC_Target
- ;if CPC_Target == &01
                 call WaitChar
  endif
 endif
@@ -1273,7 +1267,6 @@ if HP_4952_Target
                 call    _writechar
 else
  if CPC_Target
- ;if CPC_Target == &01
                 call PrintChar
  endif
 endif
@@ -1299,7 +1292,6 @@ if HP_4952_Target
                 jp      &14d5				; Return to main menu. HP4592a
 else
 if CPC_Target
-;if CPC_Target == &01
                 ret                     ; CPC
  endif
 endif
