@@ -2828,9 +2828,13 @@ l_2b8f:
 	ret			;c1a3	c9 	. 
 
     ; next 3 lines look like variables
-	ld bc,02ba9h		;c1a4	01 a9 2b 	. . + 
-	xor h			;c1a7	ac 	. 
-	inc l			;c1a8	2c 	, 
+    defb 001h
+    defw 02ba9h         ; 2ba9 : 2ba9-2a00=1a9 ; c000+1a9 = c1a9 = vt100_start_screen!
+	;ld bc,02ba9h		;c1a4	01 a9 2b 	. . +
+
+	defw 02cach         ; 2cac : 2cac-2a00=2ac; c000+2ac = c2ac = 1st byte after  end of vt100_start_screen!
+	;xor h			;c1a7	ac 	.
+	;inc l			;c1a8	2c 	,
 
 vt100_start_screen:
 	defb 0ffh
