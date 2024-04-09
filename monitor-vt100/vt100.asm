@@ -2652,11 +2652,12 @@ _splash_screen_data: ; see lib/splash.asm
     defb 000h
 ; end of _splash_screen_data
 
+l_2a7b:
     defw 02a8bh             ; 2a8b: 2a8b-2a00=8b c000+8b = c08b, see below
+l_2a7d:
     defb 000h, 000h
 	;adc a,e			;c07b	8b 	.
 	;ld hl,(00000h)		;c07c	2a 00 00 	* . .
-
     defb 000h, 000h
     defb 000h, 000h
     defb 000h, 000h
@@ -2676,6 +2677,8 @@ _splash_screen_data: ; see lib/splash.asm
 	defw 02acbh                             ; 2acb -> c0cb
 	;sra d		;c089	cb 2a 	. *
 
+    ; 2a89
+l_2a8b:
 	; 64 SPACEs follow
 	defb "                "
 	defb "                "
@@ -2684,6 +2687,7 @@ _splash_screen_data: ; see lib/splash.asm
 
 	defw 02adbh                                 ; 2adb -> c0db
 	;in a,(02ah)		;c0cb	db 2a 	. *
+l_2acd:
     defb 000h, 000h
     defb 000h, 000h
     defb 000h, 000h
@@ -2696,6 +2700,8 @@ _splash_screen_data: ; see lib/splash.asm
 	;ld a,e			;c0d9	7b 	{
 	;ld hl,(02020h)		;c0da	2a 20 20 	*
 
+    ; 2a8b in target, is c08b in c000 space
+l_2adb:
 	; 64 SPACEs follow
 	defb "                "
 	defb "                "
@@ -2715,46 +2721,50 @@ _splash_screen_data: ; see lib/splash.asm
 
 f_2b23:
     ; important app entry function, called by __init
-    ; does many ldir and 2 os_loadpage calls. No other calls.
+    ; fills 4 smaller areas with ldir, and 2 os_loadpage calls. No other calls.
     ; So it looks like memory and menu preparation for app execution
 	ld hl,app_target_area		;c123	21 00 2a 	! . * 	; (0761d) := 2a00
 	ld (0761dh),hl		;c126	22 1d 76 	" . v   ; Screen Paint Script Location, see lib/strap.asm
 
 ; POI200 VGL: strap.asm, line 217-219; seems to load _p_main_menu_page_one into 0761fh and 07624h
-	ld hl,02a7bh		;c129	21 7b 2a 	! { *   ; (0761f) := 2a7b
+	ld hl,l_2a7b+app_target_area-_splash_screen_data		;c129	21 7b 2a 	! { *   ; (0761f) := 2a7b
 	ld (0761fh),hl		;c12c	22 1f 76 	" . v
 	ld (07624h),hl		;c12f	22 24 76 	" $ v   ; (07624) := 2a7b
 	ld a,(_tmp_page)	;c132	3a 96 a4 	: . .
-	call os_loadpage    ;c135	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
+	call os_loadpage    ;c135	cd 60 0e 	. ` .   ; Patched to 02d02h, Page-in _tmp_page
 	ld hl,08326h		;c138	21 26 83 	! & .   ; hl:=08326h
 	ld e,(hl)			;c13b	5e 	^               ; de := word at 08326h
-	inc hl			    ;c13c	23 	#                   ;
+	inc hl			    ;c13c	23 	#               ;
 	ld d,(hl)			;c13d	56 	V               ;
-	inc hl			    ;c13e	23 	#                   ; hl++
-	push hl			    ;c13f	e5 	.                   ; save hl
+	inc hl			    ;c13e	23 	#               ; hl++
+	push hl			    ;c13f	e5 	.               ; save hl
 	ex de,hl			;c140	eb 	.               ; hl:=de
-	ld de,02a8bh		;c141	11 8b 2a 	. . *   ; de:=02a8bh
+	; copy 0x40 bytes from hl to space at l_2a8b
+	ld de,l_2a8b+app_target_area-_splash_screen_data		;c141	11 8b 2a 	. . *   ; de:=02a8bh
 	ld bc,00040h		;c144	01 40 00 	. @ .   ; size=0x040
-	ldir		        ;c147	ed b0 	. .                 ; do copy
-	pop hl			    ;c149	e1 	.                   ; restore hl
-	ld de,02a7dh		;c14a	11 7d 2a 	. } *   ; de:=02a7dh
+	ldir		        ;c147	ed b0 	. .         ; do copy
+	pop hl			    ;c149	e1 	.               ; restore hl
+	; copy 0xc bytes from hl to space at l_2a7d
+	ld de,l_2a7d+app_target_area-_splash_screen_data		;c14a	11 7d 2a 	. } *   ; de:=02a7dh
 	ld bc,0000ch		;c14d	01 0c 00 	. . .   ; bc:=0xc
-	ldir		        ;c150	ed b0 	. .                 ; do copy
-	ld e,(hl)			;c152	5e 	^ 
+	ldir		        ;c150	ed b0 	. .         ; do copy
+	ld e,(hl)			;c152	5e 	^               ; de := (hl)
 	inc hl			    ;c153	23 	#
 	ld d,(hl)			;c154	56 	V 
-	ex de,hl			;c155	eb 	. 
-	ld e,(hl)			;c156	5e 	^ 
-	inc hl			    ;c157	23 	#
-	ld d,(hl)			;c158	56 	V 
-	inc hl			    ;c159	23 	#
-	push hl			    ;c15a	e5 	.
+	ex de,hl			;c155	eb 	.               ; hl<->de
+	ld e,(hl)			;c156	5e 	^               ; de := (hl)
+	inc hl			    ;c157	23 	#               ;
+	ld d,(hl)			;c158	56 	V               ;
+	inc hl			    ;c159	23 	#               ; hl++
+	push hl			    ;c15a	e5 	.               ; save hl
+	; copy 0x40 bytes from hl to space at l_2adb
 	ex de,hl			;c15b	eb 	.               ; hl:=de
-	ld de,02adbh		;c15c	11 db 2a 	. . *   ; de:=02adbh
+	ld de,l_2adb+app_target_area-_splash_screen_data		;c15c	11 db 2a 	. . *   ; de:=02adbh
 	ld bc,00040h		;c15f	01 40 00 	. @ .   ; size=0x040
-	ldir		        ;c162	ed b0 	. .                 ; do copy
-	pop hl			    ;c164	e1 	.
-	ld de,02acdh		;c165	11 cd 2a 	. . * 
+	ldir		        ;c162	ed b0 	. .         ; do copy
+	pop hl			    ;c164	e1 	.               ; restore hl
+	; copy 0xc bytes from hl to space at l_2acd
+	ld de,l_2acd+app_target_area-_splash_screen_data		;c165	11 cd 2a 	. . *   ;
 	ld bc,0000ch		;c168	01 0c 00 	. . .   ; bc:=0xc
 	ldir		        ;c16b	ed b0 	. .                 ; do copy
 	ld a,006h		    ;c16d	3e 06 	> .             ; Load Page 6 (Application RAM)
