@@ -2762,7 +2762,8 @@ _splash_screen_data: ; see lib/splash.asm
 	;;dec l			;c11d	2d 	- 
 	;;jr nz,$+34		;c11e	20 20 	    
 	;;ld sp,03030h		;c120	31 30 30 	1 0 0 
-	defb "VT-  100"
+	defb "VT- "
+	defb " 100"
 
 f_2b23:
     ; important app entry function, called by __init
