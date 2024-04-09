@@ -2656,103 +2656,51 @@ _splash_screen_data: ; see lib/splash.asm
     defb 000h, 000h
 	;adc a,e			;c07b	8b 	.
 	;ld hl,(00000h)		;c07c	2a 00 00 	* . .
-	nop			;c07f	00 	. 
-	nop			;c080	00 	. 
-	nop			;c081	00 	. 
-	nop			;c082	00 	. 
-	nop			;c083	00 	. 
-	nop			;c084	00 	. 
-	nop			;c085	00 	. 
-	nop			;c086	00 	. 
-	nop			;c087	00 	. 
-	nop			;c088	00 	.
+
+    defb 000h, 000h
+    defb 000h, 000h
+    defb 000h, 000h
+    defb 000h, 000h
+    defb 000h, 000h
+	;nop			;c07f	00 	.
+	;nop			;c080	00 	.
+	;nop			;c081	00 	.
+	;nop			;c082	00 	.
+	;nop			;c083	00 	.
+	;nop			;c084	00 	.
+	;nop			;c085	00 	.
+	;nop			;c086	00 	.
+	;nop			;c087	00 	.
+	;nop			;c088	00 	.
 
 	defw 02acbh                             ; 2acb -> c0cb
 	;sra d		;c089	cb 2a 	. *
-	jr nz,$+34		;c08b	20 20 	    
-	jr nz,$+34		;c08d	20 20 	    
-	jr nz,$+34		;c08f	20 20 	    
-	jr nz,$+34		;c091	20 20 	    
-	jr nz,$+34		;c093	20 20 	    
-	jr nz,$+34		;c095	20 20 	    
-	jr nz,$+34		;c097	20 20 	    
-	jr nz,$+34		;c099	20 20 	    
-	jr nz,$+34		;c09b	20 20 	    
-	jr nz,$+34		;c09d	20 20 	    
-	jr nz,$+34		;c09f	20 20 	    
-	jr nz,$+34		;c0a1	20 20 	    
-	jr nz,$+34		;c0a3	20 20 	    
-	jr nz,$+34		;c0a5	20 20 	    
-	jr nz,$+34		;c0a7	20 20 	    
-	jr nz,$+34		;c0a9	20 20 	    
-	jr nz,$+34		;c0ab	20 20 	    
-	jr nz,$+34		;c0ad	20 20 	    
-	jr nz,$+34		;c0af	20 20 	    
-	jr nz,$+34		;c0b1	20 20 	    
-	jr nz,$+34		;c0b3	20 20 	    
-	jr nz,$+34		;c0b5	20 20 	    
-	jr nz,$+34		;c0b7	20 20 	    
-	jr nz,$+34		;c0b9	20 20 	    
-	jr nz,$+34		;c0bb	20 20 	    
-	jr nz,$+34		;c0bd	20 20 	    
-	jr nz,$+34		;c0bf	20 20 	    
-	jr nz,$+34		;c0c1	20 20 	    
-	jr nz,$+34		;c0c3	20 20 	    
-	jr nz,$+34		;c0c5	20 20 	    
-	jr nz,$+34		;c0c7	20 20 	    
-	jr nz,$+34		;c0c9	20 20
+
+	; 64 SPACEs follow
+	defb "                "
+	defb "                "
+	defb "                "
+	defb "                "
 
 	defw 02adbh                                 ; 2adb -> c0db
 	;in a,(02ah)		;c0cb	db 2a 	. *
-	nop			;c0cd	00 	. 
-	nop			;c0ce	00 	. 
-	nop			;c0cf	00 	. 
-	nop			;c0d0	00 	. 
-	nop			;c0d1	00 	. 
-	nop			;c0d2	00 	. 
-	nop			;c0d3	00 	. 
-	nop			;c0d4	00 	. 
-	nop			;c0d5	00 	. 
-	nop			;c0d6	00 	. 
-	nop			;c0d7	00 	. 
-	nop			;c0d8	00 	. 
-	ld a,e			;c0d9	7b 	{
-
-	defb 02ah
-	defb 020h
-	defb 020h
+    defb 000h, 000h
+    defb 000h, 000h
+    defb 000h, 000h
+    defb 000h, 000h
+    defb 000h, 000h
+    defb 000h, 000h
+	;nop			;c0d7	00 	.
+	;nop			;c0d8	00 	.
+	defw 02a7bh
+	;ld a,e			;c0d9	7b 	{
 	;ld hl,(02020h)		;c0da	2a 20 20 	*
-	jr nz,$+34		;c0dd	20 20 	    
-	jr nz,$+34		;c0df	20 20 	    
-	jr nz,$+34		;c0e1	20 20 	    
-	jr nz,$+34		;c0e3	20 20 	    
-	jr nz,$+34		;c0e5	20 20 	    
-	jr nz,$+34		;c0e7	20 20 	    
-	jr nz,$+34		;c0e9	20 20 	    
-	jr nz,$+34		;c0eb	20 20 	    
-	jr nz,$+34		;c0ed	20 20 	    
-	jr nz,$+34		;c0ef	20 20 	    
-	jr nz,$+34		;c0f1	20 20 	    
-	jr nz,$+34		;c0f3	20 20 	    
-	jr nz,$+34		;c0f5	20 20 	    
-	jr nz,$+34		;c0f7	20 20 	    
-	jr nz,$+34		;c0f9	20 20 	    
-	jr nz,$+34		;c0fb	20 20 	    
-	jr nz,$+34		;c0fd	20 20 	    
-	jr nz,$+34		;c0ff	20 20 	    
-	jr nz,$+34		;c101	20 20 	    
-	jr nz,$+34		;c103	20 20 	    
-	jr nz,$+34		;c105	20 20 	    
-	jr nz,$+34		;c107	20 20 	    
-	jr nz,$+34		;c109	20 20 	    
-	jr nz,$+34		;c10b	20 20 	    
-	jr nz,$+34		;c10d	20 20 	    
-	jr nz,$+34		;c10f	20 20 	    
-	jr nz,$+34		;c111	20 20 	    
-	jr nz,$+34		;c113	20 20 	    
-	jr nz,$+34		;c115	20 20 	    
-	jr nz,$+34		;c117	20 20 	    
-	jr nz,$+34		;c119	20 20 
+
+	; 64 SPACEs follow
+	defb "                "
+	defb "                "
+	defb "                "
+	defb "                "
 
 	; Item text for main menu for new application , see POI-212
 	; c11b is in target space: c11b-c000+2a00; 11b+2a00=2b1b
