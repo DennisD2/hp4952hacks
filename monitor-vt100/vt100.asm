@@ -3607,7 +3607,6 @@ l_c53d:
 	defb "Off", 000h
 
 ; see POI-210
-; some setup function, called supposedly by menu selection
 ; called by main menu selection "Setup Menu"
 ; function c8d4
 fm_setup:
