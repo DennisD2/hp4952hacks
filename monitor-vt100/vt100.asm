@@ -4578,9 +4578,21 @@ var_byte_dbea:
     defb 000h, 000h, 000h, 000h
 end_code_p_dbe0:
 
+;****************************************************************************************
+; HP4952 footer start
+;****************************************************************************************
+include "lib/string.asm"
+include "lib/screen.asm"
+include "lib/printf.asm"
+include "lib/keyb.asm"
+include "lib/monitor-i.asm"
+
+    org 0eeffh
+    seek 04effh
+    defb 000h
 ;; in original file, we have nop until 0e7ffh
-	org 0e800h
-	seek 04800h
+	;org 0e800h
+	;seek 04800h
 code_p_endfill:
 ;; from here to file end, we have, in original app, the pattern "20 83"
 ;; so from e800/e801  to f8fe/f8ff
@@ -4589,8 +4601,4 @@ code_p_endfill:
         ;org 0f8ffh
         ;seek 058ffh
         ;defb 000h
-
-;; to allow "cmp" to work, we use original file tail. This is the only reason for include.
-;; it is safe to use the directives commented above, but then cmp will fail.
-    ;include "origtail.asm"
 _file_end:
