@@ -2882,6 +2882,7 @@ vt100_start_screen:
 ; end of vt100_start_screen
 
 ; POI-210
+l_c2ac:
 	defw 02cbch         ; 2cbc : 2cbc-2a00=2bc; c000+2bc = c2bc = l_start_menu_2bc !
 	;cp h			;c2ac	bc 	.
 	;inc l			;c2ad	2c 	,
@@ -2903,7 +2904,10 @@ vt100_start_screen:
 	;nop			;c2b6	00 	.
 	;nop			;c2b7	00 	.
 
-	defb 031h, 02dh, 0ach, 02ch
+    ; 2d31 : 2d31 - 2a00 = 331: c331 = fun_c331 !
+    defw 02d31h
+    ; 2cac : 2cac -2a00 = 2ac: c2ac = l_c2ac ! "Rückverweis"
+    defw 02cach
 	;ld sp,0ac2dh		;c2b8	31 2d ac 	1 - .
 	;inc l			;c2bb	2c 	,
 
@@ -2939,6 +2943,8 @@ f_2cfc:
 	ld hl,00000h		;c32d	21 00 00 	! . .   ; hl:=0x0
 	ret			;c330	c9 	. 
 
+    ; function supposedly called by menu selection , PO-210
+fun_c331:
 	ld a,062h		;c331	3e 62 	> b             ; a:=0x62 'b'
 	ld (07501h),a		;c333	32 01 75 	2 . u   ; (07501h):=a
 	ld a,006h		;c336	3e 06 	> .             ; Load Page 6 (Application RAM)
