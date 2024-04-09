@@ -22,6 +22,7 @@ DISASS:              equ 001h
 ;  0xd400   0x3400 code_p_d400              ?
 ;  0xdbe0   0x3be0 code_p_dbe0              small area for variables, size 0x20
 ;  0xc000   0x2000 _splash_screen_data      splash screen and menu data
+;  0x2a00                                   APP_TARGET_AREA
 ;  0xe800   0x4800 code_p_endfill           contains fill bytes up to next multiple of 256
 
 ; -------------------------------------------------------------------
@@ -311,7 +312,7 @@ __dll_fixups_end:
 ;; Load and execute ordinal patching stub from a safe location
 _load_dll_stub:
 	ld hl,_dll_stub		;a410	21 4c a4 	! L .		; copy 0x36 bytes from a44c to 2a00
-	ld de,02a00h		;a413	11 00 2a 	. . *       : this is _dll_stub function code block
+	ld de,app_target_area		;a413	11 00 2a 	. . *       : this is _dll_stub function code block
 	;ld bc,00036h		;a416	01 36 00 	. 6 .
 	ld bc,_dll_stub_end-_dll_stub		;a416	01 36 00 	. 6 .
 	ldir		;a419	ed b0 	. .
@@ -437,7 +438,7 @@ l2065h:
 
 	; copy 0x1400 bytes starting _splash_screen_data to 0x2a00
 	ld hl,_splash_screen_data		;a4b7	21 00 c0 	! . .		; this will overwrite just copied _dll_stub code, which is no longer needed
-	ld de,02a00h		;a4ba	11 00 2a 	. . *
+	ld de,app_target_area		;a4ba	11 00 2a 	. . *
 
 	;ld bc,01400h		;a4bd	01 00 14 	. . .
 	ld bc,code_p_d400-_splash_screen_data    ;a4bd	01 00 14 	. . .
@@ -460,8 +461,9 @@ l2065h:
 	call l_2b8f + app_target_area-_splash_screen_data	;a4c5	cd 8f 2b 	. . +
 	;call 02b8fh		;a4c5	cd 8f 2b 	. . +
 
-    ; return to main menu, means we leave this app
     ; see lib/strap.asm
+    ; return to main menu, means we have set up the menu part. Do nothing until menu item for this app is selected
+    ; then main menu handler will call some entry function of this app. What function is this????
 	jp os_rtn_to_main_menu		;a4c8	c3 d5 14 	. . . ; Patched to 02e32h
 	;jp 014d5h
 	
@@ -487,7 +489,7 @@ loop_a4d4:
 	ld (01133h),a		;a4e1	32 33 11 	2 3 .
 
 	ld hl,_splash_screen_data		;a4e4	21 00 c0 	! . . ; copies 0x1400 bytes from _splash_screen_data to 2a00h
-	ld de,02a00h		;a4e7	11 00 2a 	. . * 
+	ld de,app_target_area		;a4e7	11 00 2a 	. . *
 	ld bc,code_p_d400-_splash_screen_data 		;a4ea	01 00 14 	. . .
 	ldir		;a4ed	ed b0 	. .
 
@@ -524,7 +526,7 @@ l_a51e:
 	ld hl,0761ch		;a527	21 1c 76 	! . v       ; (a4cbh):=0x761
 	ld (var_word_a4cb),hl		;a52a	22 cb a4 	" . .   ;
 l_a52d:
-	jp loop_a4d4		;a52d	c3 d4 a4 	. . .           ; start loop again; this will also copy again 1400 bytes etc....
+	jp loop_a4d4		;a52d	c3 d4 a4 	. . .           ; Loop Forever
 
 	;; 0a530 used by line a4d5, it is a defb
 	;call 00000h		;a530	cd 00 00 	. . .
@@ -2650,7 +2652,8 @@ _splash_screen_data: ; see lib/splash.asm
     defb 000h
 ; end of _splash_screen_data
 
-    defb 08bh, 02ah, 000h, 000h
+    defw 02a8bh             ; 2a8b: 2a8b-2a00=8b c000+8b = c08b, see below
+    defb 000h, 000h
 	;adc a,e			;c07b	8b 	.
 	;ld hl,(00000h)		;c07c	2a 00 00 	* . .
 	nop			;c07f	00 	. 
@@ -2755,8 +2758,10 @@ f_2b23:
     ; important app entry function, called by __init
     ; does many ldir and 2 os_loadpage calls. No other calls.
     ; So its more memory preparation for app execution
-	ld hl,02a00h		;c123	21 00 2a 	! . * 	; (0761d) := 2a00
+	ld hl,app_target_area		;c123	21 00 2a 	! . * 	; (0761d) := 2a00
 	ld (0761dh),hl		;c126	22 1d 76 	" . v   ; Screen Paint Script Location, see lib/strap.asm
+
+; POI200 VGL: strap.asm, line 217-219; seems to load _p_main_menu_page_one into 0761fh and 07624h
 	ld hl,02a7bh		;c129	21 7b 2a 	! { *   ; (0761f) := 2a7b
 	ld (0761fh),hl		;c12c	22 1f 76 	" . v
 	ld (07624h),hl		;c12f	22 24 76 	" $ v   ; (07624) := 2a7b
@@ -2814,7 +2819,7 @@ l_2b8f:
 	push af			;c191	f5 	.           ; save it
 	ld a,(_tmp_page)		;c192	3a 96 a4 	: . .   ; get _tmp_page
 	call os_loadpage		;c195	cd 60 0e 	. ` .   ; Patched to 02d02h, Page-in _tmp_page; loads page?
-	ld hl,02a00h		;c198	21 00 2a 	! . *       ; hl:=02a00
+	ld hl,app_target_area		;c198	21 00 2a 	! . *       ; hl:=02a00
 	push hl			;c19b	e5 	.                       ; save hl
 	call 01cf8h		;c19c	cd f8 1c 	. . . 
 	pop hl			;c19f	e1 	.                       ; restore hl
@@ -2823,9 +2828,13 @@ l_2b8f:
 	ret			;c1a3	c9 	. 
 
     ; next 3 lines look like variables
-	ld bc,02ba9h		;c1a4	01 a9 2b 	. . + 
-	xor h			;c1a7	ac 	. 
-	inc l			;c1a8	2c 	, 
+    defb 001h
+    defw 02ba9h         ; 2ba9 : 2ba9-2a00=1a9 ; c000+1a9 = c1a9 = vt100_start_screen!
+	ld bc,02ba9h		;c1a4	01 a9 2b 	. . +
+
+	defw 02cach         ; 2cac : 2cac-2a00=2ac; c000+2ac = c2ac = 1st byte after  end of vt100_start_screen!
+	;xor h			;c1a7	ac 	.
+	;inc l			;c1a8	2c 	,
 
 vt100_start_screen:
 	defb 0ffh
