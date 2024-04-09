@@ -2882,6 +2882,11 @@ vt100_start_screen:
 ; end of vt100_start_screen
 
 ; POI-210
+    ; Some menu structure definition
+    ; 1. ref to a menu definition of type string "!...!....!"
+    ; 2. some words which are addresses to functions, supposed being called when selting softkey for some item
+    ;    here, we have 4 such words
+    ; 3. back reference at the end (before menu definition string) pointing to first byte of menu structure definition
 l_c2ac:
 	defw 02cbch         ; 2cbc : 2cbc-2a00=2bc; c000+2bc = c2bc = l_start_menu_2bc !
 	;cp h			;c2ac	bc 	.
@@ -2895,7 +2900,10 @@ l_c2ac:
 
     ; 3462 : 3462 - 2a00 = a62; c000 + a62 = ca62 = fun_ca62 !
     defw 03462h
+
+	; 2d4d: 2d4d -2a00 = 34d: c34d = fun_c34d !
 	defb 04dh, 02dh
+
     defb 000h, 000h
 	;ld h,d			;c2b2	62 	b
 	;inc (hl)			;c2b3	34 	4
@@ -2906,7 +2914,8 @@ l_c2ac:
 
     ; 2d31 : 2d31 - 2a00 = 331: c331 = fun_c331 !
     defw 02d31h
-    ; 2cac : 2cac -2a00 = 2ac: c2ac = l_c2ac ! "Rückverweis"
+
+    ; 2cac : 2cac -2a00 = 2ac: c2ac = l_c2ac ! "back reference"
     defw 02cach
 	;ld sp,0ac2dh		;c2b8	31 2d ac 	1 - .
 	;inc l			;c2bb	2c 	,
@@ -2957,6 +2966,8 @@ fun_c331:
 	ld hl,00001h		;c349	21 01 00 	! . .   ; hl:=1
 	ret			;c34c	c9 	. 
 
+    ; function supposedly called by menu selection , PO-210
+fun_c34d:
 	ld a,006h		;c34d	3e 06 	> .             ; Load Page 6 (Application RAM)
 	call os_loadpage		;c34f	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
 	call f_a60e		;c352	cd 0e a6 	. . .       ; large set up function, calls out(0xa80)
@@ -3057,7 +3068,9 @@ term_setup_screen:
 	dec b			;c439	05 	. 
 	jp c,0da05h		;c43a	da 05 da 	. . . 
 	dec b			;c43d	05 	. 
-	jp c,02e6ch		;c43e	da 6c 2e 	. l . 
+	jp c,02e6ch		;c43e	da 6c 2e 	. l .
+
+	; 2e6c : 2e6c - 2a00 = 56c: c56c but no usable result
 	ld l,h			;c441	6c 	l 
 	ld l,06ch		;c442	2e 6c 	. l 
 	ld l,06ch		;c444	2e 6c 	. l 
@@ -3088,7 +3101,7 @@ term_setup_screen:
 	nop			;c46c	00 	. 
 	nop			;c46d	00 	. 
 	ld a,(hl)			;c46e	7e 	~ 
-	ld l,0beh		;c46f	2e be 	. . 
+	ld l,0beh		;c46f	2e be 	. .
 	ld l,0ceh		;c471	2e ce 	. . 
 	ld l,000h		;c473	2e 00 	. . 
 	nop			;c475	00 	. 
@@ -3632,6 +3645,8 @@ fun_c8d4:
 
 ;; POI-010 below could be config steps for serial parameters
 ;; many ldirs/copying of small areas
+; should have 0x3344 in 2a00 adress space
+fun_c944:
 	ld a,(_tmp_page)		;c944	3a 96 a4 	: . .
 	call os_loadpage		;c947	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
 	
