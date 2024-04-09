@@ -2882,19 +2882,29 @@ vt100_start_screen:
 ; end of vt100_start_screen
 
     ;; no code below
-	cp h			;c2ac	bc 	.
-	inc l			;c2ad	2c 	,
-	call nc,00032h		;c2ae	d4 32 00 	. 2 . 
-	nop			;c2b1	00 	. 
-	ld h,d			;c2b2	62 	b 
-	inc (hl)			;c2b3	34 	4 
-	ld c,l			;c2b4	4d 	M 
-	dec l			;c2b5	2d 	- 
-	nop			;c2b6	00 	. 
-	nop			;c2b7	00 	. 
-	ld sp,0ac2dh		;c2b8	31 2d ac 	1 - . 
-	inc l			;c2bb	2c 	, 
-	
+	defw 02cbch         ; 2cbc : 2cbc-2a00=2bc; c000+2bc = c2bc = l_start_menu_2bc !
+	;cp h			;c2ac	bc 	.
+	;inc l			;c2ad	2c 	,
+
+	defb 0d4h, 032h
+	defb 000h, 000h
+	;call nc,00032h		;c2ae	d4 32 00 	. 2 .
+	;nop			;c2b1	00 	.
+
+	defb 062h, 034h, 04dh, 02dh
+    defb 000h, 000h
+	;ld h,d			;c2b2	62 	b
+	;inc (hl)			;c2b3	34 	4
+	;ld c,l			;c2b4	4d 	M
+	;dec l			;c2b5	2d 	-
+	;nop			;c2b6	00 	.
+	;nop			;c2b7	00 	.
+
+	;defb 032h, 02dh, 0ach, 02ch
+	ld sp,0ac2dh		;c2b8	31 2d ac 	1 - .
+	inc l			;c2bb	2c 	,
+
+l_start_menu_2bc:
 	defb "Setup!   !Setup!!Simu-!    !Exe- Menu!   !=Sim.!"
 	defb                 "! late!    !cute"
 
