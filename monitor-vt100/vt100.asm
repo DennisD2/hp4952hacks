@@ -2941,8 +2941,6 @@ l_c2ac:
 	;inc l			;c2bb	2c 	,
 
 l_start_menu_2bc:
-	;defb "Setup!   !Setup!!Simu-!    !Exe- Menu!   !=Sim.!"
-	;defb                 "! late!    !cute"
 	defb "Setup!   !Setup!!Simu-!    !Exe-"
 	defb " Menu!   !=Sim.!! late!    !cute"
 
