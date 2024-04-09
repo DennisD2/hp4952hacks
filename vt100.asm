@@ -806,28 +806,26 @@ l_a744:
 	ld a,l			;a744	7d 	}                   ; a:=l
 	ret			;a745	c9 	. 
 
-    ; POI-101 ; maybe this is hexchar readin???
-    ; SET BREAKPOINT HERE
-    ; looks like conversion of hl chars content to BCD encoded byte value in a
-    ; who calls this?
-    ; some value in hl comes in, lower byte is checked first and 1x higher byte
+    ; hexchar read in function; called when entering a hex number in VT session via "hex entry" soft key
+    ; Interprets a character value in hl as BCD number input and converts it to BCD number in a
+    ; e.g. hl=0x3132 (characters '1' and '2') result in a=0x12
 	ld a,l			;a746	7d 	}                   ; a:=l
-	cp 030h		;a747	fe 30 	. 0                 ; a<0x30 '0' ?
+	cp '0'		    ;a747	fe 30 	. 0             ; a<0x30 '0' ?
 	jr c,$+58		;a749	38 38 	8 8             ; yes -> l_7a1
-	cp 03ah		;a74b	fe 3a 	. :                 ; a<0x3 ?
+	cp ':'		    ;a74b	fe 3a 	. :             ; a<0x3a ? this selects 0..9
 	jr c,$+18		;a74d	38 10 	8 .             ; yes -> l_765
-	cp 041h		;a74f	fe 41 	. A                 ; a<0x41 'A'
+	cp 'A'		    ;a74f	fe 41 	. A             ; a<0x41 'A'
 	jr c,$+50		;a751	38 30 	8 0             ; yes -> l_7a1
-	cp 047h		;a753	fe 47 	. G                 ; a<0x47 'G' ? this selects 'a'..'f'
+	cp 'G'		    ;a753	fe 47 	. G             ; a<0x47 'G' ? this selects 'a'..'f'
 	jr c,$+10		;a755	38 08 	8 .             ; yes -> l_765
-	cp 061h		;a757	fe 61 	. a                 ; a<0x61 'a' ?
+	cp 'a'		    ;a757	fe 61 	. a             ; a<0x61 'a' ?
 	jr c,$+42		;a759	38 28 	8 (             ; yes -> l_a79b
-	cp 067h		;a75b	fe 67 	. g                 ; a>=0x67 'F' this selects 'A'..'F'
+	cp 'F'		    ;a75b	fe 67 	. g             ; a>=0x67 'F' this selects 'A'..'F'
 	jr nc,$+38		;a75d	30 24 	0 $             ; yes -> l_f795, BUT NO VALID OPCODE THERE
 	ld a,h			;a75f	7c 	|                   ; a:=h
-	cp 02ah		;a760	fe 2a 	. *                 ; a==0x2a '*' ?
+	cp '*'		    ;a760	fe 2a 	. *             ; a==0x2a '*' ? mybe special handling for * ?
 	ld a,l			;a762	7d 	}                   ; a:=l
-	jr z,$+26		;a763	28 18 	( .             ; yes, -> l_a789
+	jr z,$+26		;a763	28 18 	( .             ; yes, -> l_a77d
 l_a765:
 	call 0a785h		;a765	cd 85 a7 	. . .       ; get num value of number e.g. 0x31->0x1
 	ld l,a			;a768	6f 	o                   ; l:=a, we save a in l
@@ -844,7 +842,7 @@ l_a765:
 	call set_byte_4372		;a778	cd b6 ab 	. . .
 	jr $-58		;a77b	18 c4 	. .                 ; -> l_a723
 
-	; who calls this code below? is this code?
+l_a77d:
 	ld (0a6d3h),a		;a77d	32 d3 a6 	2 . . 
 	call set_byte_4372		;a780	cd b6 ab 	. . .
     xor a
