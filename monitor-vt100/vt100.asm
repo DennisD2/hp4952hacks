@@ -2976,13 +2976,13 @@ f_2cfc:
     ; function called by menu selection
     ; c331 function; "Execute" from main menu
 fm_execute:
-	ld a,062h		;c331	3e 62 	> b             ; a:=0x62 'b'
-	ld (07501h),a		;c333	32 01 75 	2 . u   ; (07501h):=a
+	ld a,062h		;c331	3e 62 	> b             ; (07501h):=0x62
+	ld (07501h),a		;c333	32 01 75 	2 . u   ;
 	ld a,006h		;c336	3e 06 	> .             ; Load Page 6 (Application RAM)
 	call os_loadpage		;c338	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
-	call 0a54bh		;c33b	cd 4b a5 	. K . 
-	ld a,022h		;c33e	3e 22 	> "             ;  a:=0x22 ' " '
-	ld (07501h),a		;c340	32 01 75 	2 . u   ; (07501h):=a
+	call 0a54bh		;c33b	cd 4b a5 	. K .       ; maybe code in U503 at loc a54b, (or U502 but 503 looks more realistic)
+	ld a,022h		;c33e	3e 22 	> "             ; (07501h):=0x22
+	ld (07501h),a		;c340	32 01 75 	2 . u   ;
 	ld a,(_tmp_page)		;c343	3a 96 a4 	: . . ; a:=tmp_page
 	call os_loadpage		;c346	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in _tmp_page
 	ld hl,00001h		;c349	21 01 00 	! . .   ; hl:=1

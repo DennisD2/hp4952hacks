@@ -27730,6 +27730,7 @@
 	call 0a5d6h		;a4d3	cd d6 a5 	. . . 
 	ret			;a4d6	c9 	. 
 
+    ; may be input loop for terminal execution, called by function at a54b
 	ld hl,(07b69h)		;a4d7	2a 69 7b 	* i { 
 	ld a,h			;a4da	7c 	| 
 	or l			;a4db	b5 	. 
@@ -27791,7 +27792,10 @@
 	call 0a5d6h		;a543	cd d6 a5 	. . . 
 	ld hl,(07b73h)		;a546	2a 73 7b 	* s { 
 	ld e,(hl)			;a549	5e 	^ 
-	inc hl			;a54a	23 	# 
+	inc hl			;a54a	23 	#
+
+	; POI-220: could be entry point for VT100 Execute code at fm_execute in vt100.asm
+	; contains no loop
 	ld d,(hl)			;a54b	56 	V 
 	ld (07b73h),de		;a54c	ed 53 73 7b 	. S s { 
 	call 0a5bah		;a550	cd ba a5 	. . . 
@@ -27811,14 +27815,16 @@
 	inc de			;a56f	13 	. 
 	inc de			;a570	13 	. 
 	ld (07b73h),de		;a571	ed 53 73 7b 	. S s { 
-	ld a,(07b67h)		;a575	3a 67 7b 	: g { 
-	cp 00fh		;a578	fe 0f 	. . 
-	jr nz,$+9		;a57a	20 07 	  . 
-	ld a,004h		;a57c	3e 04 	> . 
-	ld (07b67h),a		;a57e	32 67 7b 	2 g { 
-	jr $+7		;a581	18 05 	. . 
-	ld a,008h		;a583	3e 08 	> . 
-	ld (07b67h),a		;a585	32 67 7b 	2 g { 
+	ld a,(07b67h)		;a575	3a 67 7b 	: g {           ; (07b67h)==0x0f?
+	cp 00fh		;a578	fe 0f 	. .                         ;
+	jr nz,$+9		;a57a	20 07 	  .                     ; no -> l_a583
+	ld a,004h		;a57c	3e 04 	> .                     ; yes, (07b67h):=4
+	ld (07b67h),a		;a57e	32 67 7b 	2 g {           ;
+	jr $+7		;a581	18 05 	. .                         ; -> l_a588
+l_a583:
+	ld a,008h		;a583	3e 08 	> .                     ; (07b67h):=8
+	ld (07b67h),a		;a585	32 67 7b 	2 g {           ;
+l_a588:
 	ld de,00006h		;a588	11 06 00 	. . . 
 	ld hl,(07b69h)		;a58b	2a 69 7b 	* i { 
 	add hl,de			;a58e	19 	. 
@@ -27843,7 +27849,9 @@
 	ld e,(hl)			;a5af	5e 	^ 
 	inc hl			;a5b0	23 	# 
 	ld d,(hl)			;a5b1	56 	V 
-	ld (07b69h),de		;a5b2	ed 53 69 7b 	. S i { 
+	ld (07b69h),de		;a5b2	ed 53 69 7b 	. S i {
+	; see POI-221, may handle input loop
+	; -> a4d7
 	jp 0a4d7h		;a5b6	c3 d7 a4 	. . . 
 	ret			;a5b9	c9 	. 
 
