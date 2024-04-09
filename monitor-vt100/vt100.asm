@@ -3596,8 +3596,9 @@ fun_c8d4:
 	push hl			;c8e7	e5 	. 
 	ld hl,(03f08h)		;c8e8	2a 08 3f 	* . ? 
 	push hl			;c8eb	e5 	. 
-	call 03344h		;c8ec	cd 44 33 	. D 3 
-	ld hl,00032h		;c8ef	21 32 00 	! 2 . 
+	call fun_c944 + app_target_area-_splash_screen_data		;c8ec	cd 44 33 	. D 3
+	;call 03344h		;c8ec	cd 44 33 	. D 3
+	ld hl,00032h		;c8ef	21 32 00 	! 2 .
 	push hl			;c8f2	e5 	. 
 	call 0d9f9h		;c8f3	cd f9 d9 	. . . 
 	pop hl			;c8f6	e1 	. 
