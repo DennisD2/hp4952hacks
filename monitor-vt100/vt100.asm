@@ -2884,46 +2884,67 @@ vt100_start_screen:
 ; POI-210
     ; Some menu structure definition
     ; 1. ref to a menu definition of type string "!...!....!"
-    ; 2. some words which are addresses to functions, supposed being called when selting softkey for some item
-    ;    here, we have 4 such words
+    ; 2. some words which are addresses to functions, being called when selting softkey for some item
+    ;    here, we have 6 such words (two of them are not used and have value 0)
     ; 3. back reference at the end (before menu definition string) pointing to first byte of menu structure definition
+    ;
+    ; all address values are based (org) on app_target_area, but the assembled code is based on c000 org (_splash_screen_data).
+    ; so, a calculation is required to get value to be inserted below from app_target_area and _splash_screen_data
 l_c2ac:
-	defw 02cbch         ; 2cbc : 2cbc-2a00=2bc; c000+2bc = c2bc = l_start_menu_2bc !
+    ; Menu item text definition
+    ; 2cbc : 2cbc-2a00=2bc; c000+2bc = c2bc = l_start_menu_2bc !
+	defw l_start_menu_2bc + app_target_area-_splash_screen_data
+	;defw 02cbch         ;
 	;cp h			;c2ac	bc 	.
 	;inc l			;c2ad	2c 	,
 
-    ; 32d4 : 32d4 -2a00 = 8d4; c000+8d4 = c8d4 = fun_c8d4 !
-    defw 032d4h
-	defb 000h, 000h
+    ; Menu item 1 (of 6)
+    ; 32d4 : 32d4 -2a00 = 8d4; c000+8d4 = c8d4 = fm_setup !
+    defw fm_setup + app_target_area-_splash_screen_data
+    ;defw 032d4h
 	;call nc,00032h		;c2ae	d4 32 00 	. 2 .
 	;nop			;c2b1	00 	.
 
-    ; 3462 : 3462 - 2a00 = a62; c000 + a62 = ca62 = fun_ca62 !
-    defw 03462h
+    ; Menu item 2 (of 6)
+    ; no function defined, free slot
+    defw 00000h
 
-	; 2d4d: 2d4d -2a00 = 34d: c34d = fun_c34d !
-	defb 04dh, 02dh
-
-    defb 000h, 000h
+    ; Menu item 3 (of 6)
+    ; 3462 : 3462 - 2a00 = a62; c000 + a62 = ca62 = fm_setup2sim !
+    defw fm_setup2sim + app_target_area-_splash_screen_data
+    ;defw 03462h
 	;ld h,d			;c2b2	62 	b
 	;inc (hl)			;c2b3	34 	4
+
+    ; Menu item 4 (of 6)
+	; 2d4d: 2d4d -2a00 = 34d: c34d = fm_simulate !
+	defw fm_simulate + app_target_area-_splash_screen_data
+	;defw 02d4dh
 	;ld c,l			;c2b4	4d 	M
 	;dec l			;c2b5	2d 	-
+
+    ; Menu item 5 (of 6)
+    ; no function defined, free slot
+    defb 000h, 000h
 	;nop			;c2b6	00 	.
 	;nop			;c2b7	00 	.
 
-    ; 2d31 : 2d31 - 2a00 = 331: c331 = fun_c331 !
-    defw 02d31h
+    ; Menu item 6 (of 6)
+    ; 2d31 : 2d31 - 2a00 = 331: c331 = fm_execute !
+    defw fm_execute + app_target_area-_splash_screen_data
+    ;defw 02d31h
 
     ; 2cac : 2cac -2a00 = 2ac: c2ac = l_c2ac ! "back reference"
-    defw 02cach
+    defw l_c2ac + app_target_area-_splash_screen_data
+    ;defw 02cach
 	;ld sp,0ac2dh		;c2b8	31 2d ac 	1 - .
 	;inc l			;c2bb	2c 	,
 
 l_start_menu_2bc:
-	defb "Setup!   !Setup!!Simu-!    !Exe- Menu!   !=Sim.!"
-	defb                 "! late!    !cute"
-
+	;defb "Setup!   !Setup!!Simu-!    !Exe- Menu!   !=Sim.!"
+	;defb                 "! late!    !cute"
+	defb "Setup!   !Setup!!Simu-!    !Exe-"
+	defb " Menu!   !=Sim.!! late!    !cute"
 
 ;; POI-14, changes 2x page to 006, and finally back to old page
 f_2cfc:
@@ -2952,8 +2973,9 @@ f_2cfc:
 	ld hl,00000h		;c32d	21 00 00 	! . .   ; hl:=0x0
 	ret			;c330	c9 	. 
 
-    ; function supposedly called by menu selection , PO-210
-fun_c331:
+    ; function called by menu selection
+    ; c331 function; "Execute" from main menu
+fm_execute:
 	ld a,062h		;c331	3e 62 	> b             ; a:=0x62 'b'
 	ld (07501h),a		;c333	32 01 75 	2 . u   ; (07501h):=a
 	ld a,006h		;c336	3e 06 	> .             ; Load Page 6 (Application RAM)
@@ -2966,8 +2988,9 @@ fun_c331:
 	ld hl,00001h		;c349	21 01 00 	! . .   ; hl:=1
 	ret			;c34c	c9 	. 
 
-    ; function supposedly called by menu selection , PO-210
-fun_c34d:
+    ; function called by menu selection
+    ; c34d function, "Simulate" from main menu
+fm_simulate:
 	ld a,006h		;c34d	3e 06 	> .             ; Load Page 6 (Application RAM)
 	call os_loadpage		;c34f	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
 	call f_a60e		;c352	cd 0e a6 	. . .       ; large set up function, calls out(0xa80)
@@ -3584,7 +3607,9 @@ term_setup_screen:
 
 ; see POI-210
 ; some setup function, called supposedly by menu selection
-fun_c8d4:
+; called by main menu selection "Setup Menu"
+; function c8d4
+fm_setup:
 	ld a,006h		;c8d4	3e 06 	> . ; Load Page 6 (Application RAM)
 	call os_loadpage		;c8d6	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
 	call read_dbe0		;c8d9	cd 33 a5 	. 3 .
@@ -3776,8 +3801,10 @@ fun_c944:
 	pop hl			;ca60	e1 	. 
 	ret			;ca61	c9 	. 
 
-; see POI-210, is some setup function , supposedly called by menu selection
-fun_ca62:
+;
+; Called on selection of main menu "Setup = Sim."
+; function ca62
+fm_setup2sim:
 	ld hl,(03f00h)		;ca62	2a 00 3f 	* . ? 
 	push hl			;ca65	e5 	. 
 	ld hl,(03f02h)		;ca66	2a 02 3f 	* . ? 
