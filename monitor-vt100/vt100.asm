@@ -3136,50 +3136,84 @@ term_setup_screen:
 	ld l,(hl)			;c47c	6e 	n 
 	
 	defb 02eh
-	defb "ASCII"	
+	defb "ASCII!ASCII!    !!    !    !    "
+	defb "  8  !  7  !    !!    !    !    "
 
-	defb "!ASCII!    !!    !    !      8  !"    
-	defb "  7  !    !!    !    !    "  
-	        
-	ld h,b			;c4be	60 	` 
-	rst 38h			;c4bf	ff 	. 
-	add a,02eh		;c4c0	c6 2e 	. . 
-	nop			;c4c2	00 	. 
-	nop			;c4c3	00 	. 
-	nop			;c4c4	00 	. 
-	nop			;c4c5	00 	. 
-	
+    defw 0ff60h
+	;ld h,b			;c4be	60 	`
+	;rst 38h			;c4bf	ff 	.
+
+    ; 2ec6-2a00=4c6 -> c4c6 -> l_c4c6
+	defw 02ec6h
+	;add a,02eh		;c4c0	c6 2e 	. .
+
+	defw 00000h
+	defw 00000h
+	;nop			;c4c2	00 	.
+	;nop			;c4c3	00 	.
+	;nop			;c4c4	00 	.
+	;nop			;c4c5	00 	.
+
+l_c4c6:
 	defb "ASCII 8", 000h
 
-	jr nz,$+129		;c4ce	20 7f 	   
-	sub 02eh		;c4d0	d6 2e 	. . 
-	nop			;c4d2	00 	. 
-	nop			;c4d3	00 	. 
-	nop			;c4d4	00 	. 
-	nop			;c4d5	00 	. 
-	
+    defw 07f20h
+	;jr nz,$+129		;c4ce	20 7f 	  
+
+    ; 2ed6-2a00=4d6 -> c4d6 -> lc4d6
+	defw 02ed6h
+	;sub 02eh		;c4d0	d6 2e 	. .
+
+    defw 00000h
+    defw 00000h
+	;nop			;c4d2	00 	.
+	;nop			;c4d3	00 	.
+	;nop			;c4d4	00 	.
+	;nop			;c4d5	00 	.
+
+l_c4d6:
 	defb "ASCII 7", 000h	
 
-	xor 02eh		;c4de	ee 2e 	. . 
-	ld l,02fh		;c4e0	2e 2f 	. / 
-	dec a			;c4e2	3d 	= 
-	cpl			;c4e3	2f 	/ `
-	ld c,h			;c4e4	4c 	L 
-	cpl			;c4e5	2f 	/ 
-	ld e,e			;c4e6	5b 	[ 
-	cpl			;c4e7	2f 	/ 
-	ld l,d			;c4e8	6a 	j 
-	cpl			;c4e9	2f 	/ 
-	ld a,c			;c4ea	79 	y 0001h),a	
-	cpl			;c4eb	2f 	/ 
-	sbc a,02eh		;c4ec	de 2e 	. .
-	
+    ; 2eee-2a00 = 4ee -> c4ee, points to parity menu text
+    defw 02eeeh
+    ; 2f2e-2a00 = 52e -> c52e, -> l_c52e, a zero word
+    defw 02f2eh
+	;xor 02eh		;c4de	ee 2e 	. .
+	;ld l,02fh		;c4e0	2e 2f 	. /
+
+	defw 02f3dh
+	;dec a			;c4e2	3d 	=
+	;cpl			;c4e3	2f 	/ `
+
+	defw 02f4ch
+	;ld c,h			;c4e4	4c 	L
+	;cpl			;c4e5	2f 	/
+
+	defw 02f5bh
+	;ld e,e			;c4e6	5b 	[
+	;cpl			;c4e7	2f 	/
+
+	defw 02f6ah
+	;ld l,d			;c4e8	6a 	j
+	;cpl			;c4e9	2f 	/
+
+	defw 02f79h
+	;ld a,c			;c4ea	79 	y 0001h),a
+	;cpl			;c4eb	2f 	/
+
+	defw 02edeh
+	;sbc a,02eh		;c4ec	de 2e 	. .
+
+l_c4ee:
 	defb "None!Odd!Even"
 	defb "!!Space!Mark!Ignore    !   !    !! "	
 	defb "(ASCII7) !      "	
- 	    
-	nop			;c52e	00 	. 
-	nop			;c52f	00 	. 
+
+l_c52e:
+    defw 00000h
+	;nop			;c52e	00 	.
+	;nop			;c52f	00 	.
+
 	ld (hl),02fh		;c530	36 2f 	6 / 
 	nop			;c532	00 	. 
 	nop			;c533	00 	. 
