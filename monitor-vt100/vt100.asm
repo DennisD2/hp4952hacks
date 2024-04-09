@@ -3157,6 +3157,7 @@ term_setup_screen:
 l_c4c6:
 	defb "ASCII 8", 000h
 
+    ; 7f20-2a00=5520; !?! not valid with standard calculation
     defw 07f20h
 	;jr nz,$+129		;c4ce	20 7f 	  
 
@@ -3181,6 +3182,7 @@ l_c4d6:
 	;xor 02eh		;c4de	ee 2e 	. .
 	;ld l,02fh		;c4e0	2e 2f 	. /
 
+    ; 2f3d-2a00 = 53d -> c53d
 	defw 02f3dh
 	;dec a			;c4e2	3d 	=
 	;cpl			;c4e3	2f 	/ `
@@ -3213,21 +3215,31 @@ l_c52e:
 	;nop			;c52e	00 	.
 	;nop			;c52f	00 	.
 
-	ld (hl),02fh		;c530	36 2f 	6 / 
-	nop			;c532	00 	. 
-	nop			;c533	00 	. 
-	nop			;c534	00 	. 
-	nop			;c535	00 	. 
-	
-	
+    ; 2f36-2a00=636 -> c636 ... TODO
+    defw 02f36h
+	;ld (hl),02fh		;c530	36 2f 	6 /
+    defw 00000h
+    defw 00000h
+	;nop			;c532	00 	.
+	;nop			;c533	00 	.
+	;nop			;c534	00 	.
+	;nop			;c535	00 	.
+
 	defb "None  ", 000h	
 
-	ld bc,04500h		;c53d	01 00 45 	. . E 
-	cpl			;c540	2f 	/ 
-	nop			;c541	00 	. 
-	nop			;c542	00 	. 
-	nop			;c543	00 	. 
-	nop			;c544	00 	. 
+l_c53d:
+    defw 00001h
+
+    ; 2f45 -> 645 -> c645 -> TODO
+    defw 02f45h
+	;ld bc,04500h		;c53d	01 00 45 	. . E
+	;cpl			;c540	2f 	/
+    defw 00000h
+    defw 00000h
+	;nop			;c541	00 	.
+	;nop			;c542	00 	.
+	;nop			;c543	00 	.
+	;nop			;c544	00 	.
 
 	defb "Odd   ", 000h	
  
@@ -3528,8 +3540,7 @@ l_c52e:
 	ld sp,00000h		;c7d7	31 00 00 	1 . . 
 	nop			;c7da	00 	. 
 	nop			;c7db	00 	. 
-	
-	
+
 	defb "Enq/Ack", 000h
 
 	call p,03431h		;c7e4	f4 31 34 	. 1 4 
@@ -3601,7 +3612,7 @@ l_c52e:
 	nop			;c879	00 	. 
 	ld l,h			;c87a	6c 	l 
 	defb 032h
-;; "On"
+
     defb " On ! Off !    !!    !     !    "
 	defb "    !     !    !!    !     !    "
    
