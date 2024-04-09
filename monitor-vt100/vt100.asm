@@ -3205,9 +3205,8 @@ l_c4d6:
 	;sbc a,02eh		;c4ec	de 2e 	. .
 
 l_c4ee:
-	defb "None!Odd!Even"
-	defb "!!Space!Mark!Ignore    !   !    !! "	
-	defb "(ASCII7) !      "	
+	defb "None!Odd!Even!!Space!Mark!Ignore"
+	defb "    !   !    !! (ASCII7) !      "
 
 l_c52e:
     defw 00000h
@@ -3285,15 +3284,14 @@ l_c52e:
 	call p,0022fh		;c58e	f4 2f 02 	. / . 
 	jr nc,$+18		;c591	30 10 	0 . 
 	jr nc,$+32		;c593	30 1e 	0 . 
-	jr nc,$+46		;c595	30 2c 	0 , 
-    
-	defb "0300 !1200!2400!!4800!9600!19200"	
+	jr nc,$+46		;c595	30 2c 	0 ,
+    defb "0"
 
-	ld a,(hl)			;c5b7	7e 	~ 
-	
-	defb "    !    !    !!    !    !    "
+	defb "300 !1200!2400!!4800!9600!19200~"
+	defb "    !    !    !!    !    !     "
 
-	jr nz,$+126		;c5d6	20 7c 	  | 
+    defb 07ch
+	;jr nz,$+126		;c5d6	20 7c 	  |
 	rst 38h			;c5d8	ff 	. 
 	rla			;c5d9	17 	. 
 	ret po			;c5da	e0 	. 
@@ -3364,11 +3362,7 @@ l_c52e:
 	jr nc,$-32		;c639	30 de 	0 .
     defb "0"
 
-    defb "38400"
-	defb "!200!600!!!1800!!3200!3600"
-
-	ld a,(hl)			;c65b	7e 	~ 
-	
+    defb "38400!200!600!!!1800!!3200!3600~"
 	defb "     !   !   !!!    !!    !    "
    
 	ld a,h			;c67b	7c 	| 
@@ -3451,10 +3445,7 @@ l_c52e:
 	ld h,(hl)			;c6ea	66 	f 
 	ld sp,02f88h		;c6eb	31 88 2f 	1 . / 
 	
-	defb "110 ! 75 ! 2000!!134.5!150!7200" 
-
-	ld a,(hl)			;c70d	7e 	~ 
-	
+	defb "110 ! 75 ! 2000!!134.5!150!7200~"
 	defb "    !    !     !!     !   !    "
    	    
 	ld a,h			;c72d	7c 	| 
@@ -3521,8 +3512,8 @@ l_c52e:
 	ld (hl),h			;c782	74 	t 
 	
 	defb 031h
-	defb "None!Enq/!     !!    !     !        "
-	defb "! Ack!     !!    !     !    "
+	defb "None!Enq/!     !!    !     !    "
+	defb "    ! Ack!     !!    !     !    "
 	        
 	nop			;c7c4	00 	. 
 	nop			;c7c5	00 	. 
@@ -3553,8 +3544,8 @@ l_c52e:
 	nop			;c7f1	00 	. 
 	call po,02031h		;c7f2	e4 31 20 	. 1   
 	
-	defb "DTE ! DCE !    !!    !    !        "
-	defb " !     !    !!    !    !    "
+	defb "DTE ! DCE !    !!    !    !     "
+	defb "    !     !    !!    !    !    "
     
 	add a,c			;c834	81 	. 
 	nop			;c835	00 	. 
@@ -3609,15 +3600,10 @@ l_c52e:
 	nop			;c878	00 	. 
 	nop			;c879	00 	. 
 	ld l,h			;c87a	6c 	l 
-	
-;; "On"	
-	ld (04f20h),a		;c87b	32 20 4f 	2   O 
-	ld l,(hl)			;c87e	6e 	n 
-	jr nz,$+35		;c87f	20 21 	  ! 
-	
-;; "Off"	
-	defb " Off !    !!    !     !        !     !"
-	defb "    !!    !     !    "
+	defb 032h
+;; "On"
+    defb " On ! Off !    !!    !     !    "
+	defb "    !     !    !!    !     !    "
    
 	ld bc,0c400h		;c8bc	01 00 c4 	. . . 
 	ld (00000h),a		;c8bf	32 00 00 	2 . . 
