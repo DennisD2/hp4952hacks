@@ -2881,6 +2881,7 @@ vt100_start_screen:
 	;nop			;c2ab	00 	.
 ; end of vt100_start_screen
 
+; POI-210
     ;; no code below
 	defw 02cbch         ; 2cbc : 2cbc-2a00=2bc; c000+2bc = c2bc = l_start_menu_2bc !
 	;cp h			;c2ac	bc 	.
@@ -2900,9 +2901,9 @@ vt100_start_screen:
 	;nop			;c2b6	00 	.
 	;nop			;c2b7	00 	.
 
-	;defb 032h, 02dh, 0ach, 02ch
-	ld sp,0ac2dh		;c2b8	31 2d ac 	1 - .
-	inc l			;c2bb	2c 	,
+	defb 031h, 02dh, 0ach, 02ch
+	;ld sp,0ac2dh		;c2b8	31 2d ac 	1 - .
+	;inc l			;c2bb	2c 	,
 
 l_start_menu_2bc:
 	defb "Setup!   !Setup!!Simu-!    !Exe- Menu!   !=Sim.!"
