@@ -15,8 +15,8 @@
 /monitor-vaxman-hp4952a/monitor.dasm
 /monitor-vaxman-hp4952a/monitor-z80asm.app
 /monitor-vaxman-hp4952a/monitor-z80asm.dasm
-/monitor-with-disassembler/memdump.app
-/monitor-with-disassembler/memdump.dasm
+/poc-monitor-with-app/memdump.app
+/poc-monitor-with-app/memdump.dasm
 /hp4952tools/scripts/disassembler-cpca.asm
 /hp4952tools/scripts/disassembler-z80a.app
 /hp4952tools/scripts/disassembler-z80a.asm

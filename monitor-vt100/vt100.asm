@@ -1,3 +1,8 @@
+HP_4952_Target:      equ 001h
+CPC_Target:          equ 000h
+
+DISASS:              equ 001h
+
 ; z80dasm 1.1.6
 ; command line: z80dasm -t -a -g 0xa000 -o x.asm VT100.no_header
 ;
@@ -136,6 +141,7 @@ _fileflags:
 _entryaddr:
 	;jp 0a497h		;a147	c3 97 a4 	. . .
     jp __init
+    ;jp initialize       ; call monitor
 
 ;; Some applications define main application entry point here
 ;; See  lib/strap.asm
@@ -507,7 +513,7 @@ loop_a4d4:
 	push hl			;a517	e5 	.                       ; save hl
 	call 01109h		;a518	cd 09 11 	. . . 			; ;; call main menu handler	, Patched to 02eceh
 	pop hl			;a51b	e1 	.                       ; restore hl
-	jr $+11		;a51c	18 09 	. .                     ; uncoditioned jr to l_a527 (?!?)
+	jr $+11		;a51c	18 09 	. .                     ; uncoditioned jr to l_a52d
 l_a51e:
 	call set_3f12_to_2		;a51e	cd ec a8 	. . .
 	call write_dbe0		;a521	cd 3f a5 	. ? .
@@ -515,10 +521,9 @@ l_a51e:
     call f_2cfc + app_target_area-_splash_screen_data
 	;call 02cfch		;a524	cd fc 2c 	. . ,
 
-l_a527:
 	ld hl,0761ch		;a527	21 1c 76 	! . v       ; (a4cbh):=0x761
 	ld (var_word_a4cb),hl		;a52a	22 cb a4 	" . .   ;
-
+l_a52d:
 	jp loop_a4d4		;a52d	c3 d4 a4 	. . .           ; start loop again; this will also copy again 1400 bytes etc....
 
 	;; 0a530 used by line a4d5, it is a defb
@@ -4569,6 +4574,15 @@ var_byte_dbea:
     defb 000h, 000h, 000h, 000h
     defb 000h, 000h, 000h, 000h
 end_code_p_dbe0:
+
+;****************************************************************************************
+; HP4952 footer start
+;****************************************************************************************
+include "lib/string.asm"
+include "lib/screen.asm"
+include "lib/printf.asm"
+include "lib/keyb.asm"
+include "lib/monitor-i.asm"
 
 ;; in original file, we have nop until 0e7ffh
 	;org 0e800h
