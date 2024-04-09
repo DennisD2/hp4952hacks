@@ -507,7 +507,7 @@ loop_a4d4:
 	push hl			;a517	e5 	.                       ; save hl
 	call 01109h		;a518	cd 09 11 	. . . 			; ;; call main menu handler	, Patched to 02eceh
 	pop hl			;a51b	e1 	.                       ; restore hl
-	jr $+11		;a51c	18 09 	. .                     ; uncoditioned jr to l_a527 (?!?)
+	jr $+11		;a51c	18 09 	. .                     ; uncoditioned jr to l_a52d
 l_a51e:
 	call set_3f12_to_2		;a51e	cd ec a8 	. . .
 	call write_dbe0		;a521	cd 3f a5 	. ? .
@@ -515,10 +515,9 @@ l_a51e:
     call f_2cfc + app_target_area-_splash_screen_data
 	;call 02cfch		;a524	cd fc 2c 	. . ,
 
-l_a527:
 	ld hl,0761ch		;a527	21 1c 76 	! . v       ; (a4cbh):=0x761
 	ld (var_word_a4cb),hl		;a52a	22 cb a4 	" . .   ;
-
+l_a52d:
 	jp loop_a4d4		;a52d	c3 d4 a4 	. . .           ; start loop again; this will also copy again 1400 bytes etc....
 
 	;; 0a530 used by line a4d5, it is a defb
