@@ -2666,7 +2666,7 @@ _splash_screen_data: ; see lib/splash.asm
 	nop			;c086	00 	. 
 	nop			;c087	00 	. 
 	nop			;c088	00 	. 
-	sra d		;c089	cb 2a 	. * 
+	sra d		;c089	cb 2a 	. *
 	jr nz,$+34		;c08b	20 20 	    
 	jr nz,$+34		;c08d	20 20 	    
 	jr nz,$+34		;c08f	20 20 	    
@@ -2828,13 +2828,9 @@ l_2b8f:
 	ret			;c1a3	c9 	. 
 
     ; next 3 lines look like variables
-    defb 001h
-    defw 02ba9h         ; 2ba9 : 2ba9-2a00=1a9 ; c000+1a9 = c1a9 = vt100_start_screen!
-	ld bc,02ba9h		;c1a4	01 a9 2b 	. . +
-
-	defw 02cach         ; 2cac : 2cac-2a00=2ac; c000+2ac = c2ac = 1st byte after  end of vt100_start_screen!
-	;xor h			;c1a7	ac 	.
-	;inc l			;c1a8	2c 	,
+	ld bc,02ba9h		;c1a4	01 a9 2b 	. . + 
+	xor h			;c1a7	ac 	. 
+	inc l			;c1a8	2c 	, 
 
 vt100_start_screen:
 	defb 0ffh
@@ -2883,7 +2879,7 @@ vt100_start_screen:
 
     ;; no code below
 	cp h			;c2ac	bc 	.
-	inc l			;c2ad	2c 	, 
+	inc l			;c2ad	2c 	,
 	call nc,00032h		;c2ae	d4 32 00 	. 2 . 
 	nop			;c2b1	00 	. 
 	ld h,d			;c2b2	62 	b 
@@ -4582,21 +4578,9 @@ var_byte_dbea:
     defb 000h, 000h, 000h, 000h
 end_code_p_dbe0:
 
-;****************************************************************************************
-; HP4952 footer start
-;****************************************************************************************
-include "lib/string.asm"
-include "lib/screen.asm"
-include "lib/printf.asm"
-include "lib/keyb.asm"
-include "lib/monitor-i.asm"
-
-    org 0eeffh
-    seek 04effh
-    defb 000h
 ;; in original file, we have nop until 0e7ffh
-	;org 0e800h
-	;seek 04800h
+	org 0e800h
+	seek 04800h
 code_p_endfill:
 ;; from here to file end, we have, in original app, the pattern "20 83"
 ;; so from e800/e801  to f8fe/f8ff
@@ -4605,4 +4589,8 @@ code_p_endfill:
         ;org 0f8ffh
         ;seek 058ffh
         ;defb 000h
+
+;; to allow "cmp" to work, we use original file tail. This is the only reason for include.
+;; it is safe to use the directives commented above, but then cmp will fail.
+    ;include "origtail.asm"
 _file_end:
