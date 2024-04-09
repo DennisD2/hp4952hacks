@@ -29,3 +29,5 @@
 /monitor-vaxman/monitor-orig-z80asm.dasm
 /monitor-memdump/memdump.dasm
 /monitor-memdump/memdump.app
+/monitor-vt100/vt100m.app
+/monitor-vt100/vt100m.dasm
