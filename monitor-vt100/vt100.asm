@@ -2665,8 +2665,10 @@ _splash_screen_data: ; see lib/splash.asm
 	nop			;c085	00 	. 
 	nop			;c086	00 	. 
 	nop			;c087	00 	. 
-	nop			;c088	00 	. 
-	sra d		;c089	cb 2a 	. *
+	nop			;c088	00 	.
+
+	defw 02acbh                             ; 2acb -> c0cb
+	;sra d		;c089	cb 2a 	. *
 	jr nz,$+34		;c08b	20 20 	    
 	jr nz,$+34		;c08d	20 20 	    
 	jr nz,$+34		;c08f	20 20 	    
@@ -2698,8 +2700,10 @@ _splash_screen_data: ; see lib/splash.asm
 	jr nz,$+34		;c0c3	20 20 	    
 	jr nz,$+34		;c0c5	20 20 	    
 	jr nz,$+34		;c0c7	20 20 	    
-	jr nz,$+34		;c0c9	20 20 	    
-	in a,(02ah)		;c0cb	db 2a 	. * 
+	jr nz,$+34		;c0c9	20 20
+
+	defw 02adbh                                 ; 2adb -> c0db
+	;in a,(02ah)		;c0cb	db 2a 	. *
 	nop			;c0cd	00 	. 
 	nop			;c0ce	00 	. 
 	nop			;c0cf	00 	. 
@@ -2712,8 +2716,12 @@ _splash_screen_data: ; see lib/splash.asm
 	nop			;c0d6	00 	. 
 	nop			;c0d7	00 	. 
 	nop			;c0d8	00 	. 
-	ld a,e			;c0d9	7b 	{ 
-	ld hl,(02020h)		;c0da	2a 20 20 	*     
+	ld a,e			;c0d9	7b 	{
+
+	defb 02ah
+	defb 020h
+	defb 020h
+	;ld hl,(02020h)		;c0da	2a 20 20 	*
 	jr nz,$+34		;c0dd	20 20 	    
 	jr nz,$+34		;c0df	20 20 	    
 	jr nz,$+34		;c0e1	20 20 	    
@@ -2745,7 +2753,9 @@ _splash_screen_data: ; see lib/splash.asm
 	jr nz,$+34		;c115	20 20 	    
 	jr nz,$+34		;c117	20 20 	    
 	jr nz,$+34		;c119	20 20 
-	
+
+	; Item text for main menu for new application , see POI-212
+	; c11b is in target space: c11b-c000+2a00; 11b+2a00=2b1b
 ;; "VT-100"
 	;;ld d,(hl)			;c11b	56 	V 
 	;;ld d,h			;c11c	54 	T 
@@ -2757,7 +2767,7 @@ _splash_screen_data: ; see lib/splash.asm
 f_2b23:
     ; important app entry function, called by __init
     ; does many ldir and 2 os_loadpage calls. No other calls.
-    ; So its more memory preparation for app execution
+    ; So it looks like memory and menu preparation for app execution
 	ld hl,app_target_area		;c123	21 00 2a 	! . * 	; (0761d) := 2a00
 	ld (0761dh),hl		;c126	22 1d 76 	" . v   ; Screen Paint Script Location, see lib/strap.asm
 
@@ -2765,52 +2775,55 @@ f_2b23:
 	ld hl,02a7bh		;c129	21 7b 2a 	! { *   ; (0761f) := 2a7b
 	ld (0761fh),hl		;c12c	22 1f 76 	" . v
 	ld (07624h),hl		;c12f	22 24 76 	" $ v   ; (07624) := 2a7b
-	ld a,(_tmp_page)		;c132	3a 96 a4 	: . .
-	call os_loadpage		;c135	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
+	ld a,(_tmp_page)	;c132	3a 96 a4 	: . .
+	call os_loadpage    ;c135	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
 	ld hl,08326h		;c138	21 26 83 	! & .   ; hl:=08326h
 	ld e,(hl)			;c13b	5e 	^               ; de := word at 08326h
-	inc hl			;c13c	23 	#                   ;
+	inc hl			    ;c13c	23 	#                   ;
 	ld d,(hl)			;c13d	56 	V               ;
-	inc hl			;c13e	23 	#                   ; hl++
-	push hl			;c13f	e5 	.                   ; save hl
+	inc hl			    ;c13e	23 	#                   ; hl++
+	push hl			    ;c13f	e5 	.                   ; save hl
 	ex de,hl			;c140	eb 	.               ; hl:=de
 	ld de,02a8bh		;c141	11 8b 2a 	. . *   ; de:=02a8bh
 	ld bc,00040h		;c144	01 40 00 	. @ .   ; size=0x040
-	ldir		;c147	ed b0 	. .                 ; do copy
-	pop hl			;c149	e1 	.                   ; restore hl
+	ldir		        ;c147	ed b0 	. .                 ; do copy
+	pop hl			    ;c149	e1 	.                   ; restore hl
 	ld de,02a7dh		;c14a	11 7d 2a 	. } *   ; de:=02a7dh
 	ld bc,0000ch		;c14d	01 0c 00 	. . .   ; bc:=0xc
-	ldir		;c150	ed b0 	. .                 ; do copy
+	ldir		        ;c150	ed b0 	. .                 ; do copy
 	ld e,(hl)			;c152	5e 	^ 
-	inc hl			;c153	23 	# 
+	inc hl			    ;c153	23 	#
 	ld d,(hl)			;c154	56 	V 
 	ex de,hl			;c155	eb 	. 
 	ld e,(hl)			;c156	5e 	^ 
-	inc hl			;c157	23 	# 
+	inc hl			    ;c157	23 	#
 	ld d,(hl)			;c158	56 	V 
-	inc hl			;c159	23 	# 
-	push hl			;c15a	e5 	. 
+	inc hl			    ;c159	23 	#
+	push hl			    ;c15a	e5 	.
 	ex de,hl			;c15b	eb 	.               ; hl:=de
 	ld de,02adbh		;c15c	11 db 2a 	. . *   ; de:=02adbh
 	ld bc,00040h		;c15f	01 40 00 	. @ .   ; size=0x040
-	ldir		;c162	ed b0 	. .                 ; do copy
-	pop hl			;c164	e1 	. 
+	ldir		        ;c162	ed b0 	. .                 ; do copy
+	pop hl			    ;c164	e1 	.
 	ld de,02acdh		;c165	11 cd 2a 	. . * 
 	ld bc,0000ch		;c168	01 0c 00 	. . .   ; bc:=0xc
-	ldir		;c16b	ed b0 	. .                 ; do copy
-	ld a,006h		;c16d	3e 06 	> .             ; Load Page 6 (Application RAM)
-	call os_loadpage		;c16f	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
+	ldir		        ;c16b	ed b0 	. .                 ; do copy
+	ld a,006h		    ;c16d	3e 06 	> .             ; Load Page 6 (Application RAM)
+	call os_loadpage	;c16f	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
 	ld hl,02cfch		;c172	21 fc 2c 	! . , 
-	ld (02ad5h),hl		;c175	22 d5 2a 	" . * 
+	ld (02ad5h),hl		;c175	22 d5 2a 	" . *
+
+	; POI-212 copy main menu item text for new application from 2b1b, which is c11b in load space
+	; these are two lines of 4 bytes: "VT- " and " 100"
 	ld hl,02b1bh		;c178	21 1b 2b 	! . +   ; from 02b1bh
-	ld de,02af1h		;c17b	11 f1 2a 	. . * 
+	ld de,02af1h		;c17b	11 f1 2a 	. . *   ; to 2af1 (f1..f4)
 	ld bc,00004h		;c17e	01 04 00 	. . .   ; size=4
-	ldir		;c181	ed b0 	. . 
+	ldir		        ;c181	ed b0 	. .
 	ld hl,02b1fh		;c183	21 1f 2b 	! . +   ; from 02b1fh
-	ld de,02b11h		;c186	11 11 2b 	. . + 
+	ld de,02b11h		;c186	11 11 2b 	. . +   ; to 2b11 (11..14)
 	ld bc,00004h		;c189	01 04 00 	. . .   ; size=4
-	ldir		;c18c	ed b0 	. . 
-	ret			;c18e	c9 	. 
+	ldir		        ;c18c	ed b0 	. .
+	ret			        ;c18e	c9 	.
 
 l_2b8f:
     ; important app entry function, caslled by __init
