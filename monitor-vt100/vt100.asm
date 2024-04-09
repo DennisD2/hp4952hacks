@@ -2882,17 +2882,19 @@ vt100_start_screen:
 ; end of vt100_start_screen
 
 ; POI-210
-    ;; no code below
 	defw 02cbch         ; 2cbc : 2cbc-2a00=2bc; c000+2bc = c2bc = l_start_menu_2bc !
 	;cp h			;c2ac	bc 	.
 	;inc l			;c2ad	2c 	,
 
-	defb 0d4h, 032h
+    ; 32d4 : 32d4 -2a00 = 8d4; c000+8d4 = c8d4 = fun_c8d4 !
+    defw 032d4h
 	defb 000h, 000h
 	;call nc,00032h		;c2ae	d4 32 00 	. 2 .
 	;nop			;c2b1	00 	.
 
-	defb 062h, 034h, 04dh, 02dh
+    ; 3462 : 3462 - 2a00 = a62; c000 + a62 = ca62 = fun_ca62 !
+    defw 03462h
+	defb 04dh, 02dh
     defb 000h, 000h
 	;ld h,d			;c2b2	62 	b
 	;inc (hl)			;c2b3	34 	4
@@ -3561,6 +3563,9 @@ term_setup_screen:
 	;; "Off"	
 	defb "Off", 000h
 
+; see POI-210
+; some setup function, called supposedly by menu selection
+fun_c8d4:
 	ld a,006h		;c8d4	3e 06 	> . ; Load Page 6 (Application RAM)
 	call os_loadpage		;c8d6	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
 	call read_dbe0		;c8d9	cd 33 a5 	. 3 .
@@ -3749,6 +3754,8 @@ term_setup_screen:
 	pop hl			;ca60	e1 	. 
 	ret			;ca61	c9 	. 
 
+; see POI-210, is some setup function , supposedly called by menu selection
+fun_ca62:
 	ld hl,(03f00h)		;ca62	2a 00 3f 	* . ? 
 	push hl			;ca65	e5 	. 
 	ld hl,(03f02h)		;ca66	2a 02 3f 	* . ? 
