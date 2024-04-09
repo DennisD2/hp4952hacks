@@ -1,3 +1,12 @@
+
+HP_4952_Target:      equ 001h
+CPC_Target:          equ 000h
+
+DISASS:              equ 001h
+
+;****************************************************************************************
+; HP4952 header start
+;****************************************************************************************
 include "lib/header.asm"
 include "lib/strap.asm"
 
@@ -12,7 +21,7 @@ _splash_screen_data:
 	defb "Open Source Software", 000h
 
 	defb 007h, 009h, _scrattr_ascii_n
-	defb "Memory Explorer", 000h
+	defb "Memory+Bank Explorer", 000h
 
 	defb 00ch, 008h, _scrattr_ascii_n
 	defb "Hacking the 4952", 000h
@@ -71,16 +80,21 @@ _launch_app:
 	jp to_monitor
 	;jp _app_main			; Run the application
 
-to_monitor:
-    call initialize
-
 _splash_end:
 ;; End of menu section
+
+;****************************************************************************************
+; HP4952 header end
+;****************************************************************************************
 
 ;; Main Application
 	org 2200h
 	seek 0a00h
 _code_start:
+
+to_monitor:
+    call initialize
+
 _app_main:
 	call _clear_screen
 _redraw:
@@ -274,18 +288,19 @@ _real_exit:
 	call _clear_screen
 
 	;jp 014d5h				; Return to main menu.
-	; monitor called is with call _app_main
-    ret
+    jp main_loop
 
 _read_page:
 	di
 	in a, (020h)			; save current bank
 	ld (_tmp_bank), a
 
+    ; _cur_bank is in range 0..f
 	ld a,(_cur_bank)		; access desired memory bank
 	and 00fh
 	out (020h),a
 
+    ; _cur_page gets always bit 7 set
 	ld l, 0				; Copy data to our buffer
 	ld a, (_cur_page)
 	or 080h
@@ -300,10 +315,6 @@ _read_page:
 ;	ei
 	ret
 
-include "lib/string.asm"
-include "lib/screen.asm"
-include "lib/printf.asm"
-include "lib/keyb.asm"
 
 _str_exit:
 	defb "Are you sure you wish to exit?", 000h
@@ -329,13 +340,21 @@ _tmp_bank:
 _mem_buffer:
 	defs 256, 000h
 
-include "lib/monitor.asm"
+;****************************************************************************************
+; HP4952 footer start
+;****************************************************************************************
+
+include "lib/string.asm"
+include "lib/screen.asm"
+include "lib/printf.asm"
+include "lib/keyb.asm"
+include "lib/monitor-i.asm"
 
 _code_end:
 ;; End of Main Application
 
 ;; Fill to end of file
-	org 0b0ffh
-	seek 016ffh
+	org 0beffh
+	seek 01effh
 	defb 000h
 _file_end:
