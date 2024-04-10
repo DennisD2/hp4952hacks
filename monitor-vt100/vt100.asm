@@ -828,7 +828,7 @@ l_a744:
 	jr c,$+10		;a755	38 08 	8 .             ; yes -> l_765
 	cp 'a'		    ;a757	fe 61 	. a             ; a<0x61 'a' ?
 	jr c,$+42		;a759	38 28 	8 (             ; yes -> l_a79b
-	cp 'F'		    ;a75b	fe 67 	. g             ; a>=0x67 'F' this selects 'A'..'F'
+	cp 'g'		    ;a75b	fe 67 	. g             ; a>=0x67 'F' this selects 'A'..'F'
 	jr nc,$+38		;a75d	30 24 	0 $             ; yes -> l_f795, BUT NO VALID OPCODE THERE
 	ld a,h			;a75f	7c 	|                   ; a:=h
 	cp '*'		    ;a760	fe 2a 	. *             ; a==0x2a '*' ? mybe special handling for * ?
