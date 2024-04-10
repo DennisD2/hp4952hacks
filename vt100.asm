@@ -676,9 +676,11 @@ f_a60e:
 	ld (0a60ch),hl		;a635	22 0c a6 	" . . 
 	ld a,006h		;a638	3e 06 	> . 
 	ld (01058h),a		;a63a	32 58 10 	2 X . 
-	ld hl,0a646h		;a63d	21 46 a6 	! F . 
+	ld hl,la646h		;a63d	21 46 a6 	! F .
 	ld (01059h),hl		;a640	22 59 10 	" Y . 
-	jp 01381h		;a643	c3 81 13 	. . . 
+	jp 01381h		;a643	c3 81 13 	. . .
+
+la646h:
 	push af			;a646	f5 	. 
 	push hl			;a647	e5 	. 
 	ld a,(0a60ah)		;a648	3a 0a a6 	: . . 
