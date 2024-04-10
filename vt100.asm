@@ -2785,7 +2785,7 @@ l_2b8f:
 	push af			;c191	f5 	.           ; save it
 	ld a,(_tmp_page)		;c192	3a 96 a4 	: . .   ; get _tmp_page
 	call os_loadpage		;c195	cd 60 0e 	. ` .   ; Patched to 02d02h, Page-in _tmp_page; loads page?
-	ld hl,02a00h		;c198	21 00 2a 	! . *       ; hl:=02a00
+	ld hl,app_target_area		;c198	21 00 2a 	! . *       ; hl:=02a00
 	push hl			;c19b	e5 	.                       ; save hl
 	call 01cf8h		;c19c	cd f8 1c 	. . . 
 	pop hl			;c19f	e1 	.                       ; restore hl
@@ -2794,9 +2794,13 @@ l_2b8f:
 	ret			;c1a3	c9 	. 
 
     ; next 3 lines look like variables
-	ld bc,02ba9h		;c1a4	01 a9 2b 	. . + 
-	xor h			;c1a7	ac 	. 
-	inc l			;c1a8	2c 	, 
+    defb 001h
+    defw 02ba9h         ; 2ba9 : 2ba9-2a00=1a9 ; c000+1a9 = c1a9 = vt100_start_screen!
+	;ld bc,02ba9h		;c1a4	01 a9 2b 	. . +
+
+	defw 02cach         ; 2cac : 2cac-2a00=2ac; c000+2ac = c2ac = 1st byte after  end of vt100_start_screen!
+	;xor h			;c1a7	ac 	.
+	;inc l			;c1a8	2c 	,
 
 vt100_start_screen:
 	defb 0ffh
@@ -2843,23 +2847,68 @@ vt100_start_screen:
 	;nop			;c2ab	00 	.
 ; end of vt100_start_screen
 
-    ;; no code below
-	cp h			;c2ac	bc 	.
-	inc l			;c2ad	2c 	, 
-	call nc,00032h		;c2ae	d4 32 00 	. 2 . 
-	nop			;c2b1	00 	. 
-	ld h,d			;c2b2	62 	b 
-	inc (hl)			;c2b3	34 	4 
-	ld c,l			;c2b4	4d 	M 
-	dec l			;c2b5	2d 	- 
-	nop			;c2b6	00 	. 
-	nop			;c2b7	00 	. 
-	ld sp,0ac2dh		;c2b8	31 2d ac 	1 - . 
-	inc l			;c2bb	2c 	, 
-	
-	defb "Setup!   !Setup!!Simu-!    !Exe- Menu!   !=Sim.!"
-	defb                 "! late!    !cute"
+; POI-210
+    ; Some menu structure definition
+    ; 1. ref to a menu definition of type string "!...!....!"
+    ; 2. some words which are addresses to functions, being called when selting softkey for some item
+    ;    here, we have 6 such words (two of them are not used and have value 0)
+    ; 3. back reference at the end (before menu definition string) pointing to first byte of menu structure definition
+    ;
+    ; all address values are based (org) on app_target_area, but the assembled code is based on c000 org (_splash_screen_data).
+    ; so, a calculation is required to get value to be inserted below from app_target_area and _splash_screen_data
+l_c2ac:
+    ; Menu item text definition
+    ; 2cbc : 2cbc-2a00=2bc; c000+2bc = c2bc = l_start_menu_2bc !
+	defw l_start_menu_2bc + app_target_area-_splash_screen_data
+	;defw 02cbch         ;
+	;cp h			;c2ac	bc 	.
+	;inc l			;c2ad	2c 	,
 
+    ; Menu item 1 (of 6)
+    ; 32d4 : 32d4 -2a00 = 8d4; c000+8d4 = c8d4 = fm_setup !
+    defw fm_setup + app_target_area-_splash_screen_data
+    ;defw 032d4h
+	;call nc,00032h		;c2ae	d4 32 00 	. 2 .
+	;nop			;c2b1	00 	.
+
+    ; Menu item 2 (of 6)
+    ; no function defined, free slot
+    defw 00000h
+
+    ; Menu item 3 (of 6)
+    ; 3462 : 3462 - 2a00 = a62; c000 + a62 = ca62 = fm_setup2sim !
+    defw fm_setup2sim + app_target_area-_splash_screen_data
+    ;defw 03462h
+	;ld h,d			;c2b2	62 	b
+	;inc (hl)			;c2b3	34 	4
+
+    ; Menu item 4 (of 6)
+	; 2d4d: 2d4d -2a00 = 34d: c34d = fm_simulate !
+	defw fm_simulate + app_target_area-_splash_screen_data
+	;defw 02d4dh
+	;ld c,l			;c2b4	4d 	M
+	;dec l			;c2b5	2d 	-
+
+    ; Menu item 5 (of 6)
+    ; no function defined, free slot
+    defb 000h, 000h
+	;nop			;c2b6	00 	.
+	;nop			;c2b7	00 	.
+
+    ; Menu item 6 (of 6)
+    ; 2d31 : 2d31 - 2a00 = 331: c331 = fm_execute !
+    defw fm_execute + app_target_area-_splash_screen_data
+    ;defw 02d31h
+
+    ; 2cac : 2cac -2a00 = 2ac: c2ac = l_c2ac ! "back reference"
+    defw l_c2ac + app_target_area-_splash_screen_data
+    ;defw 02cach
+	;ld sp,0ac2dh		;c2b8	31 2d ac 	1 - .
+	;inc l			;c2bb	2c 	,
+
+l_start_menu_2bc:
+	defb "Setup!   !Setup!!Simu-!    !Exe-"
+	defb " Menu!   !=Sim.!! late!    !cute"
 
 ;; POI-14, changes 2x page to 006, and finally back to old page
 f_2cfc:
@@ -2888,18 +2937,24 @@ f_2cfc:
 	ld hl,00000h		;c32d	21 00 00 	! . .   ; hl:=0x0
 	ret			;c330	c9 	. 
 
-	ld a,062h		;c331	3e 62 	> b             ; a:=0x62 'b'
-	ld (07501h),a		;c333	32 01 75 	2 . u   ; (07501h):=a
+    ; function called by menu selection
+    ; c331 function; "Execute" from main menu
+fm_execute:
+	ld a,062h		;c331	3e 62 	> b             ; (07501h):=0x62
+	ld (07501h),a		;c333	32 01 75 	2 . u   ;
 	ld a,006h		;c336	3e 06 	> .             ; Load Page 6 (Application RAM)
 	call os_loadpage		;c338	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
-	call 0a54bh		;c33b	cd 4b a5 	. K . 
-	ld a,022h		;c33e	3e 22 	> "             ;  a:=0x22 ' " '
-	ld (07501h),a		;c340	32 01 75 	2 . u   ; (07501h):=a
+	call 0a54bh		;c33b	cd 4b a5 	. K .       ; maybe code in U503 at loc a54b, (or U502 but 503 looks more realistic)
+	ld a,022h		;c33e	3e 22 	> "             ; (07501h):=0x22
+	ld (07501h),a		;c340	32 01 75 	2 . u   ;
 	ld a,(_tmp_page)		;c343	3a 96 a4 	: . . ; a:=tmp_page
 	call os_loadpage		;c346	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in _tmp_page
 	ld hl,00001h		;c349	21 01 00 	! . .   ; hl:=1
 	ret			;c34c	c9 	. 
 
+    ; function called by menu selection
+    ; c34d function, "Simulate" from main menu
+fm_simulate:
 	ld a,006h		;c34d	3e 06 	> .             ; Load Page 6 (Application RAM)
 	call os_loadpage		;c34f	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
 	call f_a60e		;c352	cd 0e a6 	. . .       ; large set up function, calls out(0xa80)
@@ -3000,7 +3055,9 @@ term_setup_screen:
 	dec b			;c439	05 	. 
 	jp c,0da05h		;c43a	da 05 da 	. . . 
 	dec b			;c43d	05 	. 
-	jp c,02e6ch		;c43e	da 6c 2e 	. l . 
+	jp c,02e6ch		;c43e	da 6c 2e 	. l .
+
+	; 2e6c : 2e6c - 2a00 = 56c: c56c but no usable result
 	ld l,h			;c441	6c 	l 
 	ld l,06ch		;c442	2e 6c 	. l 
 	ld l,06ch		;c444	2e 6c 	. l 
@@ -3031,7 +3088,7 @@ term_setup_screen:
 	nop			;c46c	00 	. 
 	nop			;c46d	00 	. 
 	ld a,(hl)			;c46e	7e 	~ 
-	ld l,0beh		;c46f	2e be 	. . 
+	ld l,0beh		;c46f	2e be 	. .
 	ld l,0ceh		;c471	2e ce 	. . 
 	ld l,000h		;c473	2e 00 	. . 
 	nop			;c475	00 	. 
@@ -3045,65 +3102,110 @@ term_setup_screen:
 	ld l,(hl)			;c47c	6e 	n 
 	
 	defb 02eh
-	defb "ASCII"	
+	defb "ASCII!ASCII!    !!    !    !    "
+	defb "  8  !  7  !    !!    !    !    "
 
-	defb "!ASCII!    !!    !    !      8  !"    
-	defb "  7  !    !!    !    !    "  
-	        
-	ld h,b			;c4be	60 	` 
-	rst 38h			;c4bf	ff 	. 
-	add a,02eh		;c4c0	c6 2e 	. . 
-	nop			;c4c2	00 	. 
-	nop			;c4c3	00 	. 
-	nop			;c4c4	00 	. 
-	nop			;c4c5	00 	. 
-	
+    defw 0ff60h
+	;ld h,b			;c4be	60 	`
+	;rst 38h			;c4bf	ff 	.
+
+    ; 2ec6-2a00=4c6 -> c4c6 -> l_c4c6
+	defw 02ec6h
+	;add a,02eh		;c4c0	c6 2e 	. .
+
+	defw 00000h
+	defw 00000h
+	;nop			;c4c2	00 	.
+	;nop			;c4c3	00 	.
+	;nop			;c4c4	00 	.
+	;nop			;c4c5	00 	.
+
+l_c4c6:
 	defb "ASCII 8", 000h
 
-	jr nz,$+129		;c4ce	20 7f 	   
-	sub 02eh		;c4d0	d6 2e 	. . 
-	nop			;c4d2	00 	. 
-	nop			;c4d3	00 	. 
-	nop			;c4d4	00 	. 
-	nop			;c4d5	00 	. 
-	
+    ; 7f20-2a00=5520; !?! not valid with standard calculation
+    defw 07f20h
+	;jr nz,$+129		;c4ce	20 7f 	  
+
+    ; 2ed6-2a00=4d6 -> c4d6 -> lc4d6
+	defw 02ed6h
+	;sub 02eh		;c4d0	d6 2e 	. .
+
+    defw 00000h
+    defw 00000h
+	;nop			;c4d2	00 	.
+	;nop			;c4d3	00 	.
+	;nop			;c4d4	00 	.
+	;nop			;c4d5	00 	.
+
+l_c4d6:
 	defb "ASCII 7", 000h	
 
-	xor 02eh		;c4de	ee 2e 	. . 
-	ld l,02fh		;c4e0	2e 2f 	. / 
-	dec a			;c4e2	3d 	= 
-	cpl			;c4e3	2f 	/ `
-	ld c,h			;c4e4	4c 	L 
-	cpl			;c4e5	2f 	/ 
-	ld e,e			;c4e6	5b 	[ 
-	cpl			;c4e7	2f 	/ 
-	ld l,d			;c4e8	6a 	j 
-	cpl			;c4e9	2f 	/ 
-	ld a,c			;c4ea	79 	y 0001h),a	
-	cpl			;c4eb	2f 	/ 
-	sbc a,02eh		;c4ec	de 2e 	. .
-	
-	defb "None!Odd!Even"
-	defb "!!Space!Mark!Ignore    !   !    !! "	
-	defb "(ASCII7) !      "	
- 	    
-	nop			;c52e	00 	. 
-	nop			;c52f	00 	. 
-	ld (hl),02fh		;c530	36 2f 	6 / 
-	nop			;c532	00 	. 
-	nop			;c533	00 	. 
-	nop			;c534	00 	. 
-	nop			;c535	00 	. 
-	
-	
+    ; 2eee-2a00 = 4ee -> c4ee, points to parity menu text
+    defw 02eeeh
+    ; 2f2e-2a00 = 52e -> c52e, -> l_c52e, a zero word
+    defw 02f2eh
+	;xor 02eh		;c4de	ee 2e 	. .
+	;ld l,02fh		;c4e0	2e 2f 	. /
+
+    ; 2f3d-2a00 = 53d -> c53d
+	defw 02f3dh
+	;dec a			;c4e2	3d 	=
+	;cpl			;c4e3	2f 	/ `
+
+	defw 02f4ch
+	;ld c,h			;c4e4	4c 	L
+	;cpl			;c4e5	2f 	/
+
+	defw 02f5bh
+	;ld e,e			;c4e6	5b 	[
+	;cpl			;c4e7	2f 	/
+
+	defw 02f6ah
+	;ld l,d			;c4e8	6a 	j
+	;cpl			;c4e9	2f 	/
+
+	defw 02f79h
+	;ld a,c			;c4ea	79 	y 0001h),a
+	;cpl			;c4eb	2f 	/
+
+	defw 02edeh
+	;sbc a,02eh		;c4ec	de 2e 	. .
+
+l_c4ee:
+	defb "None!Odd!Even!!Space!Mark!Ignore"
+	defb "    !   !    !! (ASCII7) !      "
+
+l_c52e:
+    defw 00000h
+	;nop			;c52e	00 	.
+	;nop			;c52f	00 	.
+
+    ; 2f36-2a00=636 -> c636 ... TODO
+    defw 02f36h
+	;ld (hl),02fh		;c530	36 2f 	6 /
+    defw 00000h
+    defw 00000h
+	;nop			;c532	00 	.
+	;nop			;c533	00 	.
+	;nop			;c534	00 	.
+	;nop			;c535	00 	.
+
 	defb "None  ", 000h	
 
-	ld bc,04500h		;c53d	01 00 45 	. . E 
-	cpl			;c540	2f 	/ 
-	nop			;c541	00 	. 
-	nop			;c542	00 	. 
-	nop			;c543	00 	. 
-	nop			;c544	00 	. 
+l_c53d:
+    defw 00001h
+
+    ; 2f45 -> 645 -> c645 -> TODO
+    defw 02f45h
+	;ld bc,04500h		;c53d	01 00 45 	. . E
+	;cpl			;c540	2f 	/
+    defw 00000h
+    defw 00000h
+	;nop			;c541	00 	.
+	;nop			;c542	00 	.
+	;nop			;c543	00 	.
+	;nop			;c544	00 	.
 
 	defb "Odd   ", 000h	
  
@@ -3160,15 +3262,14 @@ term_setup_screen:
 	call p,0022fh		;c58e	f4 2f 02 	. / . 
 	jr nc,$+18		;c591	30 10 	0 . 
 	jr nc,$+32		;c593	30 1e 	0 . 
-	jr nc,$+46		;c595	30 2c 	0 , 
-    
-	defb "0300 !1200!2400!!4800!9600!19200"	
+	jr nc,$+46		;c595	30 2c 	0 ,
+    defb "0"
 
-	ld a,(hl)			;c5b7	7e 	~ 
-	
-	defb "    !    !    !!    !    !    "
+	defb "300 !1200!2400!!4800!9600!19200~"
+	defb "    !    !    !!    !    !     "
 
-	jr nz,$+126		;c5d6	20 7c 	  | 
+    defb 07ch
+	;jr nz,$+126		;c5d6	20 7c 	  |
 	rst 38h			;c5d8	ff 	. 
 	rla			;c5d9	17 	. 
 	ret po			;c5da	e0 	. 
@@ -3239,11 +3340,7 @@ term_setup_screen:
 	jr nc,$-32		;c639	30 de 	0 .
     defb "0"
 
-    defb "38400"
-	defb "!200!600!!!1800!!3200!3600"
-
-	ld a,(hl)			;c65b	7e 	~ 
-	
+    defb "38400!200!600!!!1800!!3200!3600~"
 	defb "     !   !   !!!    !!    !    "
    
 	ld a,h			;c67b	7c 	| 
@@ -3326,10 +3423,7 @@ term_setup_screen:
 	ld h,(hl)			;c6ea	66 	f 
 	ld sp,02f88h		;c6eb	31 88 2f 	1 . / 
 	
-	defb "110 ! 75 ! 2000!!134.5!150!7200" 
-
-	ld a,(hl)			;c70d	7e 	~ 
-	
+	defb "110 ! 75 ! 2000!!134.5!150!7200~"
 	defb "    !    !     !!     !   !    "
    	    
 	ld a,h			;c72d	7c 	| 
@@ -3396,8 +3490,8 @@ term_setup_screen:
 	ld (hl),h			;c782	74 	t 
 	
 	defb 031h
-	defb "None!Enq/!     !!    !     !        "
-	defb "! Ack!     !!    !     !    "
+	defb "None!Enq/!     !!    !     !    "
+	defb "    ! Ack!     !!    !     !    "
 	        
 	nop			;c7c4	00 	. 
 	nop			;c7c5	00 	. 
@@ -3412,8 +3506,7 @@ term_setup_screen:
 	ld sp,00000h		;c7d7	31 00 00 	1 . . 
 	nop			;c7da	00 	. 
 	nop			;c7db	00 	. 
-	
-	
+
 	defb "Enq/Ack", 000h
 
 	call p,03431h		;c7e4	f4 31 34 	. 1 4 
@@ -3428,8 +3521,8 @@ term_setup_screen:
 	nop			;c7f1	00 	. 
 	call po,02031h		;c7f2	e4 31 20 	. 1   
 	
-	defb "DTE ! DCE !    !!    !    !        "
-	defb " !     !    !!    !    !    "
+	defb "DTE ! DCE !    !!    !    !     "
+	defb "    !     !    !!    !    !    "
     
 	add a,c			;c834	81 	. 
 	nop			;c835	00 	. 
@@ -3484,15 +3577,10 @@ term_setup_screen:
 	nop			;c878	00 	. 
 	nop			;c879	00 	. 
 	ld l,h			;c87a	6c 	l 
-	
-;; "On"	
-	ld (04f20h),a		;c87b	32 20 4f 	2   O 
-	ld l,(hl)			;c87e	6e 	n 
-	jr nz,$+35		;c87f	20 21 	  ! 
-	
-;; "Off"	
-	defb " Off !    !!    !     !        !     !"
-	defb "    !!    !     !    "
+	defb 032h
+
+    defb " On ! Off !    !!    !     !    "
+	defb "    !     !    !!    !     !    "
    
 	ld bc,0c400h		;c8bc	01 00 c4 	. . . 
 	ld (00000h),a		;c8bf	32 00 00 	2 . . 
@@ -3512,6 +3600,10 @@ term_setup_screen:
 	;; "Off"	
 	defb "Off", 000h
 
+; see POI-210
+; called by main menu selection "Setup Menu"
+; function c8d4
+fm_setup:
 	ld a,006h		;c8d4	3e 06 	> . ; Load Page 6 (Application RAM)
 	call os_loadpage		;c8d6	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
 	call read_dbe0		;c8d9	cd 33 a5 	. 3 .
@@ -3523,8 +3615,9 @@ term_setup_screen:
 	push hl			;c8e7	e5 	. 
 	ld hl,(03f08h)		;c8e8	2a 08 3f 	* . ? 
 	push hl			;c8eb	e5 	. 
-	call 03344h		;c8ec	cd 44 33 	. D 3 
-	ld hl,00032h		;c8ef	21 32 00 	! 2 . 
+	call fun_c944 + app_target_area-_splash_screen_data		;c8ec	cd 44 33 	. D 3
+	;call 03344h		;c8ec	cd 44 33 	. D 3
+	ld hl,00032h		;c8ef	21 32 00 	! 2 .
 	push hl			;c8f2	e5 	. 
 	call 0d9f9h		;c8f3	cd f9 d9 	. . . 
 	pop hl			;c8f6	e1 	. 
@@ -3572,6 +3665,8 @@ term_setup_screen:
 
 ;; POI-010 below could be config steps for serial parameters
 ;; many ldirs/copying of small areas
+; should have 0x3344 in 2a00 adress space
+fun_c944:
 	ld a,(_tmp_page)		;c944	3a 96 a4 	: . .
 	call os_loadpage		;c947	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in _tmp_page
 	
@@ -3700,7 +3795,11 @@ term_setup_screen:
 	pop hl			;ca60	e1 	. 
 	ret			;ca61	c9 	. 
 
-	ld hl,(03f00h)		;ca62	2a 00 3f 	* . ? 
+;
+; Called on selection of main menu "Setup = Sim."
+; function ca62
+fm_setup2sim:
+	ld hl,(03f00h)		;ca62	2a 00 3f 	* . ?
 	push hl			;ca65	e5 	. 
 	ld hl,(03f02h)		;ca66	2a 02 3f 	* . ? 
 	push hl			;ca69	e5 	. 
