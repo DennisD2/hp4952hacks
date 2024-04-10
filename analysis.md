@@ -187,16 +187,16 @@ Code piece found:
     ; b from hl
     ; c from hl+1
     ; a from hl+2
-    ld b,(hl)		;d369	46 	F 
-    inc hl		;d36a	23 	# 
-    ld c,(hl)		;d36b	4e 	N 
-    inc hl		;d36c	23 	# 
-l_d36d:
-    ld a,(hl)		;d36d	7e 	~ 
-    out (c),a		;d36e	ed 79 	. y 
-    inc hl		;d370	23 	# 
-    djnz $-4		;d371	10 fa 	. . 
-    ret			;d373	c9 	. 
+	ld b,(hl)		;d369	46 	F 
+	inc hl			;d36a	23 	# 
+	ld c,(hl)		;d36b	4e 	N 
+	inc hl			;d36c	23 	# 
+ld36dh:
+	ld a,(hl)		;d36d	7e 	~ 
+	out (c),a		;d36e	ed 79 	. y 
+	inc hl			;d370	23 	# 
+	djnz ld36dh		;d371	10 fa 	. . 
+	ret			;d373	c9 	. 
 ```
 
 SCC also uses address bits 9 and 8 for D/~C and A/~B. 
