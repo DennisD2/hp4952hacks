@@ -1,3 +1,14 @@
+; -------------------------------------------------------------------
+;
+; Code trial to access SCC on HP4952a
+;
+; -------------------------------------------------------------------
+
+; Code examples
+; https://hackaday.io/project/5233-z80-computer/log/19836-serial-io
+; https://github.com/torvalds/linux/blob/master/drivers/tty/serial/ip22zilog.c
+
+
 ; A8
 scc_bit_ab:     equ     0   ; bit 0 in upper byte
 ; A9
