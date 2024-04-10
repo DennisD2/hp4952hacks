@@ -99,8 +99,9 @@ app_target_area:        equ     02a00h
 os_loadpage:            equ     00e60h      ; loads a page; ROM function
 os_rtn_to_main_menu:    equ     014d5h      ; jumps back to HP4953 main menu, ends app
 
-; -------------------------------------------------------------------
-
+;------------------------------------------------------------------
+; a000 area
+;------------------------------------------------------------------
 	org	0a000h
 	seek 00000h
 
@@ -2622,6 +2623,10 @@ l_aed6:
 
 ;	in original file, we have "nop"	until 0bfffh.
 
+
+;------------------------------------------------------------------
+; c000 area
+;------------------------------------------------------------------
 	org 0c000h
 	seek 02000h
 
@@ -2655,14 +2660,10 @@ _splash_screen_data: ; see lib/splash.asm
 l_2a7b:
     defw 02a8bh             ; 2a8b: 2a8b-2a00=8b c000+8b = c08b, see below
 l_2a7d:
-    defb 000h, 000h
+    ; 12 x 0 bytes
+    defs 00ch, 000h
 	;adc a,e			;c07b	8b 	.
 	;ld hl,(00000h)		;c07c	2a 00 00 	* . .
-    defb 000h, 000h
-    defb 000h, 000h
-    defb 000h, 000h
-    defb 000h, 000h
-    defb 000h, 000h
 	;nop			;c07f	00 	.
 	;nop			;c080	00 	.
 	;nop			;c081	00 	.
@@ -2680,20 +2681,13 @@ l_2a7d:
     ; 2a89
 l_2a8b:
 	; 64 SPACEs follow
-	defb "                "
-	defb "                "
-	defb "                "
-	defb "                "
+	defs 040h,' '
 
 	defw 02adbh                                 ; 2adb -> c0db
 	;in a,(02ah)		;c0cb	db 2a 	. *
 l_2acd:
-    defb 000h, 000h
-    defb 000h, 000h
-    defb 000h, 000h
-    defb 000h, 000h
-    defb 000h, 000h
-    defb 000h, 000h
+    ; 12 x 0 bytes
+    defs 00ch, 000h
 	;nop			;c0d7	00 	.
 	;nop			;c0d8	00 	.
 	defw 02a7bh
@@ -2703,10 +2697,7 @@ l_2acd:
     ; 2a8b in target, is c08b in c000 space
 l_2adb:
 	; 64 SPACEs follow
-	defb "                "
-	defb "                "
-	defb "                "
-	defb "                "
+	defs 040h,' '
 
 	; Item text for main menu for new application , see POI-212
 	; c11b is in target space: c11b-c000+2a00; 11b+2a00=2b1b
@@ -3805,7 +3796,7 @@ fun_c944:
 ; Called on selection of main menu "Setup = Sim."
 ; function ca62
 fm_setup2sim:
-	ld hl,(03f00h)		;ca62	2a 00 3f 	* . ? 
+	ld hl,(03f00h)		;ca62	2a 00 3f 	* . ?
 	push hl			;ca65	e5 	. 
 	ld hl,(03f02h)		;ca66	2a 02 3f 	* . ? 
 	push hl			;ca69	e5 	. 
@@ -3956,6 +3947,9 @@ fm_setup2sim:
 
 	;; in original file, we have nop until 0d400h
 
+;------------------------------------------------------------------
+; d400 area
+;------------------------------------------------------------------
 	org 0d400h
 	seek 03400h
 code_p_d400:
@@ -4602,6 +4596,9 @@ l_d426:
 	ret			;d896	c9 	.
 ;; in original file, we have nop until 0dbdfh
 
+;------------------------------------------------------------------
+; dbe0 area
+;------------------------------------------------------------------
     ;; this looks like an important variable section
 	org 0dbe0h
 	seek 03be0h
