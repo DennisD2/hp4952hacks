@@ -29636,7 +29636,10 @@ la539h:
 	call sub_a5d6h		;a543	cd d6 a5 	. . . 
 	ld hl,(07b73h)		;a546	2a 73 7b 	* s { 
 	ld e,(hl)			;a549	5e 	^ 
-	inc hl			;a54a	23 	# 
+	inc hl			;a54a	23 	#
+
+	; POI-220: could be entry point for VT100 Execute code at fm_execute in vt100.asm
+	; contains no loop
 la54bh:
 	ld d,(hl)			;a54b	56 	V 
 	ld (07b73h),de		;a54c	ed 53 73 7b 	. S s { 
