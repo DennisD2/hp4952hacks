@@ -208,3 +208,26 @@ So, addresses for SCC always look like Cx0x, Cx1x, Cx2x, Cx3x.
 | 0         | 1         | Control byte (command), PORTA |
 | 1         | 0         | Data byte, PORTB   |
 | 1         | 1         | Data byte, PORTA    |
+
+##### fm_execute call chain
+```asm
+    ; function called by menu selection
+    ; c331 function; "Execute" from main menu
+fm_execute:
+	ld a,062h		;c331	3e 62 	> b             ; (07501h):=0x62
+	ld (07501h),a		;c333	32 01 75 	2 . u   ;
+	ld a,006h		;c336	3e 06 	> .             ; Load Page 6 (Application RAM)
+	call os_loadpage		;c338	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
+	call 0a54bh		;c33b	cd 4b a5 	. K .       ; maybe code in U503 at loc a54b, (or U502 but 503 looks more realistic)
+	ld a,022h		;c33e	3e 22 	> "             ; (07501h):=0x22
+	ld (07501h),a		;c340	32 01 75 	2 . u   ;
+	ld a,(_tmp_page)		;c343	3a 96 a4 	: . . ; a:=tmp_page
+	call os_loadpage		;c346	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in _tmp_page
+	ld hl,00001h		;c349	21 01 00 	! . .   ; hl:=1
+	ret			;c34c	c9 	. 
+```
+
+(07501h) is being loaded with these values: 0x21, 0x22, 0x62.
+fm_execute() is the only place where 0x62 is loaded into 07501h.
+
+fm_execute is forwarding to a54bh. I suppose this is code in ROM U503.
