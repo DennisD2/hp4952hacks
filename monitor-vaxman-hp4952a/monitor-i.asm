@@ -380,7 +380,10 @@ dump_group:    cp      'D'             ; Dump group?
 if DISASS
                cp      'D'             ; Disassemble?
                call    z, disassemble
+               jp      z, main_loop
 endif
+               cp      'S'             ; Disassemble?
+               call    z, scc_test
                jp      z, main_loop
 
                jr      cmd_error       ; Unknown memory-group-command
@@ -595,6 +598,38 @@ disloop_done:
 dis_msg_1:     defb    "DISASSEMBLE, START=", eos
 
 endif
+
+scc_test:       push    af
+                push    bc
+                push    de
+                push    hl
+                ld      hl, scc_msg_1
+                call    puts            ; Print prompt
+
+                ; read registers 0..15
+                ld      a,0
+reg_loop:
+                push    af
+                call    scc_read_register
+                ; print result
+                call    print_byte
+                ld      hl,scc_sep
+                call    puts
+                pop     af
+
+                inc     a
+                cp      00fh
+                jr      nz,reg_loop
+
+                pop     hl
+                pop     de
+                pop     bc
+                pop     af
+
+                ret
+
+scc_msg_1:     defb    "SCC test", eos
+scc_sep:       defb    ',', eos
 
 ;
 ; Examine a memory location;

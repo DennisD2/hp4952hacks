@@ -97,6 +97,7 @@ _main_entry:
 	call initialize
 
 include "monitor-i.asm"
+include "scc.asm"
 
 ;****************************************************************************************
 ; HP4952 footer start
