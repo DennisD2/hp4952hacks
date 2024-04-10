@@ -4362,7 +4362,8 @@ l173dh:
 	ld (hl),d			;1745	72 	r 
 	sub e			;1746	93 	. 
 l1747h:
-	jp l1747h		;1747	c3 47 17 	. G . 
+	jp l1747h		;1747	c3 47 17 	. G .           ; uh, endless loop?
+
 	ld a,h			;174a	7c 	| 
 	and d			;174b	a2 	. 
 	ld h,a			;174c	67 	g 
@@ -4395,15 +4396,15 @@ sub_1767h:
 	push bc			;1767	c5 	. 
 	ld a,h			;1768	7c 	| 
 	or l			;1769	b5 	. 
-	jp nz,l1771h		;176a	c2 71 17 	. q . 
-	call l1747h		;176d	cd 47 17 	. G . 
+	jp nz,l1771h		;176a	c2 71 17 	. q .   ;
+	call l1747h		;176d	cd 47 17 	. G .       ; see above, may be endless loop
 	inc h			;1770	24 	$ 
 l1771h:
 	push hl			;1771	e5 	. 
-	ld hl,l0000h		;1772	21 00 00 	! . . 
+	ld hl,l0000h		;1772	21 00 00 	! . .   ; loads hl with ROM Entry Function 0000
 l1775h:
-	ex (sp),hl			;1775	e3 	. 
-	jp l1787h		;1776	c3 87 17 	. . . 
+	ex (sp),hl			;1775	e3 	.               ; hl:=(sp), (sp):=hl
+	jp l1787h		;1776	c3 87 17 	. . .       ;
 	push bc			;1779	c5 	. 
 	ld a,h			;177a	7c 	| 
 	or l			;177b	b5 	. 
@@ -30456,6 +30457,11 @@ la4cdh:
 	call sub_a5d6h		;a4d3	cd d6 a5 	. . . 
 	ret			;a4d6	c9 	. 
 
+; being used by la54bh(). it jumps either to
+; la5b9h - is inside la54bh
+; la5ach - is inside la54bh
+; la539h -
+; la50dh -
 sub_a4d7h:
 	ld hl,(l7b69h)		;a4d7	2a 69 7b 	* i { 
 	ld a,h			;a4da	7c 	| 
@@ -30481,7 +30487,8 @@ sub_a4d7h:
 	or (ix+004h)		;a500	dd b6 04 	. . . 
 	jp nz,la5ach		;a503	c2 ac a5 	. . . 
 	ld (ix+003h),001h		;a506	dd 36 03 01 	. 6 . . 
-	jp la5ach		;a50a	c3 ac a5 	. . . 
+	jp la5ach		;a50a	c3 ac a5 	. . .
+
 la50dh:
 	cp 01bh		;a50d	fe 1b 	. . 
 	jp nz,la51ch		;a50f	c2 1c a5 	. . . 
@@ -30530,64 +30537,65 @@ la539h:
 la54bh:
 	ld d,(hl)			;a54b	56 	V 
 	ld (07b73h),de		;a54c	ed 53 73 7b 	. S s { 
-	call sub_a5bah		;a550	cd ba a5 	. . . 
-	call sub_a5d6h		;a553	cd d6 a5 	. . . 
+	call sub_a5bah		;a550	cd ba a5 	. . .               ; contains no jp/call
+	call sub_a5d6h		;a553	cd d6 a5 	. . .               ; contains no jp/call
 	ld hl,(07b73h)		;a556	2a 73 7b 	* s { 
-	inc hl			;a559	23 	# 
-	inc hl			;a55a	23 	# 
+	inc hl			    ;a559	23 	#
+	inc hl			    ;a55a	23 	#
 	ld (07b73h),hl		;a55b	22 73 7b 	" s { 
-	call sub_a5bah		;a55e	cd ba a5 	. . . 
+	call sub_a5bah		;a55e	cd ba a5 	. . .               ; calls again sub_a5bah
 	ld de,l0008h+2		;a561	11 0a 00 	. . . 
 	ld hl,(l7b69h)		;a564	2a 69 7b 	* i { 
 	add hl,de			;a567	19 	. 
 	ld e,(hl)			;a568	5e 	^ 
-	inc hl			;a569	23 	# 
+	inc hl			    ;a569	23 	#
 	ld d,(hl)			;a56a	56 	V 
 	ld (07b73h),de		;a56b	ed 53 73 7b 	. S s { 
-	inc de			;a56f	13 	. 
-	inc de			;a570	13 	. 
+	inc de			    ;a56f	13 	.
+	inc de			    ;a570	13 	.
 	ld (07b73h),de		;a571	ed 53 73 7b 	. S s { 
 	ld a,(07b67h)		;a575	3a 67 7b 	: g { 
 	cp 00fh		;a578	fe 0f 	. . 
 	jr nz,la583h		;a57a	20 07 	  . 
-	ld a,004h		;a57c	3e 04 	> . 
+	ld a,004h		    ;a57c	3e 04 	> .
 	ld (07b67h),a		;a57e	32 67 7b 	2 g { 
-	jr la588h		;a581	18 05 	. . 
+	jr la588h		    ;a581	18 05 	. .
 la583h:
-	ld a,008h		;a583	3e 08 	> . 
+	ld a,008h		    ;a583	3e 08 	> .
 	ld (07b67h),a		;a585	32 67 7b 	2 g { 
 la588h:
 	ld de,l0006h		;a588	11 06 00 	. . . 
 	ld hl,(l7b69h)		;a58b	2a 69 7b 	* i { 
 	add hl,de			;a58e	19 	. 
-	ld (l7b79h+2),hl		;a58f	22 7b 7b 	" { { 
+	ld (l7b79h+2),hl	;a58f	22 7b 7b 	" { {
 	ld hl,(07b73h)		;a592	2a 73 7b 	* s { 
 	ld e,(hl)			;a595	5e 	^ 
-	inc hl			;a596	23 	# 
+	inc hl			    ;a596	23 	#
 	ld d,(hl)			;a597	56 	V 
 	ld hl,(07b67h)		;a598	2a 67 7b 	* g { 
 	add hl,de			;a59b	19 	. 
 	ld de,l0019h		;a59c	11 19 00 	. . . 
 	ex de,hl			;a59f	eb 	. 
-	call sub_1767h		;a5a0	cd 67 17 	. g . 
-	inc hl			;a5a3	23 	# 
-	inc hl			;a5a4	23 	# 
+	call sub_1767h		;a5a0	cd 67 17 	. g .           ; sub_1767h; much code
+	inc hl			    ;a5a3	23 	#
+	inc hl			    ;a5a4	23 	#
 	ex de,hl			;a5a5	eb 	. 
-	ld hl,(l7b79h+2)		;a5a6	2a 7b 7b 	* { { 
+	ld hl,(l7b79h+2)	;a5a6	2a 7b 7b 	* { {
 	ld (hl),e			;a5a9	73 	s 
-	inc hl			;a5aa	23 	# 
+	inc hl			    ;a5aa	23 	#
 	ld (hl),d			;a5ab	72 	r 
 la5ach:
 	ld hl,(l7b69h)		;a5ac	2a 69 7b 	* i { 
 	ld e,(hl)			;a5af	5e 	^ 
-	inc hl			;a5b0	23 	# 
+	inc hl			    ;a5b0	23 	#
 	ld d,(hl)			;a5b1	56 	V 
 	ld (l7b69h),de		;a5b2	ed 53 69 7b 	. S i { 
-	jp sub_a4d7h		;a5b6	c3 d7 a4 	. . . 
+	jp sub_a4d7h		;a5b6	c3 d7 a4 	. . .           ; sub_a4d7h
 la5b9h:
-	ret			;a5b9	c9 	. 
+	ret			        ;a5b9	c9 	.
 
 sub_a5bah:
+    ; contains no jp/call
 	ld hl,(07b73h)		;a5ba	2a 73 7b 	* s { 
 	ld (l7b75h),hl		;a5bd	22 75 7b 	" u { 
 	ld a,(hl)			;a5c0	7e 	~ 
@@ -30604,6 +30612,7 @@ sub_a5bah:
 	ret			;a5d5	c9 	. 
 
 sub_a5d6h:
+    ; contains no jp/call
 	ld hl,(07b73h)		;a5d6	2a 73 7b 	* s { 
 	ld e,(hl)			;a5d9	5e 	^ 
 	inc hl			;a5da	23 	# 

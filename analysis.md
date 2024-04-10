@@ -240,57 +240,57 @@ la54bh:
 	call sub_a5bah		;a550	cd ba a5 	. . . 
 	call sub_a5d6h		;a553	cd d6 a5 	. . . 
 	ld hl,(07b73h)		;a556	2a 73 7b 	* s { 
-	inc hl			;a559	23 	# 
-	inc hl			;a55a	23 	# 
+	inc hl			    ;a559	23 	# 
+	inc hl			    ;a55a	23 	# 
 	ld (07b73h),hl		;a55b	22 73 7b 	" s { 
 	call sub_a5bah		;a55e	cd ba a5 	. . . 
 	ld de,l0008h+2		;a561	11 0a 00 	. . . 
 	ld hl,(l7b69h)		;a564	2a 69 7b 	* i { 
 	add hl,de			;a567	19 	. 
 	ld e,(hl)			;a568	5e 	^ 
-	inc hl			;a569	23 	# 
+	inc hl			    ;a569	23 	# 
 	ld d,(hl)			;a56a	56 	V 
 	ld (07b73h),de		;a56b	ed 53 73 7b 	. S s { 
-	inc de			;a56f	13 	. 
-	inc de			;a570	13 	. 
+	inc de			    ;a56f	13 	. 
+	inc de			    ;a570	13 	. 
 	ld (07b73h),de		;a571	ed 53 73 7b 	. S s { 
 	ld a,(07b67h)		;a575	3a 67 7b 	: g { 
 	cp 00fh		;a578	fe 0f 	. . 
 	jr nz,la583h		;a57a	20 07 	  . 
-	ld a,004h		;a57c	3e 04 	> . 
+	ld a,004h		    ;a57c	3e 04 	> . 
 	ld (07b67h),a		;a57e	32 67 7b 	2 g { 
-	jr la588h		;a581	18 05 	. . 
+	jr la588h		    ;a581	18 05 	. . 
 la583h:
-	ld a,008h		;a583	3e 08 	> . 
+	ld a,008h		    ;a583	3e 08 	> . 
 	ld (07b67h),a		;a585	32 67 7b 	2 g { 
 la588h:
 	ld de,l0006h		;a588	11 06 00 	. . . 
 	ld hl,(l7b69h)		;a58b	2a 69 7b 	* i { 
 	add hl,de			;a58e	19 	. 
-	ld (l7b79h+2),hl		;a58f	22 7b 7b 	" { { 
+	ld (l7b79h+2),hl	;a58f	22 7b 7b 	" { { 
 	ld hl,(07b73h)		;a592	2a 73 7b 	* s { 
 	ld e,(hl)			;a595	5e 	^ 
-	inc hl			;a596	23 	# 
+	inc hl			    ;a596	23 	# 
 	ld d,(hl)			;a597	56 	V 
 	ld hl,(07b67h)		;a598	2a 67 7b 	* g { 
 	add hl,de			;a59b	19 	. 
 	ld de,l0019h		;a59c	11 19 00 	. . . 
 	ex de,hl			;a59f	eb 	. 
 	call sub_1767h		;a5a0	cd 67 17 	. g . 
-	inc hl			;a5a3	23 	# 
-	inc hl			;a5a4	23 	# 
+	inc hl			    ;a5a3	23 	# 
+	inc hl			    ;a5a4	23 	# 
 	ex de,hl			;a5a5	eb 	. 
-	ld hl,(l7b79h+2)		;a5a6	2a 7b 7b 	* { { 
+	ld hl,(l7b79h+2)	;a5a6	2a 7b 7b 	* { { 
 	ld (hl),e			;a5a9	73 	s 
-	inc hl			;a5aa	23 	# 
+	inc hl			    ;a5aa	23 	# 
 	ld (hl),d			;a5ab	72 	r 
 la5ach:
 	ld hl,(l7b69h)		;a5ac	2a 69 7b 	* i { 
 	ld e,(hl)			;a5af	5e 	^ 
-	inc hl			;a5b0	23 	# 
+	inc hl			    ;a5b0	23 	# 
 	ld d,(hl)			;a5b1	56 	V 
 	ld (l7b69h),de		;a5b2	ed 53 69 7b 	. S i { 
 	jp sub_a4d7h		;a5b6	c3 d7 a4 	. . . 
 la5b9h:
-	ret			;a5b9	c9 	. 
+	ret			        ;a5b9	c9 	. 
 ```
