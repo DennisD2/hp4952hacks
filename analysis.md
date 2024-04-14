@@ -294,3 +294,117 @@ la5ach:
 la5b9h:
 	ret		        ;a5b9	c9 	. 
 ```
+
+After several approaches to get a clue whats going on, by following all subroutines and
+jumps spawning of from this function, I gave up. Without almost any hint or documentation
+regarding the system it would last forever to get a grip on that task.
+
+Because I also have a Kingst LA5032 logic analyzer in my toolbox, I tried to do some 
+hardware analysis to move forward.
+
+After first approach analyzing the signals at SCC itself, I moved to analysis of the
+Z80 CPU itself, and there were first real results.
+
+## Hardware analysis with logic analyzer
+I own a nice Kingst LA5032 logic analyzer. it offers 32 ports and up to 500Mhz sample rate
+with virtually "infinite" sample depth, hundreds of Gigasamples are possible, this could be minutes
+of data captures from a e.g. 10Mhz bus. So it is a very powerful device.
+
+There is also sigrok+pulseview, a great open source software for Linux, that can access
+a large number of logic analyzers, oscilloscopes and other measurement devices of all kinds.
+While sgirok offers a cli, pulseview is a graphical UI for sigrok.
+
+Sigrok supports the Kingst LA5032, this was one of main reasons for me to buy that product.
+
+I also ordered some used Pomona (and 3M) IC tester clips before, including a 40 pin clip.
+So I have all at hands to hook on directly to the Z80 CPU and look at its signals.
+
+Some friendly guys even have written a Z80 decoder for sigrok/pulseview. This decoder has 
+bugs, but is even with bugs a great help in understanding what the HP4952A is doing.
+
+So I hooked up the logic analyzer to the HP4952A. Close to the Z80 (Toshiba TMP84C00)
+there is an XTal with  7.3728Mhz. I suppose that this is part of clock oscillator
+for the Z80. From logic analyzer I see roughly 400ns / 2.5Mhz for a full clock cycle.
+So this is somehow strange. 
+
+When switching on, the SCC is initialized. I have the following config for detailled analysis:
+* All signals supported by Z80 decoder hooked up. These are:
+  * D0-D7
+  * M1
+  * RD, WR
+  * MREQ, IOREQ
+* SCC Chip Enable CE pin
+* Clock signal at Z80 pin 6
+* Wait signal at Z80 pin 24 (added later, see below)
+
+I can now locate accesses to the SCC Chip (then CE goes low). The next large screenshot
+shows more or the first call to SCC chip done by HP4952A after switching on.
+
+![](doc/hp4952a-switchon-z80dd-decoder.png)
+
+In the screenshot, all pins can be seen. Also decoder output, see the four "Z80" lines (Data bus, Instructions,
+Operands, Warnings). The original code of the decoder has an issue decoding out and in opcodes and also
+at fetching opcodes from RAM. In my case, the external chips and RAM are not fast enough for immediate response
+and assert the /WAIT pin. This is ignored by the original z80 decoder, resulting in wrong decodings,
+sometimes even "Invalid instruction" is dumped out.
+
+After having studied the source code of the z80 decoder, written in Python, I was able to fix this issue at least
+partly. Check the two lines at the bottom of screenshot. These are the decodings from the fixed decoder.
+No "invalid instructions" anymore, and the decoding in general looks much more correct. 
+I suppose the original decoder works well on a system with slow CPU, where RAM and external devices maybe do 
+not assert /WAIT at all.
+
+But coming back to my goal, we have a nice dump of the first access to SCC now.
+it looks like this, I added comments:
+```asm
+...
+LD  C,21h       ; seems to be output port number of SCC
+IN  A,(C)       ; read from SCC, I guess this returns RR0 (read register 0), result seems to be ignored
+LD  A,09h       ; select register (W)R9
+OUT (C),A       
+LD  A,0C0h      ; write out value 0x0c to selected register
+OUT (C),A       ;
+...
+```
+
+And what means "write out value ```0xc0``` to selected register" ? Lets check Zilogs SCC user manual, page 167:
+
+![](doc/scc_ug_wr9.png)
+
+So 0xc0 = 1100.0000, meaning command "Force Hardware Reset". Which makes totally sense, to initialize the chip
+after being switched on, before any further use.
+
+With this piece of code, we can do a search in the disassembled ROMs. And there is a match, in ROM U204.
+file U204_04952-10029_TMS27C256.BIN.dasm . Code piece is:
+```asm
+...
+	jp 00063h		;1387	c3 63 00 	. c . 
+	
+; here we go, code piece from above:	
+	ld c,021h		;138a	0e 21 	. ! 
+	in a,(c)		;138c	ed 78 	. x 
+	ld a,009h		;138e	3e 09 	> . 
+	out (c),a		;1390	ed 79 	. y 
+	ld a,0c0h		;1392	3e c0 	> . 
+	out (c),a		;1394	ed 79 	. y 
+; end of matched code piece
+	
+	ex af,af'			;1396	08 	. 
+	ex af,af'			;1397	08 	. 
+	ld a,001h		;1398	3e 01 	> . 
+	out (040h),a		;139a	d3 40 	. @
+    ; maybe SCC Port A,Control	, probability 5%
+	ld b,001h		;139c	06 01 	. . 
+	ld e,000h		;139e	1e 00 	. . 
+	ld c,021h		;13a0	0e 21 	. ! 
+	ld d,00ch		;13a2	16 0c 	. . 
+	ld a,d			;13a4	7a 	z 
+	out (c),a		;13a5	ed 79 	. y 
+...
+```
+I kept in the copy above an old comment from me from two weeks ago, where I was checking ROM content code-wise.
+There I was also considering that area as maybe related to SCC handling, but without any level of certainty.
+
+## Further reading
+
+* SCC/ESCC User Manual TBD
