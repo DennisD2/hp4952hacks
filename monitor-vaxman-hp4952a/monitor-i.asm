@@ -562,7 +562,7 @@ disloop:
                 ld      c,(hl)          ;  c=length byte of string
                 add     hl,bc           ; add length to hl to get end of string location
                 inc     hl
-                ld      (hl),000h        ; terminate with zero
+                ld      (hl),000h       ; terminate with zero
                 ld      hl,kStrBuffer   ; prepare puts call
                 inc     hl              ; step over length byte
                 call    puts
