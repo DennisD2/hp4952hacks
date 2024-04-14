@@ -441,7 +441,7 @@ l2065h:
 	ld hl,_splash_screen_data		;a4b7	21 00 c0 	! . .		; this will overwrite just copied _dll_stub code, which is no longer needed
 	ld de,app_target_area		;a4ba	11 00 2a 	. . *
 
-	;ld bc,01400h		;a4bd	01 00 14 	. . .
+	;ld bc,01400h		;a4bd	01 00 14 	. . .                   ; copy 0x1400 bytes
 	ld bc,code_p_d400-_splash_screen_data    ;a4bd	01 00 14 	. . .
 	ldir		;a4c0	ed b0 	. .
 
@@ -647,18 +647,22 @@ f_a5f9:
 	call 0a87bh		;a602	cd 7b a8 	. { . 
 	ret			;a605	c9 	. 
 
-	call 0a8e3h		;a606	cd e3 a8 	. . . 
+	call 0a8e3h		;a606	cd e3 a8 	. . .
+la609h:
 	ret			;a609	c9 	.
 
+la60ah:
 ;var_byte_a60a:
 	; next bytes are variables
 	defb        000h
 	;nop			;a60a	00 	.
 
+la60bh:
 ;var_byte_aa60b:
 	defb        000h
 	;nop			;a60b	00 	.
 
+la60ch:
 ;var_word_aa60c:
 	defw        000h
 	;nop			;a60c	00 	.
@@ -667,54 +671,58 @@ f_a5f9:
 f_a60e:
     ; big setup like function
 	call read_dbe0		;a60e	cd 33 a5 	. 3 .
-	call 0a87bh		;a611	cd 7b a8 	. { . 
-	call 0a8e3h		;a614	cd e3 a8 	. . . 
-	call 0a92bh		;a617	cd 2b a9 	. + . 
+	call sub_a87bh		;a611	cd 7b a8 	. { .
+	call sub_a8e3h		;a614	cd e3 a8 	. . .
+	call sub_a92bh		;a617	cd 2b a9 	. + .
 	call write_dbe0		;a61a	cd 3f a5 	. ? .
-	ld a,(0a609h)		;a61d	3a 09 a6 	: . .  ; hm, at 0a609 we have an op code, not a var !?!
+	ld a,(la609h)		;a61d	3a 09 a6 	: . .  ; hm, at 0a609 we have an op code, not a var !?!
 	ld (010b5h),a		;a620	32 b5 10 	2 . . 
 	ld (0112dh),a		;a623	32 2d 11 	2 - . 
 	ld (01067h),a		;a626	32 67 10 	2 g . 
 	ld (01133h),a		;a629	32 33 11 	2 3 . 
 	ld a,(01058h)		;a62c	3a 58 10 	: X . 
-	ld (0a60ah),a		;a62f	32 0a a6 	2 . . 
+	ld (la60ah),a		;a62f	32 0a a6 	2 . .
 	ld hl,(01059h)		;a632	2a 59 10 	* Y . 
-	ld (0a60ch),hl		;a635	22 0c a6 	" . . 
+	ld (la60ch),hl		;a635	22 0c a6 	" . .
 	ld a,006h		;a638	3e 06 	> . 
 	ld (01058h),a		;a63a	32 58 10 	2 X . 
-	ld hl,0a646h		;a63d	21 46 a6 	! F . 
+	ld hl,la646h		;a63d	21 46 a6 	! F .
 	ld (01059h),hl		;a640	22 59 10 	" Y . 
-	jp 01381h		;a643	c3 81 13 	. . . 
+	jp 01381h		;a643	c3 81 13 	. . .
+
+la646h:
 	push af			;a646	f5 	. 
 	push hl			;a647	e5 	. 
-	ld a,(0a60ah)		;a648	3a 0a a6 	: . . 
+	ld a,(la60ah)		;a648	3a 0a a6 	: . .
 	ld (01058h),a		;a64b	32 58 10 	2 X . 
-	ld hl,(0a60ch)		;a64e	2a 0c a6 	* . . 
+	ld hl,(la60ch)		;a64e	2a 0c a6 	* . .
 	ld (01059h),hl		;a651	22 59 10 	" Y . 
 	ld a,(016e2h)		;a654	3a e2 16 	: . . 
-	ld (0a60bh),a		;a657	32 0b a6 	2 . . 
+	ld (la60bh),a		;a657	32 0b a6 	2 . .
 	ld hl,(016e3h)		;a65a	2a e3 16 	* . . 
-	ld (0a60ch),hl		;a65d	22 0c a6 	" . . 
-	ld a,(0a679h)		;a660	3a 79 a6 	: y . 
+	ld (la60ch),hl		;a65d	22 0c a6 	" . .
+	ld a,(la679h)		;a660	3a 79 a6 	: y .
 	ld (016e2h),a		;a663	32 e2 16 	2 . . 
 	ld hl,01103h		;a666	21 03 11 	! . . 
 	ld (016e3h),hl		;a669	22 e3 16 	" . . 
 	ld a,006h		;a66c	3e 06 	> . 
 	ld (01106h),a		;a66e	32 06 11 	2 . . 
-	ld hl,0a67ch		;a671	21 7c a6 	! | . 
+	ld hl,la67ch		;a671	21 7c a6 	! | .
 	ld (01107h),hl		;a674	22 07 11 	" . . 
 	pop hl			;a677	e1 	. 
 	pop af			;a678	f1 	. 
-	jp 01055h		;a679	c3 55 10 	. U . 
-	push ix		;a67c	dd e5 	. . 
+la679h:
+	jp 01055h		;a679	c3 55 10 	. U .
+la67ch:
+	push ix		;a67c	dd e5 	. .
 	push af			;a67e	f5 	. 
 	push hl			;a67f	e5 	. 
-	ld a,(0a60bh)		;a680	3a 0b a6 	: . . 
+	ld a,(la60bh)		;a680	3a 0b a6 	: . .
 	ld (016e2h),a		;a683	32 e2 16 	2 . . 
-	ld hl,(0a60ch)		;a686	2a 0c a6 	* . . 
+	ld hl,(la60ch)		;a686	2a 0c a6 	* . .
 	ld (016e3h),hl		;a689	22 e3 16 	" . . 
 	call 016e2h		;a68c	cd e2 16 	. . . ; Patched to e1ch
-	ld a,(0a60ah)		;a68f	3a 0a a6 	: . . 
+	ld a,(la60ah)		;a68f	3a 0a a6 	: . .
 	ld (01106h),a		;a692	32 06 11 	2 . . 
 	ld hl,016e2h		;a695	21 e2 16 	! . . 
 	ld (01107h),hl		;a698	22 07 11 	" . . 
@@ -737,7 +745,9 @@ f_a60e:
 	pop af			;a6cc	f1 	. 
 	pop ix		;a6cd	dd e1 	. . 
 	jp 01103h		;a6cf	c3 03 11 	. . . ; Patched to ecch
-	jr nz,$+34		;a6d2	20 20 	    
+la6d2h:
+	jr nz,$+34		;a6d2	20 20
+sub_a6d4h:
 	call 01961h		;a6d4	cd 61 19 	. a . ; Patched to d9ch
 	call 01982h		;a6d7	cd 82 19 	. . . ; Patched to d06h
 	xor a			;a6da	af 	. 
@@ -750,12 +760,12 @@ f_a60e:
 f_a6e7:
 	ld a,(0a6d2h)		;a6e7	3a d2 a6 	: . .   ; (0a6d2h)==0x20 SPACE ?
 	cp 020h		;a6ea	fe 20 	.   
-	jr nz,$+6		;a6ec	20 04 	  .             ; no -> l_a6f2
+	jr nz,la6f2h		;a6ec	20 04 	  .             ; no -> l_a6f2
 	ld a,02ah		;a6ee	3e 2a 	> *             ; yes , a:=2a
 	jr $+4		;a6f0	18 02 	. .                 ; -> l_a6f4
-l_a6f2:
+la6f2h:
 	ld a,020h		;a6f2	3e 20 	>               ; a:=0x20
-l_a6f4:
+la6f4h:
     ; copies a to 0a6d2, calls a function and reads a from 0a6d2
 	ld (0a6d2h),a		;a6f4	32 d2 a6 	2 . .   ; (0a6d2h):=a
 	call set_byte_4346		;a6f7	cd b2 ab 	. . .   ; a -> 0x4346 var
@@ -763,17 +773,18 @@ l_a6f4:
 	ret			;a6fd	c9 	. 
 
 read_a6d2:
-	ld a,(0a6d2h)		;a6fe	3a d2 a6 	: . .   ; a:=(0a6d2h)
+	ld a,(la6d2h)		;a6fe	3a d2 a6 	: . .   ; a:=(0a6d2h)
 	ret			;a701	c9 	. 
 
 	ld a,(0a6d3h)		;a702	3a d3 a6 	: . .   : a:= (0a6d3)
 	cp 020h		;a705	fe 20 	.                   ; a==SPACE?
-	jr nz,$+6		;a707	20 04 	  .             ; no, -> l_a70d
+	jr nz,la70dh 	;a707	20 04 	  .             ; no, -> l_a70d
 	ld a,02ah		;a709	3e 2a 	> *             ; yes, a:=0x2a, '*'
-	jr $+4		;a70b	18 02 	. .                 ; -> l_a70f
-l_a70d:
-	ld a,020h		;a70d	3e 20 	>               ; a:=0x20 SPACE
-l_a70f:
+	jr la70fh		;a70b	18 02 	. .                 ; -> l_a70f
+la70dh:
+	ld a,020h		;a70d	3e 20 	>
+la70fh:
+;l_a70f:
 	ld (0a6d3h),a		;a70f	32 d3 a6 	2 . . ^ ; a6d3h:=a
 	call set_byte_4372		;a712	cd b6 ab 	. . .
 	ld a,(0a6d3h)		;a715	3a d3 a6 	: . .   ; a:=a6d3h
@@ -782,64 +793,67 @@ l_a70f:
 	ld a,(0a6d3h)		;a719	3a d3 a6 	: . . 
 	ret			;a71c	c9 	. 
 
-	call 0a852h		;a71d	cd 52 a8 	. R . 
+sub_a71dh:
+	call sub_a852h		;a71d	cd 52 a8 	. R .
 	ret z			;a720	c8 	. 
 
 	ld l,a			;a721	6f 	o 
 	or l			;a722	b5 	.
-
-l_a723:
 	ret m			;a723	f8 	. 
 
-	ld a,(0a6d2h)		;a724	3a d2 a6 	: . .   ; a:=(0a6d2h)
+	ld a,(la6d2h)		;a724	3a d2 a6 	: . .   ; a:=(0a6d2h)
 	cp 02ah		;a727	fe 2a 	. *                 ; a==2a '*' ?
-	jr nz,$+14		;a729	20 0c 	  .             ; no -> l_a736
+	jr nz,la737h		;a729	20 0c 	  .             ; no -> l_a736
 	ld a,l			;a72b	7d 	}                   ; a:=l
 	cp 061h		;a72c	fe 61 	. a                 ; a < 0x61 'a' ?
-	jr c,$+9		;a72e	38 07 	8 .             ;  -> l_a736
+	jr c,la737h		;a72e	38 07 	8 .             ;  -> l_a736
 	cp 07bh		;a730	fe 7b 	. {                 ; a > 7b?
-	jr nc,$+5		;a732	30 03 	0 .             ; yes, -> l_a736
+	jr nc,la737h		;a732	30 03 	0 .             ; yes, -> l_a736
 	sub 020h		;a734	d6 20 	.               ; a:=a-0x20
-l_a736:
+;l_a736:
 	ld l,a			;a736	6f 	o                   ; l:=a
+la737h:
 	or a			;a737	b7 	.
 	ret m			;a738	f8 	.                   ; ret if a  < 0 -> then a is control char SPACE
 
 	ld a,(0a6d3h)		;a739	3a d3 a6 	: . .   ; a:=(0a6d3h)
 	ld h,a			;a73c	67 	g                   ; h:=a
 	cp 020h		;a73d	fe 20 	.                   ; a== 0x20 SPACE
-	jr nz,$+7		;a73f	20 05 	  .             ; no -> l_a744
+	jr nz,la746h		;a73f	20 05 	  .             ; no -> l_a744
+la741h:
 	or 0ffh		;a741	f6 ff 	. .                 ; a:=ff,
 	scf			;a743	37 	7                       ; set carry
-l_a744:
+;l_a744:
 	ld a,l			;a744	7d 	}                   ; a:=l
 	ret			;a745	c9 	. 
 
     ; hexchar read in function; called when entering a hex number in VT session via "hex entry" soft key
     ; Interprets a character value in hl as BCD number input and converts it to BCD number in a
     ; e.g. hl=0x3132 (characters '1' and '2') result in a=0x12
+la746h:
 	ld a,l			;a746	7d 	}                   ; a:=l
 	cp '0'		    ;a747	fe 30 	. 0             ; a<0x30 '0' ?
-	jr c,$+58		;a749	38 38 	8 8             ; yes -> l_7a1
+	jr c,la783h		;a749	38 38 	8 8             ; yes -> l_7a1
 	cp ':'		    ;a74b	fe 3a 	. :             ; a<0x3a ? this selects 0..9
-	jr c,$+18		;a74d	38 10 	8 .             ; yes -> l_765
+	jr c,la75fh		;a74d	38 10 	8 .             ; yes -> l_765
 	cp 'A'		    ;a74f	fe 41 	. A             ; a<0x41 'A'
-	jr c,$+50		;a751	38 30 	8 0             ; yes -> l_7a1
+	jr c,la783h		;a751	38 30 	8 0             ; yes -> l_7a1
 	cp 'G'		    ;a753	fe 47 	. G             ; a<0x47 'G' ? this selects 'a'..'f'
-	jr c,$+10		;a755	38 08 	8 .             ; yes -> l_765
+	jr c,la75fh		;a755	38 08 	8 .             ; yes -> l_765
 	cp 'a'		    ;a757	fe 61 	. a             ; a<0x61 'a' ?
-	jr c,$+42		;a759	38 28 	8 (             ; yes -> l_a79b
+	jr c,la783h		;a759	38 28 	8 (             ; yes -> l_a79b
 	cp 'g'		    ;a75b	fe 67 	. g             ; a>=0x67 'F' this selects 'A'..'F'
-	jr nc,$+38		;a75d	30 24 	0 $             ; yes -> l_f795, BUT NO VALID OPCODE THERE
+	jr nc,la783h		;a75d	30 24 	0 $             ; yes -> l_f795, BUT NO VALID OPCODE THERE
+la75fh:
 	ld a,h			;a75f	7c 	|                   ; a:=h
 	cp '*'		    ;a760	fe 2a 	. *             ; a==0x2a '*' ? mybe special handling for * ?
 	ld a,l			;a762	7d 	}                   ; a:=l
-	jr z,$+26		;a763	28 18 	( .             ; yes, -> l_a77d
+	jr z,la77dh		;a763	28 18 	( .             ; yes, -> l_a77d
 l_a765:
-	call 0a785h		;a765	cd 85 a7 	. . .       ; get num value of number e.g. 0x31->0x1
+	call sub_a785h		;a765	cd 85 a7 	. . .       ; get num value of number e.g. 0x31->0x1
 	ld l,a			;a768	6f 	o                   ; l:=a, we save a in l
 	ld a,h			;a769	7c 	|                   ; a:=h
-	call 0a785h		;a76a	cd 85 a7 	. . .       ; again, get num value, now for h
+	call sub_a785h		;a76a	cd 85 a7 	. . .       ; again, get num value, now for h
 	add a,a			;a76d	87 	.                   ; shift a 4 times left (to upper nibble)
 	add a,a			;a76e	87 	. 
 	add a,a			;a76f	87 	. 
@@ -851,12 +865,15 @@ l_a765:
 	call set_byte_4372		;a778	cd b6 ab 	. . .
 	jr $-58		;a77b	18 c4 	. .                 ; -> l_a723
 
+la77dh:
 l_a77d:
 	ld (0a6d3h),a		;a77d	32 d3 a6 	2 . .
 	call set_byte_4372		;a780	cd b6 ab 	. . .
+la783h:
     xor a
     ret
 
+sub_a785h:
 	cp 03ah		;a785	fe 3a 	. :         ; a>0x3a ':' ?
 	jr nc,$+5		;a787	30 03 	0 .     ; yes -> l_a78b
 l_a789:
@@ -866,14 +883,16 @@ l_a789:
 l_a78b:
 	ret			;a78b	c9 	. 
 
-	sub 057h		;a78c	d6 57 	. W 
+la78ch:
+	sub 057h		;a78c	d6 57 	. W
 	ret p			;a78e	f0 	. 
 
 	add a,020h		;a78f	c6 20 	.   
 	ret			;a791	c9 	.
 
     ; this below does not look like code, opcodes all ff, fb etc.
-	ret m			;a792	f8 	. 
+la792h:
+	ret m			;a792	f8 	.
 	rst 38h			;a793	ff 	. 
 	cp 0fdh		;a794	fe fd 	. .     ; a795 is function entry from above !?!
 	call m,0fafbh		;a796	fc fb fa 	. . .
@@ -896,6 +915,7 @@ l_a7a1:
 	defb "abcdefghijklmnopqrstuvwxyz"
 	defb "[\\]^_"
 
+la7d2h:
     defb 0f8h
     ;ret m			;a7d2	f8 	.
     ; next lines until defb do not look like code
@@ -919,6 +939,7 @@ l_a7a1:
     ;; line above seems to be end of character array
 
     ; lines below still do not look like code, but data
+la812h:
     defb 0f8h
 	;ret m			;a812	f8 	.
     defb 0ffh, 0feh, 0fdh, 0fch, 0fbh, 0fah, 0f9h, 0f7h, 0f6h, 0f5h, 0f4h
@@ -976,37 +997,44 @@ l_a7a1:
 	;ld e,01fh		;a850	1e 1f 	. .
 
     ; compares finally against 0dfh
+sub_a852h:
 	ld a,(07e00h)		;a852	3a 00 7e 	: . ~   ; a:=(07e00h)
+la855h:
 	or a			;a855	b7 	.                   ;
 	ret z			;a856	c8 	.                   ; is (07e00h) zero? yes, return
 	ld bc,(07e01h)		;a857	ed 4b 01 7e 	. K . ~
 	xor a			;a85b	af 	. 
 	ld (07e00h),a		;a85c	32 00 7e 	2 . ~ 
 	bit 3,b		;a85f	cb 58 	. X 
-	jr nz,$+11		;a861	20 09 	  . 
+	jr nz,la86ch		;a861	20 09 	  .
 	bit 2,b		;a863	cb 50 	. P 
-	jr nz,$+12		;a865	20 0a 	  . 
-	ld hl,0a792h		;a867	21 92 a7 	! . . 
-	jr $+10		;a86a	18 08 	. . 
-	ld hl,0a7d2h		;a86c	21 d2 a7 	! . . 
-	jr $+5		;a86f	18 03 	. . 
-	ld hl,0a812h		;a871	21 12 a8 	! . . 
+la865h:
+	jr nz,la871h		;a865	20 0a 	  .
+	ld hl,la792h		;a867	21 92 a7 	! . .
+	jr la874h		;a86a	18 08 	. .
+la86ch:
+	ld hl,la7d2h		;a86c	21 d2 a7 	! . .
+	jr la874h		;a86f	18 03 	. .
+la871h:
+	ld hl,la812h		;a871	21 12 a8 	! . .
+la874h:
 	ld b,000h		;a874	06 00 	. . 
 	add hl,bc			;a876	09 	. 
 	ld a,(hl)			;a877	7e 	~ 
 	cp 0dfh		;a878	fe df 	. . 
 	ret			;a87a	c9 	. 
 
+sub_a87bh:
     ;; next lines look like code, because it has a patch
 	ld a,(03f12h)		;a87b	3a 12 3f 	: . ? 
 	or a			;a87e	b7 	. 
-	jr nz,$+115		;a87f	20 71 	  q 
+	jr nz,la8f2h		;a87f	20 71 	  q
 	ld a,0aah		;a881	3e aa 	> . 
 	ld (01df8h),a		;a883	32 f8 1d 	2 . . 
 	call 0112dh		;a886	cd 2d 11 	. - .   ; Patched to edah
 	call out80_a89f		;a889	cd 9f a8 	. . .
 	ld a,001h		;a88c	3e 01 	> . 
-	ld (0dff0h),a		;a88e	32 f0 df 	2 . . 
+	ld (ldff0h),a		;a88e	32 f0 df 	2 . .
 	ld a,002h		;a891	3e 02 	> . 
 	ld (03f12h),a		;a893	32 12 3f 	2 . ? 
 	ret			;a896	c9 	. 
@@ -1047,6 +1075,7 @@ out80_a89f:
 	out (080h),a		;a8e0	d3 80 	. .         ; out 80 (this outputs 0)
 	ret			;a8e2	c9 	. 
 
+sub_a8e3h:
     ; waits for dff0==0 an then writes 5 to it
 	call waitforz_dff0_a897		;a8e3	cd 97 a8 	. . .
 	ld a,005h		;a8e6	3e 05 	> .             ; (0dff0h):=5
@@ -1058,14 +1087,15 @@ set_3f12_to_2:
 	ld a,002h		;a8ec	3e 02 	> .
 	ld (03f12h),a		;a8ee	32 12 3f 	2 . ? 
 	ret			;a8f1	c9 	. 
-
+la8f2h:
 	call out80_a89f		;a8f2	cd 9f a8 	. . .
 	ld a,008h		;a8f5	3e 08 	> . 
-	ld (0dff0h),a		;a8f7	32 f0 df 	2 . . 
+	ld (ldff0h),a		;a8f7	32 f0 df 	2 . .
 	ld a,002h		;a8fa	3e 02 	> . 
 	ld (03f12h),a		;a8fc	32 12 3f 	2 . ? 
 	ret			;a8ff	c9 	. 
 
+;sub_a900h:
 read_3f12:
 	ld a,(03f12h)		;a900	3a 12 3f 	: . ?
 	or a			;a903	b7 	. 
@@ -1073,41 +1103,48 @@ read_3f12:
 
 	call out80_a89f		;a905	cd 9f a8 	. . .
 	ld a,007h		;a908	3e 07 	> . 
-	ld (0dff0h),a		;a90a	32 f0 df 	2 . . 
+	ld (ldff0h),a		;a90a	32 f0 df 	2 . .
 	xor a			;a90d	af 	. 
 	ld (03f12h),a		;a90e	32 12 3f 	2 . ? 
 	ret			;a911	c9 	. 
-
+sub_a912h:
 	push af			;a912	f5 	. 
 	call waitforz_dff0_a897		;a913	cd 97 a8 	. . .
 	pop af			;a916	f1 	. 
 	ld c,a			;a917	4f 	O 
-	ld (0dff1h),a		;a918	32 f1 df 	2 . . 
+	ld (ldff1h),a		;a918	32 f1 df 	2 . .
 	ld a,003h		;a91b	3e 03 	> . 
-	ld (0dff0h),a		;a91d	32 f0 df 	2 . . 
+	ld (ldff0h),a		;a91d	32 f0 df 	2 . .
 	ld a,c			;a920	79 	y 
 	ret			;a921	c9 	. 
 
+sub_a922h:
 	call waitforz_dff0_a897		;a922	cd 97 a8 	. . .
 	ld a,004h		;a925	3e 04 	> . 
-	ld (0dff0h),a		;a927	32 f0 df 	2 . . 
+	ld (ldff0h),a		;a927	32 f0 df 	2 . .
 	ret			;a92a	c9 	. 
 
-	ld b,0ffh		;a92b	06 ff 	. . 
-	djnz $+0		;a92d	10 fe 	. . 
+sub_a92bh:
+	ld b,0ffh		;a92b	06 ff 	. .
+la92dh:
+	djnz la92dh		;a92d	10 fe 	. .
 	call out80_a89f		;a92f	cd 9f a8 	. . .
 	ld a,006h		;a932	3e 06 	> . 
-	ld (0dff0h),a		;a934	32 f0 df 	2 . . 
+	ld (ldff0h),a		;a934	32 f0 df 	2 . .
 	call waitforz_dff0_a897		;a937	cd 97 a8 	. . .
 	ld a,003h		;a93a	3e 03 	> . 
 	ld (03f12h),a		;a93c	32 12 3f 	2 . ? 
 	ret			;a93f	c9 	. 
 
-	nop			;a940	00 	. 
-	ld b,b			;a941	40 	@ 
-	nop			;a942	00 	. 
+la940h:
+	nop			;a940	00 	.
+	ld b,b			;a941	40 	@
+la942h:
+	nop			;a942	00 	.
+la943h:
 	nop			;a943	00 	.
 
+la944h:
 	; below does not look like code, a944 is a var
 	ld bc,00026h		;a944	01 26 00 	. & . 
 	add hl,hl			;a947	29 	) 
@@ -1121,23 +1158,24 @@ read_3f12:
 	ex de,hl			;a951	eb 	. 
 	ld bc,00040h		;a952	01 40 00 	. @ . 
 	ldir		;a955	ed b0 	. . 
-	ld hl,(0a940h)		;a957	2a 40 a9 	* @ . 
-	call 0a991h		;a95a	cd 91 a9 	. . . 
+	ld hl,(la940h)		;a957	2a 40 a9 	* @ .
+	call sub_a991h		;a95a	cd 91 a9 	. . .
 	ret			;a95d	c9 	. 
-
-    ; is code
-	ld hl,(0a940h)		;a95e	2a 40 a9 	* @ .
+sub_a95eh:
+	ld hl,(la940h)		;a95e	2a 40 a9 	* @ .
 	ld (hl),c			;a961	71 	q 
 	inc l			;a962	2c 	, 
 	ld (hl),b			;a963	70 	p 
 	ret			;a964	c9 	. 
-
-	ld (0a943h),a		;a965	32 43 a9 	2 C . 
-	jr $+5		;a968	18 03 	. . 
-	ld (0a942h),a		;a96a	32 42 a9 	2 B . 
-	ld hl,(0a940h)		;a96d	2a 40 a9 	* @ . 
-	call 0a99fh		;a970	cd 9f a9 	. . . 
-	ld hl,(0a942h)		;a973	2a 42 a9 	* B . 
+sub_a965h:
+	ld (la943h),a		;a965	32 43 a9 	2 C .
+	jr la96dh		;a968	18 03 	. .
+sub_a96ah:
+	ld (la942h),a		;a96a	32 42 a9 	2 B .
+la96dh:
+	ld hl,(la940h)		;a96d	2a 40 a9 	* @ .
+	call sub_a99fh		;a970	cd 9f a9 	. . .
+	ld hl,(la942h)		;a973	2a 42 a9 	* B .
 	ld h,000h		;a976	26 00 	& . 
 	add hl,hl			;a978	29 	) 
 	add hl,hl			;a979	29 	) 
@@ -1147,41 +1185,42 @@ read_3f12:
 	add hl,hl			;a97d	29 	) 
 	ld de,04000h		;a97e	11 00 40 	. . @ 
 	add hl,de			;a981	19 	. 
-	ld de,(0a943h)		;a982	ed 5b 43 a9 	. [ C . 
+	ld de,(la943h)		;a982	ed 5b 43 a9 	. [ C .
 	ld d,000h		;a986	16 00 	. . 
 	add hl,de			;a988	19 	. 
 	add hl,de			;a989	19 	. 
-	ld (0a940h),hl		;a98a	22 40 a9 	" @ . 
-	call 0a991h		;a98d	cd 91 a9 	. . . 
+	ld (la940h),hl		;a98a	22 40 a9 	" @ .
+	call sub_a991h		;a98d	cd 91 a9 	. . .
 	ret			;a990	c9 	. 
-
+sub_a991h:
 	push af			;a991	f5 	. 
-	ld a,(0a944h)		;a992	3a 44 a9 	: D . 
+	ld a,(la944h)		;a992	3a 44 a9 	: D .
 	or a			;a995	b7 	. 
-	jr nz,$+4		;a996	20 02 	  . 
+	jr nz,la99ah		;a996	20 02 	  .
 	pop af			;a998	f1 	. 
 	ret			;a999	c9 	. 
-
+la99ah:
 	pop af			;a99a	f1 	. 
 	inc l			;a99b	2c 	, 
 	set 4,(hl)		;a99c	cb e6 	. . 
 	ret			;a99e	c9 	. 
-
+sub_a99fh:
 	inc l			;a99f	2c 	, 
 	res 4,(hl)		;a9a0	cb a6 	. . 
 	dec l			;a9a2	2d 	- 
-	ret			;a9a3	c9 	. 
-
+	ret			;a9a3	c9 	.
+sub_a9a4h:
 	ld a,001h		;a9a4	3e 01 	> . 
-	ld (0a944h),a		;a9a6	32 44 a9 	2 D . 
-	ld hl,(0a940h)		;a9a9	2a 40 a9 	* @ . 
-	call 0a991h		;a9ac	cd 91 a9 	. . . 
+	ld (la944h),a		;a9a6	32 44 a9 	2 D .
+	ld hl,(la940h)		;a9a9	2a 40 a9 	* @ .
+	call sub_a991h		;a9ac	cd 91 a9 	. . .
 	ret			;a9af	c9 	. 
 
-	xor a			;a9b0	af 	. 
-	ld (0a944h),a		;a9b1	32 44 a9 	2 D . 
-	ld hl,(0a940h)		;a9b4	2a 40 a9 	* @ . 
-	call 0a99fh		;a9b7	cd 9f a9 	. . . 
+sub_a9b0h:
+	xor a			;a9b0	af 	.
+	ld (la944h),a		;a9b1	32 44 a9 	2 D .
+	ld hl,(la940h)		;a9b4	2a 40 a9 	* @ .
+	call sub_a99fh		;a9b7	cd 9f a9 	. . .
 	ret			;a9ba	c9 	. 
 
 var_word_a9bb:
@@ -1255,95 +1294,110 @@ set_var_byte_a9c6:
 fun_a9d7:
     ; a:=1
 	ld a,001h		;a9d7	3e 01 	> .
-	; (var_byte_a9c5):=a
 	ld (var_byte_a9c5),a		;a9d9	32 c5 a9 	2 . .
-	; some call
-	call fun_aa9a		;a9dc	cd 9a aa 	. . .
+	call sub_aa9ah		;a9dc	cd 9a aa 	. . .
 	ret			;a9df	c9 	.
 
-    ; compares a against many values, key input part?
+sub_a9e0h:
 	cp 0f7h		;a9e0	fe f7 	. .
-	jr nz,$+7		;a9e2	20 05 	  .
-	call 0ad19h		;a9e4	cd 19 ad 	. . .
-	jr $+54		;a9e7	18 34 	. 4
+	jr nz,la9e9h		;a9e2	20 05 	  .
+	call sub_ad19h		;a9e4	cd 19 ad 	. . .
+	jr laa1dh		;a9e7	18 34 	. 4
+la9e9h:
 	cp 0f6h		;a9e9	fe f6 	. .
-	jr nz,$+7		;a9eb	20 05 	  .
-	call 0ad53h		;a9ed	cd 53 ad 	. S .
-	jr $+45		;a9f0	18 2b 	. +
+	jr nz,la9f2h		;a9eb	20 05 	  .
+	call sub_ad53h		;a9ed	cd 53 ad 	. S .
+	jr laa1dh		;a9f0	18 2b 	. +
+la9f2h:
 	cp 0f5h		;a9f2	fe f5 	. .
-	jr nz,$+7		;a9f4	20 05 	  .
-	call 0ad5dh		;a9f6	cd 5d ad 	. ] .
-	jr $+36		;a9f9	18 22 	. "
+	jr nz,la9fbh		;a9f4	20 05 	  .
+	call sub_ad5dh		;a9f6	cd 5d ad 	. ] .
+	jr laa1dh		;a9f9	18 22 	. "
+la9fbh:
 	cp 0f4h		;a9fb	fe f4 	. .
-	jr nz,$+7		;a9fd	20 05 	  .
-	call 0ad70h		;a9ff	cd 70 ad 	. p .
-	jr $+27		;aa02	18 19 	. .
+	jr nz,laa04h		;a9fd	20 05 	  .
+	call sub_ad70h		;a9ff	cd 70 ad 	. p .
+	jr laa1dh		;aa02	18 19 	. .
+laa04h:
 	cp 0fdh		;aa04	fe fd 	. .
-	jr nz,$+7		;aa06	20 05 	  .
-	call 0ae3ch		;aa08	cd 3c ae 	. < .
-	jr $+18		;aa0b	18 10 	. .
+	jr nz,laa0dh		;aa06	20 05 	  .
+	call sub_ae3ch		;aa08	cd 3c ae 	. < .
+	jr laa1dh		;aa0b	18 10 	. .
+laa0dh:
 	cp 0fch		;aa0d	fe fc 	. .
-	jr nz,$+7		;aa0f	20 05 	  .
-	call 0ae18h		;aa11	cd 18 ae 	. . .
-	jr $+9		;aa14	18 07 	. .
+	jr nz,laa16h		;aa0f	20 05 	  .
+	call sub_ae18h		;aa11	cd 18 ae 	. . .
+	jr laa1dh		;aa14	18 07 	. .
+laa16h:
 	cp 0feh		;aa16	fe fe 	. .
-	jr nz,$+8		;aa18	20 06 	  .
+	jr nz,laa20h		;aa18	20 06 	  .
 	call clear_screen_memory		;aa1a	cd f7 ad 	. . .
-	call fun_aa9a		;aa1d	cd 9a aa 	. . .
+laa1dh:
+	call sub_aa9ah		;aa1d	cd 9a aa 	. . .
+laa20h:
 	ret			;aa20	c9 	.
-
+sub_aa21h:
 	ld a,(0af9dh)		;aa21	3a 9d af 	: . .
 	or a			;aa24	b7 	.
-	jp nz,0afech		;aa25	c2 ec af 	. . .
+	jp nz,lafech		;aa25	c2 ec af 	. . .
 	ld a,c			;aa28	79 	y
 	cp 01bh		;aa29	fe 1b 	. .
-	jp z,0afech		;aa2b	ca ec af 	. . .
+	jp z,lafech		;aa2b	ca ec af 	. . .
 	cp 008h		;aa2e	fe 08 	. .
-	jr nz,$+13		;aa30	20 0b 	  .
+	jr nz,laa3dh		;aa30	20 0b 	  .
 	ld a,(var_byte_a9c0)		;aa32	3a c0 a9 	: . .
 	or a			;aa35	b7 	.
-	jr z,$+49		;aa36	28 2f 	( /
-	call 0ad5dh		;aa38	cd 5d ad 	. ] .
-	jr $+44		;aa3b	18 2a 	. *
+	jr z,laa67h		;aa36	28 2f 	( /
+	call sub_ad5dh		;aa38	cd 5d ad 	. ] .
+	jr laa67h		;aa3b	18 2a 	. *
+laa3dh:
 	cp 007h		;aa3d	fe 07 	. .
-	jr nz,$+13		;aa3f	20 0b 	  .
+	jr nz,laa4ch		;aa3f	20 0b 	  .
 	ld a,(03f0ch)		;aa41	3a 0c 3f 	: . ?
 	or a			;aa44	b7 	.
-	jr z,$+34		;aa45	28 20 	(
+	jr z,laa67h		;aa45	28 20 	(
 	;; the called routine does 2x an out
 	call fun_acaf		;aa47	cd af ac 	. . .
-	jr $+29		;aa4a	18 1b 	. .
+	jr laa67h		;aa4a	18 1b 	. .
+laa4ch:
 	cp 00ah		;aa4c	fe 0a 	. .
-	jr nz,$+7		;aa4e	20 05 	  .
-	call 0ad97h		;aa50	cd 97 ad 	. . .
-	jr $+20		;aa53	18 12 	. .
+	jr nz,laa55h		;aa4e	20 05 	  .
+	call sub_ad97h		;aa50	cd 97 ad 	. . .
+	jr laa67h		;aa53	18 12 	. .
+laa55h:
 	cp 00dh		;aa55	fe 0d 	. .
-	jr nz,$+7		;aa57	20 05 	  .
-	call 0ad88h		;aa59	cd 88 ad 	. . .
-	jr $+11		;aa5c	18 09 	. .
+	jr nz,laa5eh		;aa57	20 05 	  .
+	call sub_ad88h		;aa59	cd 88 ad 	. . .
+	jr laa67h		;aa5c	18 09 	. .
+laa5eh:
 	cp 009h		;aa5e	fe 09 	. .
-	jr nz,$+4		;aa60	20 02 	  .
+	jr nz,laa64h		;aa60	20 02 	  .
 	ld c,020h		;aa62	0e 20 	.
-	call 0acfch		;aa64	cd fc ac 	. . .
-	call fun_aa9a		;aa67	cd 9a aa 	. . .
+laa64h:
+	call sub_acfch		;aa64	cd fc ac 	. . .
+laa67h:
+	call sub_aa9ah		;aa67	cd 9a aa 	. . .
 	ret			;aa6a	c9 	.
-
+sub_aa6bh:
 	ld a,e			;aa6b	7b 	{
 	dec a			;aa6c	3d 	=
 	cp 080h		;aa6d	fe 80 	. .
-	jr c,$+4		;aa6f	38 02 	8 .
+	jr c,laa73h		;aa6f	38 02 	8 .
 	ld a,000h		;aa71	3e 00 	> .
+laa73h:
 	ld (var_byte_a9c0),a		;aa73	32 c0 a9 	2 . .
 	ld a,l			;aa76	7d 	}
 	dec a			;aa77	3d 	=
 	cp 018h		;aa78	fe 18 	. .
-	jr c,$+4		;aa7a	38 02 	8 .
+	jr c,laa7eh		;aa7a	38 02 	8 .
 	ld a,000h		;aa7c	3e 00 	> .
+laa7eh:
 	add a,008h		;aa7e	c6 08 	. .
 	ld (var_byte_a9bf),a		;aa80	32 bf a9 	2 . .
-	call fun_aa9a		;aa83	cd 9a aa 	. . .
+	call sub_aa9ah		;aa83	cd 9a aa 	. . .
 	ret			;aa86	c9 	.
 
+sub_aa87h:
 	ld de,(var_byte_a9c0)		;aa87	ed 5b c0 a9 	. [ . .
 	ld d,000h		;aa8b	16 00 	. .
 	ld a,(var_byte_a9bf)		;aa8d	3a bf a9 	: . .
@@ -1366,11 +1420,11 @@ var_byte_aa99:
     defb 000h
 	;nop			;aa99	00 	.
 
-fun_aa9a:
-	;; fun_aa9a this is large function...
+sub_aa9ah:
+	;; sub_aa9ah this is large function...
 	; could be a read in function from keybaord see cps to 013 and such
 	ld hl,(var_byte_a9bf)		;aa9a	2a bf a9 	* . .
-	call 0ace8h		;aa9d	cd e8 ac 	. . .
+	call sub_ace8h		;aa9d	cd e8 ac 	. . .
 	ld a,(var_byte_a9c0)		;aaa0	3a c0 a9 	: . .
 	ld l,a			;aaa3	6f 	o
 	ld h,000h		;aaa4	26 00 	& .
@@ -1378,11 +1432,13 @@ fun_aa9a:
 	add hl,de			;aaa7	19 	.
 	ld (var_word_a9bd),hl		;aaa8	22 bd a9 	" . .
 	ld l,000h		;aaab	2e 00 	. .
+laaadh:
 	cp 020h		;aaad	fe 20 	.
 	jr c,$+7		;aaaf	38 05 	8 .
 	sub 010h		;aab1	d6 10 	. .
 	inc l			;aab3	2c 	,
-	jr $-7		;aab4	18 f7 	. .
+	jr laaadh		;aab4	18 f7 	. .
+laab6h:
 	ld (var_byte_aa96),a		;aab6	32 96 aa 	2 . .
 	ld a,l			;aab9	7d 	}
 	rlca			;aaba	07 	.
@@ -1398,6 +1454,7 @@ fun_aa9a:
 	cp 013h		    ;aacc	fe 13 	. .
 	jr c,$+5		;aace	38 03 	8 .
 	ld hl,(var_byte_a9c4)		;aad0	2a c4 a9 	* . .
+laad3h:
 	sub l			;aad3	95 	.
 	ld (var_byte_aa97),a		;aad4	32 97 aa 	2 . .
 	ld a,l			;aad7	7d 	}
@@ -1412,48 +1469,56 @@ fun_aa9a:
 	ld a,(var_byte_a9c1)		;aaea	3a c1 a9 	: . .
 	cp l			;aaed	bd 	.
 	jr z,$+31		;aaee	28 1d 	( .
+laaf0h:
 	ld a,(var_byte_aa99)		;aaf0	3a 99 aa 	: . .
 	ld (var_byte_a9c1),a		;aaf3	32 c1 a9 	2 . .
 	ld a,(var_byte_aa98)		;aaf6	3a 98 aa 	: . .
 	ld (var_byte_a9c4),a		;aaf9	32 c4 a9 	2 . .
 	ld l,a			;aafc	6f 	o
-	call 0ace8h		;aafd	cd e8 ac 	. . .
+	call sub_ace8h		;aafd	cd e8 ac 	. . .
 	ld (var_word_a9c2),de		;ab00	ed 53 c2 a9 	. S . .
-	call 0abbah		;ab04	cd ba ab 	. . .
-	call 0abcdh		;ab07	cd cd ab 	. . .
-	call 0ab59h		;ab0a	cd 59 ab 	. Y .
+	call sub_abbah		;ab04	cd ba ab 	. . .
+	call sub_abcdh		;ab07	cd cd ab 	. . .
+	call sub_ab59h		;ab0a	cd 59 ab 	. Y .
+lab0dh:
 	xor a			;ab0d	af 	.
 	ld (var_byte_a9c5),a		;ab0e	32 c5 a9 	2 . .
 	ld a,(var_byte_aa97)		;ab11	3a 97 aa 	: . .
-	call 0a96ah		;ab14	cd 6a a9 	. j .
+	call sub_a96ah		;ab14	cd 6a a9 	. j .
 	ld a,(var_byte_aa96)		;ab17	3a 96 aa 	: . .
-	call 0a965h		;ab1a	cd 65 a9 	. e .
+	call sub_a965h		;ab1a	cd 65 a9 	. e .
 	ld a,(var_byte_a9bf)		;ab1d	3a bf a9 	: . .
 	sub 007h		;ab20	d6 07 	. .
 	ld ix,043d8h		;ab22	dd 21 d8 43 	. ! . C
-	call 0ab35h		;ab26	cd 35 ab 	. 5 .
+	call sub_ab35h		;ab26	cd 35 ab 	. 5 .
 	ld a,(var_byte_a9c0)		;ab29	3a c0 a9 	: . .
 	inc a			;ab2c	3c 	<
 	ld ix,043e8h		;ab2d	dd 21 e8 43 	. ! . C
-	call 0ab35h		;ab31	cd 35 ab 	. 5 .
+	call sub_ab35h		;ab31	cd 35 ab 	. 5 .
 	ret			;ab34	c9 	.
 
+sub_ab35h:
 	ld (ix-004h),030h		;ab35	dd 36 fc 30 	. 6 . 0
+lab39h:
 	sub 064h		;ab39	d6 64 	. d
-	jr c,$+7		;ab3b	38 05 	8 .
+	jr c,lab42h		;ab3b	38 05 	8 .
 	inc (ix-004h)		;ab3d	dd 34 fc 	. 4 .
-	jr $-7		;ab40	18 f7 	. .
+	jr lab39h		;ab40	18 f7 	. .
+lab42h:
 	add a,064h		;ab42	c6 64 	. d
 	ld (ix-002h),030h		;ab44	dd 36 fe 30 	. 6 . 0
+lab48h:
 	sub 00ah		;ab48	d6 0a 	. .
-	jr c,$+7		;ab4a	38 05 	8 .
+	jr c,lab51h			;ab4a	38 05 	8 .
 	inc (ix-002h)		;ab4c	dd 34 fe 	. 4 .
 	jr $-7		;ab4f	18 f7 	. .
+lab51h:
 	add a,00ah		;ab51	c6 0a 	. .
 	add a,030h		;ab53	c6 30 	. 0
 	ld (ix+000h),a		;ab55	dd 77 00 	. w .
 	ret			;ab58	c9 	.
 
+sub_ab59h:
 	ld a,(var_byte_a9c1)		;ab59	3a c1 a9 	: . .
 	rrca			;ab5c	0f 	.
 	rrca			;ab5d	0f 	.
@@ -1537,7 +1602,7 @@ set_byte_4346:
 set_byte_4372:
 	ld (04372h),a		;abb6	32 72 43 	2 r C
 	ret			;abb9	c9 	.
-
+sub_abbah:
 	ld hl,0000dh		;abba	21 0d 00 	! . .
 	dec l			;abbd	2d 	-
 	push hl			;abbe	e5 	.
@@ -1551,6 +1616,7 @@ set_byte_4372:
 	jr nz,$-13		;abca	20 f1 	  .
 	ret			;abcc	c9 	.
 
+sub_abcdh:
 	ld hl,0000dh		;abcd	21 0d 00 	! . .
 	ld de,0abefh		;abd0	11 ef ab 	. . .
 	call 0a945h		;abd3	cd 45 a9 	. E .
@@ -1786,7 +1852,8 @@ fun_acaf_loop:
 ;; ace8 POI-13
 ;; call, acf8 = POI-14
 ;; adds var_word_a9bb to hl and sets bits 5,6,7 in h
-	call 0acf8h		;ace8	cd f8 ac 	. . .
+sub_ace8h:
+	call sub_acf8h		;ace8	cd f8 ac 	. . .
 	ld de,(var_word_a9bb)		;aceb	ed 5b bb a9 	. [ . .     ; de:=var_word_a9bb
 	add hl,de			;acef	19 	.                               ; hl += de
 	set 7,h		;acf0	cb fc 	. .                                 ; set bits 7,6,5 in h
@@ -1800,34 +1867,39 @@ fun_acaf_loop:
 ;; moves l to h and sets l to 0
 ;; like shift to right by 8
 ;; h:=l
+sub_acf8h:
 	ld h,l			;acf8	65 	e
 	;; l:=0
 	ld l,000h		;acf9	2e 00 	. .
 	ret			;acfb	c9 	.
 
+sub_acfch:
 	ld a,(var_byte_a9c6)		;acfc	3a c6 a9 	: . .
 	ld b,a			;acff	47 	G
 	push bc			;ad00	c5 	.
-	call 0a95eh		;ad01	cd 5e a9 	. ^ .
+	call sub_a95eh	;ad01	cd 5e a9 	. ^ .
 	pop bc			;ad04	c1 	.
 	ld hl,(var_word_a9bd)		;ad05	2a bd a9 	* . .
 	ld (hl),c			;ad08	71 	q
 	inc l			;ad09	2c 	,
 	ld a,(var_byte_a9c6)		;ad0a	3a c6 a9 	: . .
 	ld (hl),b			;ad0d	70 	p
-	call 0ad70h		;ad0e	cd 70 ad 	. p .
+	call sub_ad70h		;ad0e	cd 70 ad 	. p .
 	ret nz			;ad11	c0 	.
 
-	call 0ad88h		;ad12	cd 88 ad 	. . .
-	call 0ad97h		;ad15	cd 97 ad 	. . .
+	call sub_ad88h		;ad12	cd 88 ad 	. . .
+	call sub_ad97h		;ad15	cd 97 ad 	. . .
 	ret			;ad18	c9 	.
 
+sub_ad19h:
 	ld a,(var_byte_a9bf)		;ad19	3a bf a9 	: . .
 	cp 008h		;ad1c	fe 08 	. .
 	ret z			;ad1e	c8 	.
 
 	dec a			;ad1f	3d 	=
 	ld (var_byte_a9bf),a		;ad20	32 bf a9 	2 . .
+
+sub_ad23h:
 	ld hl,(var_word_a9bd)		;ad23	2a bd a9 	* . .
 	ld de,0ff00h		;ad26	11 00 ff 	. . .
 	add hl,de			;ad29	19 	.
@@ -1838,28 +1910,31 @@ fun_acaf_loop:
 	or 0ffh		;ad33	f6 ff 	. .
 	ret			;ad35	c9 	.
 
-	call 0ad19h		;ad36	cd 19 ad 	. . .
+sub_ad36h:
+	call sub_ad19h		;ad36	cd 19 ad 	. . .
 	ret nz			;ad39	c0 	.
 
-	call 0ad23h		;ad3a	cd 23 ad 	. # .
+	call sub_ad23h		;ad3a	cd 23 ad 	. # .
 	ld hl,(var_word_a9bb)		;ad3d	2a bb a9 	* . .
 	add hl,de			;ad40	19 	.
 	set 7,h		;ad41	cb fc 	. .
 	set 6,h		;ad43	cb f4 	. .
 	set 5,h		;ad45	cb ec 	. .
 	ld (var_word_a9bb),hl		;ad47	22 bb a9 	" . .
-	call 0ae9ah		;ad4a	cd 9a ae 	. . .
+	call sub_ae9ah		;ad4a	cd 9a ae 	. . .
 	ld a,001h		;ad4d	3e 01 	> .
 	ld (var_byte_a9c5),a		;ad4f	32 c5 a9 	2 . .
 	ret			;ad52	c9 	.
 
+sub_ad53h:
 	ld a,(var_byte_a9bf)		;ad53	3a bf a9 	: . .
 	cp 01fh		;ad56	fe 1f 	. .
 	ret z			;ad58	c8 	.
 
-	call 0ad97h		;ad59	cd 97 ad 	. . .
+	call sub_ad97h		;ad59	cd 97 ad 	. . .
 	ret			;ad5c	c9 	.
 
+sub_ad5dh:
 	ld hl,(var_word_a9bd)		;ad5d	2a bd a9 	* . .
 	ld a,(var_byte_a9c0)		;ad60	3a c0 a9 	: . .
 	scf			;ad63	37 	7
@@ -1872,10 +1947,11 @@ fun_acaf_loop:
 	ld (var_word_a9bd),hl		;ad6c	22 bd a9 	" . .
 	ret			;ad6f	c9 	.
 
+sub_ad70h:
 	ld a,(var_byte_a9c0)		;ad70	3a c0 a9 	: . .
 	inc a			;ad73	3c 	<
 	cp 080h		;ad74	fe 80 	. .
-	jr nc,$+16		;ad76	30 0e 	0 .
+	jr nc,lad86h		;ad76	30 0e 	0 .
 	ld (var_byte_a9c0),a		;ad78	32 c0 a9 	2 . .
 	ld hl,(var_word_a9bd)		;ad7b	2a bd a9 	* . .
 	inc l			;ad7e	2c 	,
@@ -1883,10 +1959,11 @@ fun_acaf_loop:
 	ld (var_word_a9bd),hl		;ad80	22 bd a9 	" . .
 	or 0ffh		;ad83	f6 ff 	. .
 	ret			;ad85	c9 	.
-
+lad86h:
 	xor a			;ad86	af 	.
 	ret			;ad87	c9 	.
 
+sub_ad88h:
 	xor a			;ad88	af 	.
 	ld (var_byte_a9c0),a		;ad89	32 c0 a9 	2 . .
 	ld hl,(var_word_a9bd)		;ad8c	2a bd a9 	* . .
@@ -1896,6 +1973,7 @@ fun_acaf_loop:
 	ld (var_word_a9bd),hl		;ad93	22 bd a9 	" . .
 	ret			;ad96	c9 	.
 
+sub_ad97h:
 	ld hl,(var_word_a9bd)		;ad97	2a bd a9 	* . .
 	ld de,00100h		;ad9a	11 00 01 	. . .
 	add hl,de			;ad9d	19 	.
@@ -1928,6 +2006,8 @@ fun_acaf_loop:
 	set 5,h		;adca	cb ec 	. .
 	ld (var_word_a9bb),hl		;adcc	22 bb a9 	" . .
 	ld a,01fh		;adcf	3e 1f 	> .
+
+ladd1h:
 	ld (var_byte_a9bf),a		;add1	32 bf a9 	2 . .
 	xor a			;add4	af 	.
 	ret			;add5	c9 	.
@@ -1977,6 +2057,7 @@ loop_clear_screen_memory:
 	ld (var_byte_a9c5),a		;ae14	32 c5 a9 	2 . .           ; var_byte_a9c5:=a
 	ret			;ae17	c9 	.
 
+sub_ae18h:
 ;; looks like initialization of variables, depending on other variables
 	ld a,(var_byte_a9c4)		;ae18	3a c4 a9 	: . .   ; var_byte_a9c4==0x13 ?
 	cp 013h		;ae1b	fe 13 	. .
@@ -1999,6 +2080,7 @@ loop_clear_screen_memory:
 	ld (var_byte_a9c5),a		;ae38	32 c5 a9 	2 . .   ; var_byte_a9c5:=a
 	ret			;ae3b	c9 	.
 
+sub_ae3ch:
 ;; 0x08 = Backspace
 	ld a,(var_byte_a9c4)		;ae3c	3a c4 a9 	: . .   ; var_byte_a9c4==0x8 ?
 	cp 008h		;ae3f	fe 08 	. .
@@ -2016,6 +2098,7 @@ loop_clear_screen_memory:
 	ld (var_byte_a9c5),a		;ae5a	32 c5 a9 	2 . .   ; var_byte_a9c5:=a
 	ret			;ae5d	c9 	.
 
+sub_ae5eh:
 ;; '0' handling 0x30
 	cp 000h		;ae5e	fe 00 	. .                         ; a==0x0?
 	jr z,$+6		;ae60	28 04 	( .                     ; jp l_ae69
@@ -2038,7 +2121,7 @@ l_ae69:
 ;; '1' handling
 l_ae7e:
 	cp 031h		;ae7e	fe 31 	. 1                         ; a==0x31?
-	jr nz,$+23		;ae80	20 15 	  .                     ; l_ae99
+	jr nz,lae97h		;ae80	20 15 	  .                     ; lae97h
 	ld hl,(var_word_a9bd)		;ae82	2a bd a9 	* . .   ; hl:=var_word_a9bd
 	inc hl			;ae85	23 	#                           ; hl+=2
 	inc hl			;ae86	23 	#
@@ -2052,10 +2135,11 @@ l_ae7e:
 	ret			;ae96	c9 	.
 
 ;; '2' handling
-l_ae99:
+lae97h:
 	cp 032h		;ae97	fe 32 	. 2                         ; a==0x32?
 	ret nz			;ae99	c0 	.                           ; no, return
 
+sub_ae9ah:
 	ld hl,(var_word_a9bd)		;ae9a	2a bd a9 	* . .       ; hl:=var_word_a9bd
 	ld de,(var_word_a9bd)		;ae9d	ed 5b bd a9 	. [ . . ; de:=var_word_a9bd (now hl==de)
 	ld bc,00100h		;aea1	01 00 01 	. . .           ; bc:=0x100
@@ -2069,9 +2153,10 @@ l_ae99:
 	call loop_clear_screen_memory		;aeb0	cd fe ad 	. . .
 	ret			;aeb3	c9 	.
 
+sub_aeb4h:
 ;; again, '0' handling???
 	cp 000h		    ;aeb4	fe 00 	. .                     ; a==0?
-	jr z,$+6		;aeb6	28 04 	( .                     ; call l_aebc
+	jr z,l_aebc		;aeb6	28 04 	( .                     ; call l_aebc
 	cp 030h		    ;aeb8	fe 30 	. 0                     ; a=0x30?
 	jr nz,$+6		;aeba	20 04 	  .                     ; jr l_aebf, so skip clear_screen_memory
 l_aebc:
@@ -2082,7 +2167,7 @@ l_aebf:
 ;; again, '1' handling???
 ;; very clode to l_ae7e area
 	cp 031h		;aec0	fe 31 	. 1                         ; a=0x31
-	jr nz,$+21		;aec2	20 13 	  .                     ; jr l_aed6
+	jr nz,laed7h		;aec2	20 13 	  .                     ; jr l_aed6
 	ld hl,(var_word_a9bd)		;aec4	2a bd a9 	* . .   ; hl:=var_word_a9bd
 	inc hl			;aec7	23 	#                           ; hl+=2
 	inc hl			;aec8	23 	#                           ;
@@ -2095,7 +2180,8 @@ l_aebf:
 l_aed6:
 	ret			;aed6	c9 	. 
 
-;; again, '2' handling???	
+laed7h:
+;; again, '2' handling???
 	cp 032h		;aed7	fe 32 	. 2                         ; a==0x32?
 	ret nz			;aed9	c0 	.                           ; np, return
 
@@ -2104,119 +2190,135 @@ l_aed6:
 	call loop_clear_screen_memory		;aee1	cd fe ad 	. . .
 	ret			;aee4	c9 	. 
 
-	ld hl,0dc00h		;aee5	21 00 dc 	! . .           ; hl:=0xdc00
-	ld (0de02h),hl		;aee8	22 02 de 	" . .           ; (de02h):=hl
-	ld (0de00h),hl		;aeeb	22 00 de 	" . .           ; (de00h):=hl
+sub_aee5h:
+	ld hl,ldc00h		;aee5	21 00 dc 	! . .           ; hl:=0xdc00
+	ld (lde02h),hl		;aee8	22 02 de 	" . .           ; (de02h):=hl
+	ld (lde00h),hl		;aeeb	22 00 de 	" . .           ; (de00h):=hl
 	xor a			;aeee	af 	.                           ; a:=0
-	ld (0de06h),a		;aeef	32 06 de 	2 . .           ; (de06h):=0
-	ld (0de07h),a		;aef2	32 07 de 	2 . .           ; (de06h):=0
+	ld (lde06h),a		;aeef	32 06 de 	2 . .           ; (de06h):=0
+	ld (lde07h),a		;aef2	32 07 de 	2 . .           ; (de06h):=0
 	ld l,a			;aef5	6f 	o                           ; l:=0
 	ld h,a			;aef6	67 	g                           ; h:=0
-	ld (0de04h),hl		;aef7	22 04 de 	" . .           ; (de04h):=hl, i.e. 0
+	ld (lde04h),hl		;aef7	22 04 de 	" . .           ; (de04h):=hl, i.e. 0
 	ret			;aefa	c9 	. 
 
 	ld a,001h		;aefb	3e 01 	> . 
-	ld (0de07h),a		;aefd	32 07 de 	2 . . 
-	ld a,(0de06h)		;af00	3a 06 de 	: . . 
+	ld (lde07h),a		;aefd	32 07 de 	2 . .
+laf00h:
+	ld a,(lde06h)		;af00	3a 06 de 	: . .
 	or a			;af03	b7 	. 
-	jr z,$+19		;af04	28 11 	( . 
+	jr z,laf17h		;af04	28 11 	( .
 	xor a			;af06	af 	. 
-	ld (0de07h),a		;af07	32 07 de 	2 . . 
+	ld (lde07h),a		;af07	32 07 de 	2 . .
 	push bc			;af0a	c5 	. 
 	ld b,020h		;af0b	06 20 	.   
-	djnz $+0		;af0d	10 fe 	. . 
+laf0dh:
+	djnz laf0dh		;af0d	10 fe 	. .
 	pop bc			;af0f	c1 	. 
 	ld a,001h		;af10	3e 01 	> . 
-	ld (0de07h),a		;af12	32 07 de 	2 . . 
-	jr $-21		;af15	18 e9 	. . 
-	ld de,(0de04h)		;af17	ed 5b 04 de 	. [ . . 
+	ld (lde07h),a		;af12	32 07 de 	2 . .
+	jr laf00h		;af15	18 e9 	. .
+laf17h:
+	ld de,(lde04h)		;af17	ed 5b 04 de 	. [ . .
 	ld hl,00100h		;af1b	21 00 01 	! . . 
 	or a			;af1e	b7 	. 
 	sbc hl,de		;af1f	ed 52 	. R 
-	jr z,$+37		;af21	28 23 	( # 
+	jr z,laf46h		;af21	28 23 	( #
 	inc de			;af23	13 	. 
-	ld (0de04h),de		;af24	ed 53 04 de 	. S . . 
+	ld (lde04h),de		;af24	ed 53 04 de 	. S . .
 	ex de,hl			;af28	eb 	. 
-	ld hl,(0de00h)		;af29	2a 00 de 	* . . 
+	ld hl,(lde00h)		;af29	2a 00 de 	* . .
 	ld (hl),c			;af2c	71 	q 
 	inc l			;af2d	2c 	, 
 	ld (hl),b			;af2e	70 	p 
 	inc hl			;af2f	23 	# 
 	set 2,h		;af30	cb d4 	. . 
 	res 1,h		;af32	cb 8c 	. . 
-	ld (0de00h),hl		;af34	22 00 de 	" . . 
+	ld (lde00h),hl		;af34	22 00 de 	" . .
 	xor a			;af37	af 	. 
-	ld (0de07h),a		;af38	32 07 de 	2 . . 
+	ld (lde07h),a		;af38	32 07 de 	2 . .
 	ld a,d			;af3b	7a 	z 
 	or a			;af3c	b7 	. 
 	ret nz			;af3d	c0 	. 
 
 	ld a,e			;af3e	7b 	{ 
 	cp 020h		;af3f	fe 20 	.   
-	jr c,$+5		;af41	38 03 	8 . 
+	jr c,laf46h		;af41	38 03 	8 .
 	or 0ffh		;af43	f6 ff 	. . 
 	ret			;af45	c9 	. 
-
+laf46h:
 	xor a			;af46	af 	. 
-	ld (0de07h),a		;af47	32 07 de 	2 . . 
+	ld (lde07h),a		;af47	32 07 de 	2 . .
 	ret			;af4a	c9 	. 
 
 	ld a,001h		;af4b	3e 01 	> . 
-	ld (0de07h),a		;af4d	32 07 de 	2 . . 
-	ld a,(0de06h)		;af50	3a 06 de 	: . . 
+	ld (lde07h),a		;af4d	32 07 de 	2 . .
+laf50h:
+	ld a,(lde06h)		;af50	3a 06 de 	: . .
 	or a			;af53	b7 	. 
-	jr z,$+19		;af54	28 11 	( . 
+	jr z,laf67h		;af54	28 11 	( .
 	xor a			;af56	af 	. 
-	ld (0de07h),a		;af57	32 07 de 	2 . . 
+	ld (lde07h),a		;af57	32 07 de 	2 . .
 	push bc			;af5a	c5 	. 
 	ld b,020h		;af5b	06 20 	.   
-	djnz $+0		;af5d	10 fe 	. . 
+laf5dh:
+	djnz laf5dh		;af5d	10 fe 	. .
 	pop bc			;af5f	c1 	. 
 	ld a,001h		;af60	3e 01 	> . 
-	ld (0de07h),a		;af62	32 07 de 	2 . . 
-	jr $-21		;af65	18 e9 	. . 
-	ld hl,(0de04h)		;af67	2a 04 de 	* . . 
+	ld (lde07h),a		;af62	32 07 de 	2 . .
+	jr laf50h		;af65	18 e9 	. .
+laf67h:
+	ld hl,(lde04h)		;af67	2a 04 de 	* . .
 	xor a			;af6a	af 	. 
-	ld (0de07h),a		;af6b	32 07 de 	2 . . 
+	ld (lde07h),a		;af6b	32 07 de 	2 . .
 	ld a,h			;af6e	7c 	| 
 	or l			;af6f	b5 	. 
 	ret			;af70	c9 	. 
-
+sub_af71h:
 	ld a,001h		;af71	3e 01 	> . 
-	ld (0de06h),a		;af73	32 06 de 	2 . . 
-	ld a,(0de07h)		;af76	3a 07 de 	: . . 
+	ld (lde06h),a		;af73	32 06 de 	2 . .
+laf76h:
+	ld a,(lde07h)		;af76	3a 07 de 	: . .
 	or a			;af79	b7 	. 
 	jr nz,$-4		;af7a	20 fa 	  . 
 	ld hl,(0de04h)		;af7c	2a 04 de 	* . . 
 	ld a,h			;af7f	7c 	| 
 	or l			;af80	b5 	. 
-	jr z,$+22		;af81	28 14 	( . 
+	jr z,laf97h		;af81	28 14 	( .
 	dec hl			;af83	2b 	+ 
-	ld (0de04h),hl		;af84	22 04 de 	" . . 
-	ld hl,(0de02h)		;af87	2a 02 de 	* . . 
+	ld (lde04h),hl		;af84	22 04 de 	" . .
+	ld hl,(lde02h)		;af87	2a 02 de 	* . .
 	ld c,(hl)			;af8a	4e 	N 
 	inc l			;af8b	2c 	, 
 	ld b,(hl)			;af8c	46 	F 
 	inc hl			;af8d	23 	# 
 	set 2,h		;af8e	cb d4 	. . 
 	res 1,h		;af90	cb 8c 	. . 
-	ld (0de02h),hl		;af92	22 02 de 	" . . 
+	ld (lde02h),hl		;af92	22 02 de 	" . .
 	or 0ffh		;af95	f6 ff 	. . 
-	ld a,000h		;af97	3e 00 	> . 
-	ld (0de06h),a		;af99	32 06 de 	2 . . 
+laf97h:
+	ld a,000h		;af97	3e 00 	> .
+	ld (lde06h),a		;af99	32 06 de 	2 . .
 	ret			;af9c	c9 	. 
-
+laf9dh:
 	nop			;af9d	00 	. 
-	nop			;af9e	00 	. 
-	rst 38h			;af9f	ff 	. 
+laf9eh:
+	nop			;af9e	00 	.
+laf9fh:
+	rst 38h			;af9f	ff 	.
 	xor a			;afa0	af 	. 
-	nop			;afa1	00 	. 
+lafa1h:
+	nop			;afa1	00 	.
 	nop			;afa2	00 	. 
-	nop			;afa3	00 	. 
+lafa3h:
+	nop			;afa3	00 	.
 	nop			;afa4	00 	. 
-	nop			;afa5	00 	. 
-	nop			;afa6	00 	. 
-	nop			;afa7	00 	. 
+lafa5h:
+	nop			;afa5	00 	.
+lafa6h:
+	nop			;afa6	00 	.
+lafa7h:
+	nop			;afa7	00 	.
 	nop			;afa8	00 	. 
 	nop			;afa9	00 	. 
 	nop			;afaa	00 	. 
@@ -2224,7 +2326,8 @@ l_aed6:
 	nop			;afac	00 	. 
 	nop			;afad	00 	. 
 	nop			;afae	00 	. 
-	nop			;afaf	00 	. 
+lafafh:
+	nop			;afaf	00 	.
 	nop			;afb0	00 	. 
 	nop			;afb1	00 	. 
 	nop			;afb2	00 	. 
@@ -2280,111 +2383,99 @@ l_aed6:
 	nop			;afe4	00 	. 
 	nop			;afe5	00 	. 
 	nop			;afe6	00 	. 
-	add a,e			;afe7	83 	. 
-	add a,e			;afe8	83 	. 
-	ld bc,06401h		;afe9	01 01 64 	. . d 
-	ld a,c			;afec	79 	y 
+lafe7h:
+	add a,e			;afe7	83 	.
+lafe8h:
+	add a,e			;afe8	83 	.
+lafe9h:
+	ld bc,06401h		;afe9	01 01 64 	. . d
+lafech:
+	ld a,c			;afec	79 	y
 	cp 01bh		;afed	fe 1b 	. . 
-	jp z,0b07dh		;afef	ca 7d b0 	. } . 
-	ld a,(0af9dh)		;aff2	3a 9d af 	: . . 
+	jp z,lb07dh		;afef	ca 7d b0 	. } .
+	ld a,(laf9dh)		;aff2	3a 9d af 	: . .
 	or a			;aff5	b7 	. 
-	ret z			;aff6	c8 	. 
-
+	ret z			;aff6	c8 	.
 	inc a			;aff7	3c 	< 
-	ld (0af9dh),a		;aff8	32 9d af 	2 . . 
-	ld hl,(0af9fh)		;affb	2a 9f af 	* . . 
+	ld (laf9dh),a		;aff8	32 9d af 	2 . .
+	ld hl,(laf9fh)		;affb	2a 9f af 	* . .
 	jp (hl)			;affe	e9 	. 
-	ld a,(0afebh)		;afff	3a eb af 	: . .
-;; 'd' char	
+lafffh:
+	ld a,(lafe9h+2)		;afff	3a eb af 	: . .
 	cp 064h		;b002	fe 64 	. d 
-	jp nz,0b260h		;b004	c2 60 b2 	. ` . 
-	ld a,c			;b007	79 	y 
-;; [ char	
+	jp nz,lb260h		;b004	c2 60 b2 	. ` .
+	ld a,c			;b007	79 	y
 	cp 05bh		;b008	fe 5b 	. [ 
-	jp z,0b0aeh		;b00a	ca ae b0 	. . . 
-	ld a,(0af9eh)		;b00d	3a 9e af 	: . . 
+	jp z,lb0aeh		;b00a	ca ae b0 	. . .
+	ld a,(laf9eh)		;b00d	3a 9e af 	: . .
 	or a			;b010	b7 	. 
-	jr nz,$+39		;b011	20 25 	  % 
+	jr nz,lb038h		;b011	20 25 	  %
 	push bc			;b013	c5 	. 
-	call 0b08dh		;b014	cd 8d b0 	. . . 
+	call sub_b08dh		;b014	cd 8d b0 	. . .
 	pop bc			;b017	c1 	. 
-	ld a,c			;b018	79 	y 
-;; '7'	
+	ld a,c			;b018	79 	y
 	cp 037h		;b019	fe 37 	. 7 
-	jp z,0b139h		;b01b	ca 39 b1 	. 9 . 
-;; '8'	
+	jp z,lb139h		;b01b	ca 39 b1 	. 9 .
 	cp 038h		;b01e	fe 38 	. 8 
-	jp z,0b15bh		;b020	ca 5b b1 	. [ . 
-;; 'D'	
+	jp z,lb15bh		;b020	ca 5b b1 	. [ .
 	cp 044h		;b023	fe 44 	. D 
-	jp z,0b259h		;b025	ca 59 b2 	. Y . 
-;; 'E'	
+	jp z,lb259h		;b025	ca 59 b2 	. Y .
 	cp 045h		;b028	fe 45 	. E 
-	jp z,0b256h		;b02a	ca 56 b2 	. V . 
-;; 'M'	
+	jp z,lb256h		;b02a	ca 56 b2 	. V .
 	cp 04dh		;b02d	fe 4d 	. M 
-	jp z,0b229h		;b02f	ca 29 b2 	. ) .
-;; 'c'	
+	jp z,lb229h		;b02f	ca 29 b2 	. ) .
 	cp 063h		;b032	fe 63 	. c 
-	jp z,0b14bh		;b034	ca 4b b1 	. K . 
+	jp z,lb14bh		;b034	ca 4b b1 	. K .
 	ret			;b037	c9 	. 
-
-	ld a,c			;b038	79 	y 
-;; ETX	
+lb038h:
+	ld a,c			;b038	79 	y
 	cp 03bh		;b039	fe 3b 	. ; 
-	jp z,0b0d5h		;b03b	ca d5 b0 	. . .
-;; '0'	
+	jp z,lb0d5h		;b03b	ca d5 b0 	. . .
 	cp 030h		;b03e	fe 30 	. 0 
-	jr c,$+7		;b040	38 05 	8 . 
-;; :	
+	jr c,lb047h		;b040	38 05 	8 .
 	cp 03ah		;b042	fe 3a 	. : 
-	jp c,0b0e7h		;b044	da e7 b0 	. . . 
-;; H	
+	jp c,lb0e7h		;b044	da e7 b0 	. . .
+lb047h:
 	cp 048h		;b047	fe 48 	. H 
-	jp z,0b10eh		;b049	ca 0e b1 	. . . 
-;; f	
+	jp z,lb10eh		;b049	ca 0e b1 	. . .
 	cp 066h		;b04c	fe 66 	. f 
-	jp z,0b10eh		;b04e	ca 0e b1 	. . . 
-;; ACK	
+	jp z,lb10eh		;b04e	ca 0e b1 	. . .
 	cp 06dh		;b051	fe 6d 	. m 
-	jp z,0b172h		;b053	ca 72 b1 	. r . 
-;; EOT	
+	jp z,lb172h		;b053	ca 72 b1 	. r .
 	cp 04bh		;b056	fe 4b 	. K 
-	jp z,0b1ceh		;b058	ca ce b1 	. . . 
-;; J	
+	jp z,lb1ceh		;b058	ca ce b1 	. . .
 	cp 04ah		;b05b	fe 4a 	. J 
-	jp z,0b1c1h		;b05d	ca c1 b1 	. . . 
-;; A	
+	jp z,lb1c1h		;b05d	ca c1 b1 	. . .
 	cp 041h		;b060	fe 41 	. A 
-	jp z,0b1dbh		;b062	ca db b1 	. . . 
+	jp z,lb1dbh		;b062	ca db b1 	. . .
 	cp 042h		;b065	fe 42 	. B 
-	jp z,0b205h		;b067	ca 05 b2 	. . . 
+	jp z,lb205h		;b067	ca 05 b2 	. . .
 	cp 043h		;b06a	fe 43 	. C 
-	jp z,0b211h		;b06c	ca 11 b2 	. . . 
+	jp z,lb211h		;b06c	ca 11 b2 	. . .
 	cp 044h		;b06f	fe 44 	. D 
-	jp z,0b21dh		;b071	ca 1d b2 	. . . 
-;; z	
+	jp z,lb21dh		;b071	ca 1d b2 	. . .
 	cp 07ah		;b074	fe 7a 	. z 
-	jp z,0b230h		;b076	ca 30 b2 	. 0 . 
-	call 0b08dh		;b079	cd 8d b0 	. . . 
+	jp z,lb230h		;b076	ca 30 b2 	. 0 .
+	call sub_b08dh		;b079	cd 8d b0 	. . .
 	ret			;b07c	c9 	. 
-
+lb07dh:
 	ld a,001h		;b07d	3e 01 	> . 
-	ld (0af9dh),a		;b07f	32 9d af 	2 . . 
-	ld hl,0afffh		;b082	21 ff af 	! . . 
-	ld (0af9fh),hl		;b085	22 9f af 	" . . 
+	ld (laf9dh),a		;b07f	32 9d af 	2 . .
+	ld hl,lafffh		;b082	21 ff af 	! . .
+	ld (laf9fh),hl		;b085	22 9f af 	" . .
 	xor a			;b088	af 	. 
-	ld (0af9eh),a		;b089	32 9e af 	2 . . 
+	ld (laf9eh),a		;b089	32 9e af 	2 . .
 	ret			;b08c	c9 	. 
-
+sub_b08dh:
 	xor a			;b08d	af 	. 
-	ld (0af9dh),a		;b08e	32 9d af 	2 . . 
-	ld (0af9eh),a		;b091	32 9e af 	2 . . 
+	ld (laf9dh),a		;b08e	32 9d af 	2 . .
+	ld (laf9eh),a		;b091	32 9e af 	2 . .
 	ret			;b094	c9 	. 
-
+sub_b095h:
 	ld de,00000h		;b095	11 00 00 	. . . 
 	ld b,000h		;b098	06 00 	. . 
-	ld a,(hl)			;b09a	7e 	~ 
+lb09ah:
+	ld a,(hl)			;b09a	7e 	~
 	or a			;b09b	b7 	. 
 	ret z			;b09c	c8 	. 
 
@@ -2402,15 +2493,16 @@ l_aed6:
 	ex de,hl			;b0a9	eb 	. 
 	pop hl			;b0aa	e1 	. 
 	inc hl			;b0ab	23 	# 
-	jr $-18		;b0ac	18 ec 	. . 
-	ld a,(0af9dh)		;b0ae	3a 9d af 	: . . 
+	jr lb09ah		;b0ac	18 ec 	. .
+lb0aeh:
+	ld a,(laf9dh)		;b0ae	3a 9d af 	: . .
 	cp 002h		;b0b1	fe 02 	. . 
-	jr nz,$-38		;b0b3	20 d8 	  . 
+	jr nz,sub_b08dh		;b0b3	20 d8 	  .
 	ld a,001h		;b0b5	3e 01 	> . 
-	ld (0af9eh),a		;b0b7	32 9e af 	2 . . 
-	ld hl,0afa7h		;b0ba	21 a7 af 	! . . 
-	ld (0afa1h),hl		;b0bd	22 a1 af 	" . . 
-	ld (0afa3h),hl		;b0c0	22 a3 af 	" . . 
+	ld (laf9eh),a		;b0b7	32 9e af 	2 . .
+	ld hl,lafa7h		;b0ba	21 a7 af 	! . .
+	ld (lafa1h),hl		;b0bd	22 a1 af 	" . .
+	ld (lafa3h),hl		;b0c0	22 a3 af 	" . .
 	push hl			;b0c3	e5 	. 
 	pop de			;b0c4	d1 	. 
 	ld (hl),000h		;b0c5	36 00 	6 . 
@@ -2418,207 +2510,223 @@ l_aed6:
 	ld bc,0003fh		;b0c8	01 3f 00 	. ? . 
 	ldir		;b0cb	ed b0 	. . 
 	xor a			;b0cd	af 	. 
-	ld (0afa5h),a		;b0ce	32 a5 af 	2 . . 
-	ld (0afa6h),a		;b0d1	32 a6 af 	2 . . 
+	ld (lafa5h),a		;b0ce	32 a5 af 	2 . .
+	ld (lafa6h),a		;b0d1	32 a6 af 	2 . .
 	ret			;b0d4	c9 	. 
-
-	ld hl,(0afa3h)		;b0d5	2a a3 af 	* . . 
+lb0d5h:
+	ld hl,(lafa3h)		;b0d5	2a a3 af 	* . .
 	ld de,00008h		;b0d8	11 08 00 	. . . 
 	add hl,de			;b0db	19 	. 
-	ld (0afa1h),hl		;b0dc	22 a1 af 	" . . 
-	ld (0afa3h),hl		;b0df	22 a3 af 	" . . 
+	ld (lafa1h),hl		;b0dc	22 a1 af 	" . .
+	ld (lafa3h),hl		;b0df	22 a3 af 	" . .
 	xor a			;b0e2	af 	. 
-	ld (0afa5h),a		;b0e3	32 a5 af 	2 . . 
+	ld (lafa5h),a		;b0e3	32 a5 af 	2 . .
 	ret			;b0e6	c9 	. 
-
-	ld a,(0afa5h)		;b0e7	3a a5 af 	: . . 
+lb0e7h:
+	ld a,(lafa5h)		;b0e7	3a a5 af 	: . .
 	or a			;b0ea	b7 	. 
-	jr nz,$+14		;b0eb	20 0c 	  . 
-	ld a,(0afa6h)		;b0ed	3a a6 af 	: . . 
+	jr nz,lb0f9h		;b0eb	20 0c 	  .
+	ld a,(lafa6h)		;b0ed	3a a6 af 	: . .
 	inc a			;b0f0	3c 	< 
 	cp 009h		;b0f1	fe 09 	. . 
-	jp nc,0b08dh		;b0f3	d2 8d b0 	. . . 
-	ld (0afa6h),a		;b0f6	32 a6 af 	2 . . 
-	ld a,(0afa5h)		;b0f9	3a a5 af 	: . . 
+	jp nc,sub_b08dh		;b0f3	d2 8d b0 	. . .
+	ld (lafa6h),a		;b0f6	32 a6 af 	2 . .
+lb0f9h:
+	ld a,(lafa5h)		;b0f9	3a a5 af 	: . .
 	inc a			;b0fc	3c 	< 
 	cp 008h		;b0fd	fe 08 	. . 
-	jp nc,0b08dh		;b0ff	d2 8d b0 	. . . 
-	ld (0afa5h),a		;b102	32 a5 af 	2 . . 
-	ld hl,(0afa1h)		;b105	2a a1 af 	* . . 
+	jp nc,sub_b08dh		;b0ff	d2 8d b0 	. . .
+	ld (lafa5h),a		;b102	32 a5 af 	2 . .
+	ld hl,(lafa1h)		;b105	2a a1 af 	* . .
 	ld (hl),c			;b108	71 	q 
 	inc hl			;b109	23 	# 
-	ld (0afa1h),hl		;b10a	22 a1 af 	" . . 
+	ld (lafa1h),hl		;b10a	22 a1 af 	" . .
 	ret			;b10d	c9 	. 
-
-	call 0b08dh		;b10e	cd 8d b0 	. . . 
+lb10eh:
+	call sub_b08dh		;b10e	cd 8d b0 	. . .
 	ld hl,00001h		;b111	21 01 00 	! . . 
 	ld de,00001h		;b114	11 01 00 	. . . 
-	ld a,(0afa6h)		;b117	3a a6 af 	: . . 
+	ld a,(lafa6h)		;b117	3a a6 af 	: . .
 	or a			;b11a	b7 	. 
-	jr nz,$+4		;b11b	20 02 	  . 
-	jr $+24		;b11d	18 16 	. . 
-	ld hl,0afa7h		;b11f	21 a7 af 	! . . 
-	call 0b095h		;b122	cd 95 b0 	. . . 
+	jr nz,lb11fh		;b11b	20 02 	  .
+	jr lb135h		;b11d	18 16 	. .
+lb11fh:
+	ld hl,lafa7h		;b11f	21 a7 af 	! . .
+	call sub_b095h		;b122	cd 95 b0 	. . .
 	push de			;b125	d5 	. 
 	ld de,00001h		;b126	11 01 00 	. . . 
-	ld hl,0afafh		;b129	21 af af 	! . . 
-	ld a,(0afa6h)		;b12c	3a a6 af 	: . . 
+	ld hl,lafafh		;b129	21 af af 	! . .
+	ld a,(lafa6h)		;b12c	3a a6 af 	: . .
 	cp 002h		;b12f	fe 02 	. . 
-	call z,0b095h		;b131	cc 95 b0 	. . . 
+	call z,sub_b095h		;b131	cc 95 b0 	. . .
 	pop hl			;b134	e1 	. 
-	call 0aa6bh		;b135	cd 6b aa 	. k . 
+lb135h:
+	call sub_aa6bh		;b135	cd 6b aa 	. k .
 	ret			;b138	c9 	. 
-
-	call 0aa87h		;b139	cd 87 aa 	. . . 
+lb139h:
+	call sub_aa87h		;b139	cd 87 aa 	. . .
 	ld a,l			;b13c	7d 	} 
-	ld (0afe9h),a		;b13d	32 e9 af 	2 . . 
+	ld (lafe9h),a		;b13d	32 e9 af 	2 . .
 	ld a,e			;b140	7b 	{ 
-	ld (0afeah),a		;b141	32 ea af 	2 . . 
-	ld a,(0afe7h)		;b144	3a e7 af 	: . . 
-	ld (0afe8h),a		;b147	32 e8 af 	2 . . 
+	ld (lafe9h+1),a		;b141	32 ea af 	2 . .
+	ld a,(lafe7h)		;b144	3a e7 af 	: . .
+	ld (lafe8h),a		;b147	32 e8 af 	2 . .
 	ret			;b14a	c9 	. 
-
+lb14bh:
 	ld a,001h		;b14b	3e 01 	> . 
-	ld (0afe9h),a		;b14d	32 e9 af 	2 . . 
-	ld (0afeah),a		;b150	32 ea af 	2 . . 
+	ld (lafe9h),a		;b14d	32 e9 af 	2 . .
+	ld (lafe9h+1),a		;b150	32 ea af 	2 . .
 	ld a,083h		;b153	3e 83 	> . 
-	ld (0afe8h),a		;b155	32 e8 af 	2 . . 
-	ld (0afe7h),a		;b158	32 e7 af 	2 . . 
-	ld a,(0afe8h)		;b15b	3a e8 af 	: . . 
-	ld (0afe7h),a		;b15e	32 e7 af 	2 . .
-	; 0a9d3h -> set_var_byte_a9c6
+	ld (lafe8h),a		;b155	32 e8 af 	2 . .
+	ld (lafe7h),a		;b158	32 e7 af 	2 . .
+lb15bh:
+	ld a,(lafe8h)		;b15b	3a e8 af 	: . .
+	ld (lafe7h),a		;b15e	32 e7 af 	2 . .
 	call set_var_byte_a9c6		;b161	cd d3 a9 	. . .
-	ld de,(0afeah)		;b164	ed 5b ea af 	. [ . . 
-	ld hl,(0afe9h)		;b168	2a e9 af 	* . . 
-	call 0aa6bh		;b16b	cd 6b aa 	. k . 
-	call fun_aa9a		;b16e	cd 9a aa 	. . .
+	ld de,(lafe9h+1)		;b164	ed 5b ea af 	. [ . .
+	ld hl,(lafe9h)		;b168	2a e9 af 	* . .
+	call sub_aa6bh		;b16b	cd 6b aa 	. k .
+	call sub_aa9ah		;b16e	cd 9a aa 	. . .
 	ret			;b171	c9 	. 
-
-	call 0b08dh		;b172	cd 8d b0 	. . . 
-	ld a,(0afa6h)		;b175	3a a6 af 	: . . 
+lb172h:
+	call sub_b08dh		;b172	cd 8d b0 	. . .
+	ld a,(lafa6h)		;b175	3a a6 af 	: . .
 	or a			;b178	b7 	. 
-	jr nz,$+6		;b179	20 04 	  . 
+	jr nz,lb17fh		;b179	20 04 	  .
 	ld c,083h		;b17b	0e 83 	. . 
-	jr $+40		;b17d	18 26 	. & 
+	jr lb1a5h		;b17d	18 26 	. &
+lb17fh:
 	ld b,a			;b17f	47 	G 
-	ld a,(0afe7h)		;b180	3a e7 af 	: . . 
+	ld a,(lafe7h)		;b180	3a e7 af 	: . .
 	ld c,a			;b183	4f 	O 
 	ld de,00008h		;b184	11 08 00 	. . . 
-	ld hl,0afa7h		;b187	21 a7 af 	! . . 
+	ld hl,lafa7h		;b187	21 a7 af 	! . .
+lb18ah:
 	ld a,(hl)			;b18a	7e 	~ 
 	or a			;b18b	b7 	. 
-	jr z,$+33		;b18c	28 1f 	( . 
+	jr z,lb1adh		;b18c	28 1f 	( .
 	cp 030h		;b18e	fe 30 	. 0 
-	jr z,$+29		;b190	28 1b 	( . 
+	jr z,lb1adh		;b190	28 1b 	( .
 	cp 032h		;b192	fe 32 	. 2 
-	jr z,$+29		;b194	28 1b 	( . 
+	jr z,lb1b1h		;b194	28 1b 	( .
 	cp 034h		;b196	fe 34 	. 4 
-	jr z,$+29		;b198	28 1b 	( . 
+	jr z,lb1b5h		;b198	28 1b 	( .
 	cp 035h		;b19a	fe 35 	. 5 
-	jr z,$+29		;b19c	28 1b 	( . 
+	jr z,lb1b9h		;b19c	28 1b 	( .
 	cp 037h		;b19e	fe 37 	. 7 
-	jr z,$+29		;b1a0	28 1b 	( . 
+	jr z,lb1bdh		;b1a0	28 1b 	( .
+lb1a2h:
 	add hl,de			;b1a2	19 	. 
-	djnz $-25		;b1a3	10 e5 	. . 
+	djnz lb18ah		;b1a3	10 e5 	. .
+lb1a5h:
 	ld a,c			;b1a5	79 	y 
-	ld (0afe7h),a		;b1a6	32 e7 af 	2 . . 
+	ld (lafe7h),a		;b1a6	32 e7 af 	2 . .
 	call set_var_byte_a9c6		;b1a9	cd d3 a9 	. . .
 	ret			;b1ac	c9 	. 
-
+lb1adh:
 	ld c,083h		;b1ad	0e 83 	. . 
-	jr $-13		;b1af	18 f1 	. . 
+	jr lb1a2h		;b1af	18 f1 	. .
+lb1b1h:
 	set 5,c		;b1b1	cb e9 	. . 
-	jr $-17		;b1b3	18 ed 	. . 
+	jr lb1a2h		;b1b3	18 ed 	. .
+lb1b5h:
 	res 1,c		;b1b5	cb 89 	. . 
-	jr $-21		;b1b7	18 e9 	. . 
+	jr lb1a2h		;b1b7	18 e9 	. .
+lb1b9h:
 	set 2,c		;b1b9	cb d1 	. . 
-	jr $-25		;b1bb	18 e5 	. . 
+	jr lb1a2h		;b1bb	18 e5 	. .
+lb1bdh:
 	set 3,c		;b1bd	cb d9 	. . 
-	jr $-29		;b1bf	18 e1 	. . 
-	call 0b08dh		;b1c1	cd 8d b0 	. . . 
-	ld a,(0afa7h)		;b1c4	3a a7 af 	: . . 
-	call 0aeb4h		;b1c7	cd b4 ae 	. . . 
-	call fun_aa9a		;b1ca	cd 9a aa 	. . .
+	jr lb1a2h		;b1bf	18 e1 	. .
+lb1c1h:
+	call sub_b08dh		;b1c1	cd 8d b0 	. . .
+	ld a,(lafa7h)		;b1c4	3a a7 af 	: . .
+	call sub_aeb4h		;b1c7	cd b4 ae 	. . .
+	call sub_aa9ah		;b1ca	cd 9a aa 	. . .
 	ret			;b1cd	c9 	. 
-
-	call 0b08dh		;b1ce	cd 8d b0 	. . . 
-	ld a,(0afa7h)		;b1d1	3a a7 af 	: . . 
-	call 0ae5eh		;b1d4	cd 5e ae 	. ^ . 
-	call fun_aa9a		;b1d7	cd 9a aa 	. . .
+lb1ceh:
+	call sub_b08dh		;b1ce	cd 8d b0 	. . .
+	ld a,(lafa7h)		;b1d1	3a a7 af 	: . .
+	call sub_ae5eh		;b1d4	cd 5e ae 	. ^ .
+	call sub_aa9ah		;b1d7	cd 9a aa 	. . .
 	ret			;b1da	c9 	. 
-
-	call 0b08dh		;b1db	cd 8d b0 	. . . 
-	call 0b1e6h		;b1de	cd e6 b1 	. . . 
-	ld hl,0ad19h		;b1e1	21 19 ad 	! . . 
-	jr $+17		;b1e4	18 0f 	. . 
+lb1dbh:
+	call sub_b08dh		;b1db	cd 8d b0 	. . .
+	call sub_b1e6h		;b1de	cd e6 b1 	. . .
+	ld hl,sub_ad19h		;b1e1	21 19 ad 	! . .
+	jr lb1f5h		;b1e4	18 0f 	. .
+sub_b1e6h:
 	ld de,00001h		;b1e6	11 01 00 	. . . 
-	ld hl,0afa7h		;b1e9	21 a7 af 	! . . 
-	ld a,(0afa6h)		;b1ec	3a a6 af 	: . . 
+	ld hl,lafa7h		;b1e9	21 a7 af 	! . .
+	ld a,(lafa6h)		;b1ec	3a a6 af 	: . .
 	or a			;b1ef	b7 	. 
-	call nz,0b095h		;b1f0	c4 95 b0 	. . . 
+	call nz,sub_b095h		;b1f0	c4 95 b0 	. . .
 	ld b,e			;b1f3	43 	C 
 	ret			;b1f4	c9 	. 
-
+lb1f5h:
 	push bc			;b1f5	c5 	. 
 	push de			;b1f6	d5 	. 
 	push hl			;b1f7	e5 	. 
-	call 0b204h		;b1f8	cd 04 b2 	. . . 
+	call sub_b204h		;b1f8	cd 04 b2 	. . .
 	pop hl			;b1fb	e1 	. 
 	pop de			;b1fc	d1 	. 
 	pop bc			;b1fd	c1 	. 
-	djnz $-9		;b1fe	10 f5 	. . 
-	call fun_aa9a		;b200	cd 9a aa 	. . .
+	djnz lb1f5h		;b1fe	10 f5 	. .
+	call sub_aa9ah		;b200	cd 9a aa 	. . .
 	ret			;b203	c9 	. 
-
+sub_b204h:
 	jp (hl)			;b204	e9 	. 
-	call 0b08dh		;b205	cd 8d b0 	. . . 
-	call 0b1e6h		;b208	cd e6 b1 	. . . 
-	ld hl,0ad53h		;b20b	21 53 ad 	! S . 
-	jr $-25		;b20e	18 e5 	. . 
+lb205h:
+	call sub_b08dh		;b205	cd 8d b0 	. . .
+	call sub_b1e6h		;b208	cd e6 b1 	. . .
+	ld hl,sub_ad53h		;b20b	21 53 ad 	! S .
+	jr lb1f5h		;b20e	18 e5 	. .
 	ret			;b210	c9 	. 
-
-	call 0b08dh		;b211	cd 8d b0 	. . . 
-	call 0b1e6h		;b214	cd e6 b1 	. . . 
-	ld hl,0ad70h		;b217	21 70 ad 	! p . 
-	jr $-37		;b21a	18 d9 	. . 
+lb211h:
+	call sub_b08dh		;b211	cd 8d b0 	. . .
+	call sub_b1e6h		;b214	cd e6 b1 	. . .
+	ld hl,sub_ad70h		;b217	21 70 ad 	! p .
+	jr lb1f5h		;b21a	18 d9 	. .
 	ret			;b21c	c9 	. 
-
-	call 0b08dh		;b21d	cd 8d b0 	. . . 
-	call 0b1e6h		;b220	cd e6 b1 	. . . 
-	ld hl,0ad5dh		;b223	21 5d ad 	! ] . 
-	jr $-49		;b226	18 cd 	. . 
+lb21dh:
+	call sub_b08dh		;b21d	cd 8d b0 	. . .
+	call sub_b1e6h		;b220	cd e6 b1 	. . .
+	ld hl,sub_ad5dh		;b223	21 5d ad 	! ] .
+	jr lb1f5h		;b226	18 cd 	. .
 	ret			;b228	c9 	. 
-
-	call 0ad36h		;b229	cd 36 ad 	. 6 . 
-	call fun_aa9a		;b22c	cd 9a aa 	. . .
+lb229h:
+	call sub_ad36h		;b229	cd 36 ad 	. 6 .
+	call sub_aa9ah		;b22c	cd 9a aa 	. . .
 	ret			;b22f	c9 	. 
-
-	call 0b08dh		;b230	cd 8d b0 	. . . 
-	ld a,(0afa6h)		;b233	3a a6 af 	: . . 
+lb230h:
+	call sub_b08dh		;b230	cd 8d b0 	. . .
+	ld a,(lafa6h)		;b233	3a a6 af 	: . .
 	cp 002h		;b236	fe 02 	. . 
-	jr nz,$+22		;b238	20 14 	  . 
-	ld a,(0afa7h)		;b23a	3a a7 af 	: . . 
+	jr nz,lb24eh		;b238	20 14 	  .
+	ld a,(lafa7h)		;b23a	3a a7 af 	: . .
 	cp 033h		;b23d	fe 33 	. 3 
-	jr nz,$+15		;b23f	20 0d 	  . 
-	ld a,(0afafh)		;b241	3a af af 	: . . 
+	jr nz,lb24eh		;b23f	20 0d 	  .
+	ld a,(lafafh)		;b241	3a af af 	: . .
 	cp 031h		;b244	fe 31 	. 1 
-	jr z,$+8		;b246	28 06 	( . 
+	jr z,lb24eh		;b246	28 06 	( .
 	cp 034h		;b248	fe 34 	. 4 
-	jr z,$+8		;b24a	28 06 	( . 
-	jr $+2		;b24c	18 00 	. . 
-	call 0a9a4h		;b24e	cd a4 a9 	. . . 
+	jr z,lb252h		;b24a	28 06 	( .
+	jr lb24eh		;b24c	18 00 	. .
+lb24eh:
+	call sub_a9a4h		;b24e	cd a4 a9 	. . .
 	ret			;b251	c9 	. 
-
-	call 0a9b0h		;b252	cd b0 a9 	. . . 
+lb252h:
+	call sub_a9b0h		;b252	cd b0 a9 	. . .
 	ret			;b255	c9 	. 
-
-	call 0ad88h		;b256	cd 88 ad 	. . . 
-	call 0ad97h		;b259	cd 97 ad 	. . . 
-	call fun_aa9a		;b25c	cd 9a aa 	. . .
+lb256h:
+	call sub_ad88h		;b256	cd 88 ad 	. . .
+lb259h:
+	call sub_ad97h		;b259	cd 97 ad 	. . .
+	call sub_aa9ah		;b25c	cd 9a aa 	. . .
 	ret			;b25f	c9 	. 
-
+lb260h:
 	ld a,c			;b260	79 	y 
-	call 0b08dh		;b261	cd 8d b0 	. . . 
+	call sub_b08dh		;b261	cd 8d b0 	. . .
 	ret			;b264	c9 	. 
 
 ;	in original file, we have "nop"	until 0bfffh.
@@ -3624,33 +3732,39 @@ fm_setup:
 	pop de			;c8fe	d1 	. 
 	or a			;c8ff	b7 	. 
 	sbc hl,de		;c900	ed 52 	. R 
-	jr nz,$+31		;c902	20 1d 	  . 
+	jr nz,lc921h		;c902	20 1d 	  .
 	ld hl,(03f04h)		;c904	2a 04 3f 	* . ? 
 	pop de			;c907	d1 	. 
 	or a			;c908	b7 	. 
 	sbc hl,de		;c909	ed 52 	. R 
-	jr nz,$+24		;c90b	20 16 	  . 
+	jr nz,lc923h		;c90b	20 16 	  .
 	ld hl,(03f02h)		;c90d	2a 02 3f 	* . ? 
 	pop de			;c910	d1 	. 
 	or a			;c911	b7 	. 
 	sbc hl,de		;c912	ed 52 	. R 
-	jr nz,$+16		;c914	20 0e 	  . 
+	jr nz,lc924h		;c914	20 0e 	  .
 	ld hl,(03f00h)		;c916	2a 00 3f 	* . ? 
 	pop de			;c919	d1 	. 
 	or a			;c91a	b7 	. 
 	sbc hl,de		;c91b	ed 52 	. R 
-	jr nz,$+8		;c91d	20 06 	  . 
-	jr $+16		;c91f	18 0e 	. . 
+	jr nz,lc925h		;c91d	20 06 	  .
+	jr lc92fh		;c91f	18 0e 	. .
+lc921h:
 	dec c			;c921	0d 	. 
 	pop de			;c922	d1 	. 
-	pop de			;c923	d1 	. 
-	pop de			;c924	d1 	. 
-	dec c			;c925	0d 	. 
+lc923h:
+	pop de			;c923	d1 	.
+lc924h:
+	pop de			;c924	d1 	.
+lc925h:
+	dec c			;c925	0d 	.
 	xor a			;c926	af 	. 
 	bit 7,c		;c927	cb 79 	. y 
-	jr nz,$+3		;c929	20 01 	  . 
+	jr nz,lc92ch		;c929	20 01 	  .
 	ld a,c			;c92b	79 	y 
-	ld (03f12h),a		;c92c	32 12 3f 	2 . ? 
+lc92ch:
+	ld (03f12h),a		;c92c	32 12 3f 	2 . ?
+lc92fh:
 	ld a,006h		;c92f	3e 06 	> . ; Load Page 6 (Application RAM)
 	call os_loadpage		;c931	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
 	call write_dbe0		;c934	cd 3f a5 	. ? .
@@ -3806,79 +3920,95 @@ fm_setup2sim:
 	push hl			;ca71	e5 	. 
 	ld a,(04806h)		;ca72	3a 06 48 	: . H 
 	cp 001h		;ca75	fe 01 	. . 
-	jr z,$+14		;ca77	28 0c 	( . 
+	jr z,lca85h		;ca77	28 0c 	( .
 	cp 002h		;ca79	fe 02 	. . 
-	jr nz,$+16		;ca7b	20 0e 	  . 
+	jr nz,lca8bh		;ca7b	20 0e 	  .
 	ld hl,07f20h		;ca7d	21 20 7f 	!    
 	ld (03f00h),hl		;ca80	22 00 3f 	" . ? 
-	jr $+8		;ca83	18 06 	. . 
+	jr lca8bh		;ca83	18 06 	. .
+lca85h:
 	ld hl,0ff60h		;ca85	21 60 ff 	! ` . 
 	ld (03f00h),hl		;ca88	22 00 3f 	" . ? 
-	ld a,(0481ah)		;ca8b	3a 1a 48 	: . H 
+lca8bh:
+	ld a,(0481ah)		;ca8b	3a 1a 48 	: . H
 	cp 003h		;ca8e	fe 03 	. . 
-	jr z,$+19		;ca90	28 11 	( . 
+	jr z,lcaa3h		;ca90	28 11 	( .
 	cp 002h		;ca92	fe 02 	. . 
-	jr z,$+20		;ca94	28 12 	( . 
+	jr z,lcaa8h		;ca94	28 12 	( .
 	cp 001h		;ca96	fe 01 	. . 
-	jr z,$+21		;ca98	28 13 	( . 
+	jr z,lcaadh		;ca98	28 13 	( .
 	cp 004h		;ca9a	fe 04 	. . 
-	jr nz,$+23		;ca9c	20 15 	  . 
+	jr nz,lcab3h		;ca9c	20 15 	  .
 	ld hl,00043h		;ca9e	21 43 00 	! C . 
-	jr $+15		;caa1	18 0d 	. . 
+	jr lcab0h		;caa1	18 0d 	. .
+lcaa3h:
 	ld hl,00000h		;caa3	21 00 00 	! . . 
-	jr $+10		;caa6	18 08 	. . 
+	jr lcab0h		;caa6	18 08 	. .
+lcaa8h:
 	ld hl,00003h		;caa8	21 03 00 	! . . 
-	jr $+5		;caab	18 03 	. . 
+	jr lcab0h		;caab	18 03 	. .
+lcaadh:
 	ld hl,00001h		;caad	21 01 00 	! . . 
-	ld (03f02h),hl		;cab0	22 02 3f 	" . ? 
-	ld ix,03525h		;cab3	dd 21 25 35 	. ! % 5 
+lcab0h:
+	ld (03f02h),hl		;cab0	22 02 3f 	" . ?
+lcab3h:
+	ld ix,03525h		;cab3	dd 21 25 35 	. ! % 5
 	ld de,00004h		;cab7	11 04 00 	. . . 
 	ld b,012h		;caba	06 12 	. . 
 	ld hl,(04816h)		;cabc	2a 16 48 	* . H 
 	ld a,(04814h)		;cabf	3a 14 48 	: . H 
 	ld h,a			;cac2	67 	g 
-	ld a,(ix+000h)		;cac3	dd 7e 00 	. ~ . 
+lcac3h:
+	ld a,(ix+000h)		;cac3	dd 7e 00 	. ~ .
 	cp l			;cac6	bd 	. 
-	jr nz,$+8		;cac7	20 06 	  . 
+	jr nz,lcacfh		;cac7	20 06 	  .
 	ld a,(ix+001h)		;cac9	dd 7e 01 	. ~ . 
 	cp h			;cacc	bc 	. 
-	jr z,$+8		;cacd	28 06 	( . 
+	jr z,lcad5h		;cacd	28 06 	( .
+lcacfh:
 	add ix,de		;cacf	dd 19 	. . 
-	djnz $-14		;cad1	10 f0 	. . 
-	jr $+28		;cad3	18 1a 	. . 
+	djnz lcac3h		;cad1	10 f0 	. .
+	jr lcaefh		;cad3	18 1a 	. .
+lcad5h:
 	ld l,(ix+002h)		;cad5	dd 6e 02 	. n . 
 	ld h,(ix+003h)		;cad8	dd 66 03 	. f . 
 	ld a,l			;cadb	7d 	} 
 	or h			;cadc	b4 	. 
-	jr nz,$+15		;cadd	20 0d 	  . 
+	jr nz,lcaech		;cadd	20 0d 	  .
 	ld a,(04812h)		;cadf	3a 12 48 	: . H 
 	cp 003h		;cae2	fe 03 	. . 
 	ld hl,023ffh		;cae4	21 ff 23 	! . # 
-	jr z,$+5		;cae7	28 03 	( . 
+	jr z,lcaech		;cae7	28 03 	( .
 	ld hl,00399h		;cae9	21 99 03 	! . . 
-	ld (03f04h),hl		;caec	22 04 3f 	" . ? 
-	ld a,(07532h)		;caef	3a 32 75 	: 2 u 
+lcaech:
+	ld (03f04h),hl		;caec	22 04 3f 	" . ?
+lcaefh:
+	ld a,(07532h)		;caef	3a 32 75 	: 2 u
 	dec a			;caf2	3d 	= 
 	push af			;caf3	f5 	. 
-	jr nz,$+8		;caf4	20 06 	  . 
-	call 00ebbh		;caf6	cd bb 0e 	. . . ; Patched to 02df8h
+	jr nz,lcafch		;caf4	20 06 	  .
+	call 00ebbh		;caf6	cd bb 0e 	. . .
 	call 00e94h		;caf9	cd 94 0e 	. . . 
-	ld ix,(0498ah)		;cafc	dd 2a 8a 49 	. * . I 
+lcafch:
+	ld ix,(0498ah)		;cafc	dd 2a 8a 49 	. * . I
 	ld a,(ix+00ah)		;cb00	dd 7e 0a 	. ~ . 
 	cp 002h		;cb03	fe 02 	. . 
-	jr z,$+14		;cb05	28 0c 	( . 
+	jr z,lcb13h		;cb05	28 0c 	( .
 	cp 001h		;cb07	fe 01 	. . 
-	jr nz,$+16		;cb09	20 0e 	  . 
+	jr nz,lcb19h		;cb09	20 0e 	  .
 	ld hl,00082h		;cb0b	21 82 00 	! . . 
 	ld (03f08h),hl		;cb0e	22 08 3f 	" . ? 
-	jr $+8		;cb11	18 06 	. . 
+	jr lcb19h		;cb11	18 06 	. .
+lcb13h:
 	ld hl,00081h		;cb13	21 81 00 	! . . 
 	ld (03f08h),hl		;cb16	22 08 3f 	" . ? 
-	pop af			;cb19	f1 	. 
-	jr nz,$+8		;cb1a	20 06 	  . 
+lcb19h:
+	pop af			;cb19	f1 	.
+	jr nz,lcb22h		;cb1a	20 06 	  .
 	call 00eaah		;cb1c	cd aa 0e 	. . . 
 	call 00eafh		;cb1f	cd af 0e 	. . . 
-	jp 032f7h		;cb22	c3 f7 32 	. . 2 
+lcb22h:
+	jp 032f7h		;cb22	c3 f7 32 	. . 2
 	add a,b			;cb25	80 	. 
 	ld bc,0002fh		;cb26	01 2f 00 	. / . 
 	ret nz			;cb29	c0 	. 
@@ -3965,26 +4095,28 @@ code_p_d400:
 	xor a			;d410	af 	.                   ; a:=0
 	ld (07803h),a		;d411	32 03 78 	2 . x   ; (7803):=a
 	jp 07828h		;d414	c3 28 78 	. ( x 
-	call 0793dh		;d417	cd 3d 79 	. = y 
+ld417h:
+	call 0793dh		;d417	cd 3d 79 	. = y
 	jr z,$+14		;d41a	28 0c 	( .             ; jr l_d426
 	ld c,l			;d41c	4d 	M 
 	ld b,h			;d41d	44 	D 
 	call 07bf5h		;d41e	cd f5 7b 	. . { 
-	jr nz,$-10		;d421	20 f4 	  . 
+	jr nz,ld417h		;d421	20 f4 	  .
 	call 078c7h		;d423	cd c7 78 	. . x
-l_d426:
-	jr $-15		;d426	18 ef 	. . 
+	jr ld417h		;d426	18 ef 	. .
+ld428h:
 	ld a,(07803h)		;d428	3a 03 78 	: . x 
 	or a			;d42b	b7 	. 
-	jr z,$+8		;d42c	28 06 	( . 
+	jr z,ld434h		;d42c	28 06 	( .
 	call 07c45h		;d42e	cd 45 7c 	. E | 
 	call z,078bdh		;d431	cc bd 78 	. . x 
-	ld a,(0dff0h)		;d434	3a f0 df 	: . .   ; a:=(0dff0h)
-	cp 000h		;d437	fe 00 	. .                 ; a==0?
-	jp z,07817h		;d439	ca 17 78 	. . x       ; yes, do jump
-	ld hl,07869h		;d43c	21 69 78 	! i x   ; no, hl:=7869
-	push hl			;d43f	e5 	.                   ; save hl
-	cp 001h		;d440	fe 01 	. .                 ; a==1?
+ld434h:
+	ld a,(ldff0h)		;d434	3a f0 df 	: . .
+	cp 000h		;d437	fe 00 	. .
+	jp z,07817h		;d439	ca 17 78 	. . x
+	ld hl,07869h		;d43c	21 69 78 	! i x
+	push hl			;d43f	e5 	.
+	cp 001h		;d440	fe 01 	. .
 	jp z,07871h		;d442	ca 71 78 	. q x 
 	cp 002h		;d445	fe 02 	. .                 ; a==2?
 	jp z,0787bh		;d447	ca 7b 78 	. { x 
@@ -4025,27 +4157,29 @@ l_d426:
 
 	call 07ac7h		;d491	cd c7 7a 	. . z 
 	ld b,07fh		;d494	06 7f 	.  
-	ld hl,000c6h		;d496	21 c6 00 	! . . 
-	push bc			;d499	c5 	. 
+ld496h:
+	ld hl,000c6h		;d496	21 c6 00 	! . .
+ld499h:
+	push bc			;d499	c5 	.
 	push hl			;d49a	e5 	. 
 	call 0793dh		;d49b	cd 3d 79 	. = y 
-	jr z,$+7		;d49e	28 05 	( . 
+	jr z,ld4a5h		;d49e	28 05 	( .
 	ld c,l			;d4a0	4d 	M 
 	ld b,h			;d4a1	44 	D 
 	call 07bf5h		;d4a2	cd f5 7b 	. . { 
-	pop hl			;d4a5	e1 	. 
+ld4a5h:
+	pop hl			;d4a5	e1 	.
 	pop bc			;d4a6	c1 	. 
 	dec hl			;d4a7	2b 	+ 
 	ld a,h			;d4a8	7c 	| 
 	or l			;d4a9	b5 	. 
-	jr nz,$-17		;d4aa	20 ed 	  . 
-	djnz $-22		;d4ac	10 e8 	. . 
+	jr nz,ld499h		;d4aa	20 ed 	  .
+	djnz ld496h		;d4ac	10 e8 	. .
 	call 07ad4h		;d4ae	cd d4 7a 	. . z 
-	ret			;d4b1	c9 	. 
-
+	ret			;d4b1	c9 	.
 	call 07b03h		;d4b2	cd 03 7b 	. . { 
 	ld a,000h		;d4b5	3e 00 	> . 
-	ld (0dff0h),a		;d4b7	32 f0 df 	2 . . 
+	ld (ldff0h),a		;d4b7	32 f0 df 	2 . .
 	jp 07931h		;d4ba	c3 31 79 	. 1 y 
 	xor a			;d4bd	af 	. 
 	ld (07803h),a		;d4be	32 03 78 	2 . x 
@@ -4089,35 +4223,36 @@ l_d426:
 	ld hl,(07915h)		;d50e	2a 15 79 	* . y 
 	ld (00066h),hl		;d511	22 66 00 	" f . 
 	ret			;d514	c9 	. 
-
-	jr $+8		;d515	18 06 	. . 
+	jr ld51dh		;d515	18 06 	. .
 	ld (00000h),a		;d517	32 00 00 	2 . . 
 	pop af			;d51a	f1 	. 
 	retn		;d51b	ed 45 	. E 
-
+ld51dh:
 	call 07b03h		;d51d	cd 03 7b 	. . { 
 	call 07b7ch		;d520	cd 7c 7b 	. | { 
 	ld a,000h		;d523	3e 00 	> . 
-	ld (0dff0h),a		;d525	32 f0 df 	2 . . 
-	jr $+9		;d528	18 07 	. . 
+	ld (ldff0h),a		;d525	32 f0 df 	2 . .
+	jr ld531h		;d528	18 07 	. .
 	call 079d2h		;d52a	cd d2 79 	. . y 
 	call 07ad9h		;d52d	cd d9 7a 	. . z 
 	ret			;d530	c9 	. 
-
+ld531h:
 	ld sp,08000h		;d531	31 00 80 	1 . . 
 	ld a,070h		;d534	3e 70 	> p 
 ;;; POI-021, out command		
 	out (000h),a		;d536	d3 00 	. . 
 	jp 00063h		;d538	c3 63 00 	. c . 
 	ld bc,00e00h		;d53b	01 00 0e 	. . . 
-	jr nz,$+8		;d53e	20 06 	  . 
-	ld (0e83ah),hl		;d540	22 3a e8 	" : . 
+	jr nz,ld546h		;d53e	20 06 	  .
+	ld (le83ah),hl		;d540	22 3a e8 	" : .
 	in a,(0cbh)		;d543	db cb 	. . 
 	ld b,a			;d545	47 	G 
-	jr nz,$+6		;d546	20 04 	  . 
+ld546h:
+	jr nz,ld54ch		;d546	20 04 	  .
 	ld c,021h		;d548	0e 21 	. ! 
 	ld b,023h		;d54a	06 23 	. # 
-	ld a,000h		;d54c	3e 00 	> . 
+ld54ch:
+	ld a,000h		;d54c	3e 00 	> .
 ;;; POI-022, out + in command		
 	out (c),a		;d54e	ed 79 	. y 
 	in l,(c)		;d550	ed 68 	. h 
@@ -4133,22 +4268,27 @@ l_d426:
 	ld c,a			;d55e	4f 	O 
 	ld a,(var_byte_dbe2)		;d55f	3a e2 db 	: . .
 	bit 2,a		;d562	cb 57 	. W 
-	jr nz,$+14		;d564	20 0c 	  . 
+	jr nz,ld572h		;d564	20 0c 	  .
 	bit 6,a		;d566	cb 77 	. w 
-	jr nz,$+24		;d568	20 16 	  . 
+	jr nz,ld580h		;d568	20 16 	  .
 	bit 4,h		;d56a	cb 64 	. d 
-	jr z,$+20		;d56c	28 12 	( . 
+	jr z,ld580h		;d56c	28 12 	( .
+ld56eh:
 	ld b,08fh		;d56e	06 8f 	. . 
-	jr $+18		;d570	18 10 	. . 
+	jr ld582h		;d570	18 10 	. .
+ld572h:
 	bit 3,a		;d572	cb 5f 	. _ 
-	jr nz,$+8		;d574	20 06 	  . 
+	jr nz,ld57ch		;d574	20 06 	  .
 	bit 7,c		;d576	cb 79 	. y 
-	jr nz,$-10		;d578	20 f4 	  . 
-	jr $+6		;d57a	18 04 	. . 
+	jr nz,ld56eh		;d578	20 f4 	  .
+	jr ld580h		;d57a	18 04 	. .
+ld57ch:
 	bit 7,c		;d57c	cb 79 	. y 
-	jr z,$-16		;d57e	28 ee 	( . 
+	jr z,ld56eh		;d57e	28 ee 	( .
+ld580h:
 	ld b,083h		;d580	06 83 	. . 
-	ld l,c			;d582	69 	i 
+ld582h:
+	ld l,c			;d582	69 	i
 	ld h,b			;d583	60 	` 
 	ld a,030h		;d584	3e 30 	> 0 
 ;;; POI-024, 2 times out command		
@@ -4156,17 +4296,17 @@ l_d426:
 	out (020h),a		;d588	d3 20 	.   
 	or 0ffh		;d58a	f6 ff 	. . 
 	ret			;d58c	c9 	. 
-
-;; POI-025, many out, 1xin	
+ld58dh:
 	ld a,(var_byte_dbe2)		;d58d	3a e2 db 	: . .
 	bit 3,a		;d590	cb 5f 	. _ 
-	jr z,$+4		;d592	28 02 	( . 
+	jr z,ld596h		;d592	28 02 	( .
 	set 7,c		;d594	cb f9 	. . 
-	ld a,000h		;d596	3e 00 	> . 
+ld596h:
+	ld a,000h		;d596	3e 00 	> .
 	out (021h),a		;d598	d3 21 	. ! 
 	in a,(021h)		;d59a	db 21 	. ! 
 	bit 2,a		;d59c	cb 57 	. W 
-	jr z,$-17		;d59e	28 ed 	( . 
+	jr z,ld58dh		;d59e	28 ed 	( .
 	ld a,005h		;d5a0	3e 05 	> . 
 	out (021h),a		;d5a2	d3 21 	. ! 
 	ld a,(07a92h)		;d5a4	3a 92 7a 	: . z 
@@ -4202,18 +4342,20 @@ l_d426:
 	ld a,(var_byte_dbe2)		;d5d2	3a e2 db 	: . .
 	bit 2,a		;d5d5	cb 57 	. W 
 	ld a,060h		;d5d7	3e 60 	> ` 
-	jr nz,$+5		;d5d9	20 03 	  . 
+	jr nz,ld5deh		;d5d9	20 03 	  .
 	ld a,(var_byte_dbe0)		;d5db	3a e0 db 	: . .
-	or 080h		;d5de	f6 80 	. . 
+ld5deh:
+	or 080h		;d5de	f6 80 	. .
 	ld (07aadh),a		;d5e0	32 ad 7a 	2 . z 
 	or 002h		;d5e3	f6 02 	. . 
 	ld (07a92h),a		;d5e5	32 92 7a 	2 . z 
 	ld a,(var_byte_dbe2)		;d5e8	3a e2 db 	: . .
 	bit 2,a		;d5eb	cb 57 	. W 
 	ld a,060h		;d5ed	3e 60 	> ` 
-	jr nz,$+5		;d5ef	20 03 	  . 
+	jr nz,ld5f4h		;d5ef	20 03 	  .
 	ld a,(var_byte_dbe0)		;d5f1	3a e0 db 	: . .
-	rlca			;d5f4	07 	. 
+ld5f4h:
+	rlca			;d5f4	07 	.
 	or 010h		;d5f5	f6 10 	. . 
 	ld (07a90h),a		;d5f7	32 90 7a 	2 . z 
 	ld (07aabh),a		;d5fa	32 ab 7a 	2 . z 
@@ -4324,7 +4466,8 @@ l_d426:
 	rrca			;d6b8	0f 	. 
 	nop			;d6b9	00 	. 
 	nop			;d6ba	00 	. 
-	ld a,(hl)			;d6bb	7e 	~ 
+ld6bbh:
+	ld a,(hl)			;d6bb	7e 	~
 	or a			;d6bc	b7 	. 
 	ret z			;d6bd	c8 	. 
 
@@ -4333,7 +4476,7 @@ l_d426:
 	ld a,(hl)			;d6c1	7e 	~ 
 	out (c),a		;d6c2	ed 79 	. y 
 	inc hl			;d6c4	23 	# 
-	jr $-10		;d6c5	18 f4 	. . 
+	jr ld6bbh		;d6c5	18 f4 	. .
 	ld l,010h		;d6c7	2e 10 	. . 
 	ld a,005h		;d6c9	3e 05 	> . 
 	out (021h),a		;d6cb	d3 21 	. ! 
@@ -4349,17 +4492,19 @@ l_d426:
 	ld a,(var_byte_dbe8)		;d6dd	3a e8 db 	: . .
 	bit 0,a		;d6e0	cb 47 	. G 
 	ld a,003h		;d6e2	3e 03 	> . 
-	jr nz,$+12		;d6e4	20 0a 	  . 
+	jr nz,ld6f0h		;d6e4	20 0a 	  .
 	out (021h),a		;d6e6	d3 21 	. ! 
 	ld a,(07a90h)		;d6e8	3a 90 7a 	: . z 
 	or l			;d6eb	b5 	. 
 	out (021h),a		;d6ec	d3 21 	. ! 
-	jr $+10		;d6ee	18 08 	. . 
+	jr ld6f8h		;d6ee	18 08 	. .
+ld6f0h:
 	out (020h),a		;d6f0	d3 20 	.   
 	ld a,(07aabh)		;d6f2	3a ab 7a 	: . z 
 	or l			;d6f5	b5 	. 
 	out (020h),a		;d6f6	d3 20 	.   
-	ld a,005h		;d6f8	3e 05 	> . 
+ld6f8h:
+	ld a,005h		;d6f8	3e 05 	> .
 	out (021h),a		;d6fa	d3 21 	. ! 
 	ld a,(07a92h)		;d6fc	3a 92 7a 	: . z 
 	or h			;d6ff	b4 	. 
@@ -4369,19 +4514,20 @@ l_d426:
 	ld l,000h		;d703	2e 00 	. . 
 	ld h,000h		;d705	26 00 	& . 
 	jp 07addh		;d707	c3 dd 7a 	. . z 
-	ld bc,0010bh		;d70a	01 0b 01 	. . . 
-	dec bc			;d70d	0b 	. 
+ld70ah:
+	ld bc,0010bh		;d70a	01 0b 01 	. . .
+ld70dh:
+	dec bc			;d70d	0b 	.
 	ld a,b			;d70e	78 	x 
 	or c			;d70f	b1 	. 
-	jr nz,$-3		;d710	20 fb 	  . 
+	jr nz,ld70dh		;d710	20 fb 	  .
 	dec hl			;d712	2b 	+ 
 	ld a,l			;d713	7d 	} 
 	or h			;d714	b4 	. 
 	ret z			;d715	c8 	. 
 
 	ret z			;d716	c8 	. 
-
-	jr $-13		;d717	18 f1 	. . 
+	jr ld70ah		;d717	18 f1 	. .
 	call 07b98h		;d719	cd 98 7b 	. . { 
 	ld a,(var_byte_dbe8)		;d71c	3a e8 db 	: . .
 	ld e,a			;d71f	5f 	_ 
@@ -4396,7 +4542,7 @@ l_d426:
 	add hl,bc			;d730	09 	. 
 	ld a,(hl)			;d731	7e 	~ 
 	or a			;d732	b7 	. 
-	jr z,$+46		;d733	28 2c 	( , 
+	jr z,ld761h		;d733	28 2c 	( ,
 	call 07bd6h		;d735	cd d6 7b 	. . { 
 	ld a,080h		;d738	3e 80 	> . 
 	out (002h),a		;d73a	d3 02 	. . 
@@ -4406,28 +4552,31 @@ l_d426:
 	call 07bd6h		;d742	cd d6 7b 	. . { 
 	bit 1,e		;d745	cb 4b 	. K 
 	ld a,0d2h		;d747	3e d2 	> . 
-	jr nz,$+10		;d749	20 08 	  . 
+	jr nz,ld753h		;d749	20 08 	  .
 	bit 0,e		;d74b	cb 43 	. C 
 	ld a,0b4h		;d74d	3e b4 	> . 
-	jr nz,$+4		;d74f	20 02 	  . 
-	jr $+34		;d751	18 20 	.
-
+	jr nz,ld753h		;d74f	20 02 	  .
+	jr ld773h		;d751	18 20 	.
+ld753h:
 	out (000h),a		;d753	d3 00 	. . 
 	call 07bd6h		;d755	cd d6 7b 	. . { 
 	ld a,090h		;d758	3e 90 	> . 
 	out (000h),a		;d75a	d3 00 	. . 
 	call 07bd6h		;d75c	cd d6 7b 	. . { 
-	jr $+20		;d75f	18 12 	. . 
+	jr ld773h		;d75f	18 12 	. .
+ld761h:
 	bit 1,e		;d761	cb 4b 	. K 
-	jr z,$+8		;d763	28 06 	( . 
+	jr z,ld76bh		;d763	28 06 	( .
 	ld a,0d2h		;d765	3e d2 	> . 
 	out (000h),a		;d767	d3 00 	. . 
-	jr $+10		;d769	18 08 	. . 
+	jr ld773h		;d769	18 08 	. .
+ld76bh:
 	bit 0,e		;d76b	cb 43 	. C 
-	jr z,$+6		;d76d	28 04 	( . 
+	jr z,ld773h		;d76d	28 04 	( .
 	ld a,0b4h		;d76f	3e b4 	> . 
 	out (000h),a		;d771	d3 00 	. . 
-	ret			;d773	c9 	. 
+ld773h:
+	ret			;d773	c9 	.
 
 	ld bc,00001h		;d774	01 01 00 	. . . 
 	nop			;d777	00 	. 
@@ -4485,113 +4634,121 @@ l_d426:
 	ret			;d7d0	c9 	. 
 
 	ld hl,0012ch		;d7d1	21 2c 01 	! , . 
-	jr $+5		;d7d4	18 03 	. . 
+	jr ld7d9h		;d7d4	18 03 	. .
 	ld hl,02710h		;d7d6	21 10 27 	! . ' 
-	dec hl			;d7d9	2b 	+ 
+ld7d9h:
+	dec hl			;d7d9	2b 	+
 	ld a,h			;d7da	7c 	| 
 	or l			;d7db	b5 	. 
-	jr nz,$-3		;d7dc	20 fb 	  . 
+	jr nz,ld7d9h		;d7dc	20 fb 	  .
 	ret			;d7de	c9 	. 
-
-	ld hl,0dc00h		;d7df	21 00 dc 	! . . 
-	ld (0de02h),hl		;d7e2	22 02 de 	" . . 
-	ld (0de00h),hl		;d7e5	22 00 de 	" . . 
+	ld hl,ldc00h		;d7df	21 00 dc 	! . .
+	ld (lde02h),hl		;d7e2	22 02 de 	" . .
+	ld (lde00h),hl		;d7e5	22 00 de 	" . .
 	xor a			;d7e8	af 	. 
-	ld (0de06h),a		;d7e9	32 06 de 	2 . . 
-	ld (0de07h),a		;d7ec	32 07 de 	2 . . 
+	ld (lde06h),a		;d7e9	32 06 de 	2 . .
+	ld (lde07h),a		;d7ec	32 07 de 	2 . .
 	ld l,a			;d7ef	6f 	o 
 	ld h,a			;d7f0	67 	g 
-	ld (0de04h),hl		;d7f1	22 04 de 	" . . 
+	ld (lde04h),hl		;d7f1	22 04 de 	" . .
 	ret			;d7f4	c9 	. 
 
 	ld a,001h		;d7f5	3e 01 	> . 
-	ld (0de07h),a		;d7f7	32 07 de 	2 . . 
-	ld a,(0de06h)		;d7fa	3a 06 de 	: . . 
+	ld (lde07h),a		;d7f7	32 07 de 	2 . .
+ld7fah:
+	ld a,(lde06h)		;d7fa	3a 06 de 	: . .
 	or a			;d7fd	b7 	. 
-	jr z,$+19		;d7fe	28 11 	( . 
+	jr z,ld811h		;d7fe	28 11 	( .
 	xor a			;d800	af 	. 
-	ld (0de07h),a		;d801	32 07 de 	2 . . 
+	ld (lde07h),a		;d801	32 07 de 	2 . .
 	push bc			;d804	c5 	. 
 	ld b,020h		;d805	06 20 	.   
-	djnz $+0		;d807	10 fe 	. . 
+ld807h:
+	djnz ld807h		;d807	10 fe 	. .
 	pop bc			;d809	c1 	. 
 	ld a,001h		;d80a	3e 01 	> . 
-	ld (0de07h),a		;d80c	32 07 de 	2 . . 
-	jr $-21		;d80f	18 e9 	. . 
-	ld de,(0de04h)		;d811	ed 5b 04 de 	. [ . . 
+	ld (lde07h),a		;d80c	32 07 de 	2 . .
+	jr ld7fah		;d80f	18 e9 	. .
+ld811h:
+	ld de,(lde04h)		;d811	ed 5b 04 de 	. [ . .
 	ld hl,00100h		;d815	21 00 01 	! . . 
 	or a			;d818	b7 	. 
 	sbc hl,de		;d819	ed 52 	. R 
-	jr z,$+37		;d81b	28 23 	( # 
+	jr z,ld840h		;d81b	28 23 	( #
 	inc de			;d81d	13 	. 
-	ld (0de04h),de		;d81e	ed 53 04 de 	. S . . 
+	ld (lde04h),de		;d81e	ed 53 04 de 	. S . .
 	ex de,hl			;d822	eb 	. 
-	ld hl,(0de00h)		;d823	2a 00 de 	* . . 
+	ld hl,(lde00h)		;d823	2a 00 de 	* . .
 	ld (hl),c			;d826	71 	q 
 	inc l			;d827	2c 	, 
 	ld (hl),b			;d828	70 	p 
 	inc hl			;d829	23 	# 
 	set 2,h		;d82a	cb d4 	. . 
 	res 1,h		;d82c	cb 8c 	. . 
-	ld (0de00h),hl		;d82e	22 00 de 	" . . 
+	ld (lde00h),hl		;d82e	22 00 de 	" . .
 	xor a			;d831	af 	. 
-	ld (0de07h),a		;d832	32 07 de 	2 . . 
+	ld (lde07h),a		;d832	32 07 de 	2 . .
 	ld a,d			;d835	7a 	z 
 	or a			;d836	b7 	. 
 	ret nz			;d837	c0 	. 
 
 	ld a,e			;d838	7b 	{ 
 	cp 020h		;d839	fe 20 	.   
-	jr c,$+5		;d83b	38 03 	8 . 
+	jr c,ld840h		;d83b	38 03 	8 .
 	or 0ffh		;d83d	f6 ff 	. . 
 	ret			;d83f	c9 	. 
-
+ld840h:
 	xor a			;d840	af 	. 
 	ld (0de07h),a		;d841	32 07 de 	2 . . 
 	ret			;d844	c9 	. 
 
 	ld a,001h		;d845	3e 01 	> . 
-	ld (0de07h),a		;d847	32 07 de 	2 . . 
-	ld a,(0de06h)		;d84a	3a 06 de 	: . . 
+	ld (lde07h),a		;d847	32 07 de 	2 . .
+ld84ah:
+	ld a,(lde06h)		;d84a	3a 06 de 	: . .
 	or a			;d84d	b7 	. 
-	jr z,$+19		;d84e	28 11 	( . 
+	jr z,ld861h		;d84e	28 11 	( .
 	xor a			;d850	af 	. 
-	ld (0de07h),a		;d851	32 07 de 	2 . . 
+	ld (lde07h),a		;d851	32 07 de 	2 . .
 	push bc			;d854	c5 	. 
 	ld b,020h		;d855	06 20 	.   
-	djnz $+0		;d857	10 fe 	. . 
+ld857h:
+	djnz ld857h		;d857	10 fe 	. .
 	pop bc			;d859	c1 	. 
 	ld a,001h		;d85a	3e 01 	> . 
-	ld (0de07h),a		;d85c	32 07 de 	2 . . 
-	jr $-21		;d85f	18 e9 	. . 
-	ld hl,(0de04h)		;d861	2a 04 de 	* . . 
+	ld (lde07h),a		;d85c	32 07 de 	2 . .
+	jr ld84ah		;d85f	18 e9 	. .
+ld861h:
+	ld hl,(lde04h)		;d861	2a 04 de 	* . .
 	xor a			;d864	af 	. 
-	ld (0de07h),a		;d865	32 07 de 	2 . . 
+	ld (lde07h),a		;d865	32 07 de 	2 . .
 	ld a,h			;d868	7c 	| 
 	or l			;d869	b5 	. 
 	ret			;d86a	c9 	. 
 
 	ld a,001h		;d86b	3e 01 	> . 
-	ld (0de06h),a		;d86d	32 06 de 	2 . . 
-	ld a,(0de07h)		;d870	3a 07 de 	: . . 
+	ld (lde06h),a		;d86d	32 06 de 	2 . .
+ld870h:
+	ld a,(lde07h)		;d870	3a 07 de 	: . .
 	or a			;d873	b7 	. 
-	jr nz,$-4		;d874	20 fa 	  . 
-	ld hl,(0de04h)		;d876	2a 04 de 	* . . 
+	jr nz,ld870h		;d874	20 fa 	  .
+	ld hl,(lde04h)		;d876	2a 04 de 	* . .
 	ld a,h			;d879	7c 	| 
 	or l			;d87a	b5 	. 
-	jr z,$+22		;d87b	28 14 	( . 
+	jr z,ld891h		;d87b	28 14 	( .
 	dec hl			;d87d	2b 	+ 
-	ld (0de04h),hl		;d87e	22 04 de 	" . . 
-	ld hl,(0de02h)		;d881	2a 02 de 	* . . 
+	ld (lde04h),hl		;d87e	22 04 de 	" . .
+	ld hl,(lde02h)		;d881	2a 02 de 	* . .
 	ld c,(hl)			;d884	4e 	N 
 	inc l			;d885	2c 	, 
 	ld b,(hl)			;d886	46 	F 
 	inc hl			;d887	23 	# 
 	set 2,h		;d888	cb d4 	. . 
 	res 1,h		;d88a	cb 8c 	. . 
-	ld (0de02h),hl		;d88c	22 02 de 	" . . 
+	ld (lde02h),hl		;d88c	22 02 de 	" . .
 	or 0ffh		;d88f	f6 ff 	. . 
-	ld a,000h		;d891	3e 00 	> . 
+ld891h:
+	ld a,000h		;d891	3e 00 	> .
 	ld (0de06h),a		;d893	32 06 de 	2 . . 
 	ret			;d896	c9 	.
 ;; in original file, we have nop until 0dbdfh
@@ -4645,6 +4802,44 @@ var_byte_dbea:
     defb 000h, 000h, 000h, 000h
     defb 000h, 000h, 000h, 000h
 end_code_p_dbe0:
+
+    org 0dc00h
+    seek 03c00h
+ldc00h:
+	nop			;dc00	00 	.
+
+    org 0de00h
+    seek 03e00h
+lde00h:
+	nop			;de00	00 	.
+	nop			;de01	00 	.
+lde02h:
+	nop			;de02	00 	.
+	nop			;de03	00 	.
+lde04h:
+	nop			;de04	00 	.
+	nop			;de05	00 	.
+lde06h:
+	nop			;de06	00 	.
+lde07h:
+	nop			;de07	00 	.
+
+    org 0dff0h
+    seek 04ff0h
+ldff0h:
+	nop         ;dff0   00  .
+ldff1h:
+	nop         ;dff1   00  .
+
+    org 0e7bfh
+    seek 047bfh
+le7bfh:
+	nop         ;e7bf   00  .
+
+    org 0e83ah
+    seek 0483ah
+le83ah:
+	jr nz,le7bfh		;e83a	20 83
 
 ;****************************************************************************************
 ; HP4952 footer start
