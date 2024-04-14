@@ -8,6 +8,7 @@ check:
 # initial disassemble step
 vt100dis:
 	z80dasm -t -a -g 0xa000 -o vt100-orig.dasm VT100.no_header
+	z80dasm -t -a -g 0xa000 -l -o vt100-orig-labeled.dasm VT100.no_header
 
 copydisk:
 	z80dasm -t -a -g 0xa000 -o copy-disk-orig.dasm COPY_DISC.APP
