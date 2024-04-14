@@ -4530,7 +4530,7 @@ l1397h:
 	ld d,00ch		;13a2	16 0c 	. .         ; d:=0x0c
 l13a4h:
 	ld a,d			;13a4	7a 	z               ; a:=d
-	out (c),a		;13a5	ed 79 	. y         ; port 0x0121 := 0x0c
+	out (c),a		;13a5	ed 79 	. y         ; port 0x0121 := 0x0c   is 0x01.. meant to be A8, so PORTA ?
 	ld a,b			;13a7	78 	x               ; a:=b
 	out (c),a		;13a8	ed 79 	. y         ; port 0x0121 := 0x01
 	ld a,d			;13aa	7a 	z               ; a:=d
