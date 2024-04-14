@@ -10,39 +10,39 @@
 
 
 ; A8
-scc_bit_ab:     equ     0   ; bit 0 in upper byte
+;scc_bit_ab:     equ     0   ; bit 0 in upper byte
 ; A9
-scc_bit_dc:     equ     1   ; bit 1 in upper byte
+;scc_bit_dc:     equ     1   ; bit 1 in upper byte
 ; A14
-scc_bit_a14:    equ     6   ; bit 6 in upper byte
+;scc_bit_a14:    equ     6   ; bit 6 in upper byte
 ; A15
-scc_bit_a15:    equ     7   ; bit 7 in upper byte
+;scc_bit_a15:    equ     7   ; bit 7 in upper byte
 
 ; sets a14+a15
-scc_enable:
-    set     scc_bit_a14,b
-    set     scc_bit_a15,b
-    ret
+;scc_enable:
+    ;set     scc_bit_a14,b
+    ;set     scc_bit_a15,b
+;    ret
 
 ; sets a8
-scc_porta:
-    set     scc_bit_ab,b    ; hi = a
-    ret
+;scc_porta:
+;    set     scc_bit_ab,b    ; hi = a
+;    ret
 
 ; clears a8
-scc_portb:
-    res     scc_bit_ab,b    ; lo = b
-    ret
+;scc_portb:
+;    res     scc_bit_ab,b    ; lo = b
+;    ret
 
 ; sets a9
-scc_data:
-    set     scc_bit_dc,b    ; hi = data
-    ret
+;scc_data:
+;    set     scc_bit_dc,b    ; hi = data
+;    ret
 
 ; clears a9
-scc_control:
-    res     scc_bit_dc,b    ; lo = control
-    ret
+;scc_control:
+;    res     scc_bit_dc,b    ; lo = control
+;    ret
 
 wait_some_time:
     push    de
@@ -62,29 +62,13 @@ print_hex:
 ; register to read in a
 scc_read_register:
     push    bc
-    ; read sequence : write a byte to WR0 (includes register to read) with "out" and read a byte with "in"
-    ld      bc,000h         ; clear bc
-    call    scc_porta       ; select port a
-    call    scc_control     ; select control for writing the first byte of read sequence
-    ; prepare command in a: read from register
-    ; xxxx.rRRR - reg rRRR 0..f
-    ; xx00.xxxx - point high command
-    ; 00xx.xxxx - null code
-    ;and     007h
-    call    scc_enable      ; enable SCC
-    ; write out command
-    out     (c),a
-    ;
-    ; maybe we need a small time loop here
-    call    wait_some_time
-    ;
-    ; read in answer
-    ;call scc_data
-    ; I assume we still have scc_control D/~C low, i.e. the read is seen as a command - not sure
-    in      a,(c)
 
-    ; now print out the read result
-    ;call print_hex
+	ld c,021h		;138a	0e 21 	. !         ; address SCC port
+	in a,(c)		;138c	ed 78 	. x         ; dummy read (RR0?)
+	ld a,009h		;138e	3e 09 	> .         ; send 0x09 -> SCC = select register R9
+	out (c),a		;1390	ed 79 	. y         ;
+	ld a,0c0h		;1392	3e c0 	> .         ; write 0xc0 to WR9: Force Hardware Reset"
+	out (c),a		;1394	ed 79 	. y         ;
 
     pop     bc
     ret
