@@ -28,7 +28,7 @@ on Github its here: https://github.com/AlbertVeli/z80asm/tree/master
 This Assembler has the required directives. There are other Z80 assemblers, but they may differ in options
 and directives.
 
-* Z80 Disassmbler:
+* Z80 Disassembler:
 https://linux.die.net/man/1/z80dasm
 
 Also helpful:
@@ -47,3 +47,11 @@ not have done their pathbreaking work before:
 * VT100 codes - https://espterm.github.io/docs/VT100%20escape%20codes.html
 * ASCII codes - https://lwp.interglacial.com/appf_01.htm
 * Programmers Calculator - https://calc.penjee.com/
+
+Special information on used chips:
+* Toshiba TMPZ84C00A CPU [PDF](doc/3rdParty/tmpz84c00.pdf)
+* Z80 User Manual [PDF](doc/3rdParty/zilog-z80-user-manual-um0080.pdf)
+
+SCC information
+* SCC/ESCC User Manual [PDF](doc/3rdParty/zilog-scc_escc_user_manual_um.pdf)
+* Z80C30/Z85C30 CMOS SCC Serial Communications Controller [PDF](doc/3rdParty/zilog-z80c30-35-spec-ps0117.pdf)
