@@ -435,7 +435,7 @@ l2065h:
 	ld hl,_splash_screen_data		;a4b7	21 00 c0 	! . .		; this will overwrite just copied _dll_stub code, which is no longer needed
 	ld de,app_target_area		;a4ba	11 00 2a 	. . *
 
-	;ld bc,01400h		;a4bd	01 00 14 	. . .
+	;ld bc,01400h		;a4bd	01 00 14 	. . .                   ; copy 0x1400 bytes
 	ld bc,code_p_d400-_splash_screen_data    ;a4bd	01 00 14 	. . .
 	ldir		;a4c0	ed b0 	. .
 
