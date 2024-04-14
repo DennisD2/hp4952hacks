@@ -4538,22 +4538,22 @@ l13a4h:
 	in a,(c)		;13ad	ed 78 	. x         ; read RR0?
 	cp b			;13af	b8 	.               ; RR0==0x01 ?
 	jr z,l13b4h		;13b0	28 02 	( . 
-	ld e,001h		;13b2	1e 01 	. . 
+	ld e,001h		;13b2	1e 01 	. .         ; e:=1
 l13b4h:
-	rl b		;13b4	cb 10 	. . 
-	jr nc,l13a4h		;13b6	30 ec 	0 . 
-	ld a,00ch		;13b8	3e 0c 	> . 
-	ld c,a			;13ba	4f 	O 
-	out (021h),a		;13bb	d3 21 	. ! 
-	ld a,055h		;13bd	3e 55 	> U 
-	out (021h),a		;13bf	d3 21 	. ! 
-	ld a,c			;13c1	79 	y 
-	out (020h),a		;13c2	d3 20 	.   
-	ld a,0aah		;13c4	3e aa 	> . 
-	out (020h),a		;13c6	d3 20 	.   
-	ld a,c			;13c8	79 	y 
-	out (021h),a		;13c9	d3 21 	. ! 
-	in a,(021h)		;13cb	db 21 	. ! 
+	rl b		;13b4	cb 10 	. .             ; b<<1
+	jr nc,l13a4h		;13b6	30 ec 	0 .
+	ld a,00ch		;13b8	3e 0c 	> .         ; address WR12
+	ld c,a			;13ba	4f 	O               ;
+	out (021h),a		;13bb	d3 21 	. !     ;
+	ld a,055h		;13bd	3e 55 	> U         ;
+	out (021h),a		;13bf	d3 21 	. !     ; WR12 := 0x55
+	ld a,c			;13c1	79 	y               ; port 0x20 := 0x0c
+	out (020h),a		;13c2	d3 20 	.       ;
+	ld a,0aah		;13c4	3e aa 	> .         ;
+	out (020h),a		;13c6	d3 20 	.       ; port 0x20 := 0xaa
+	ld a,c			;13c8	79 	y               ; address RR12
+	out (021h),a		;13c9	d3 21 	. !     ;
+	in a,(021h)		;13cb	db 21 	. !         ; a:=RR12
 	ld b,a			;13cd	47 	G 
 	ld a,c			;13ce	79 	y 
 	out (020h),a		;13cf	d3 20 	.   
