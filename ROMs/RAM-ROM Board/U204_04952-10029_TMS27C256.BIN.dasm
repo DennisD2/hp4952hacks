@@ -4,27 +4,27 @@
 	org	00000h
 
 l0000h:
-	ld sp,08000h		;0000	31 00 80 	1 . . 
-	xor a			;0003	af 	. 
+	ld sp,08000h		;0000	31 00 80 	1 . .       ; sp:=8000
+	xor a			;0003	af 	.                       ; a:=0
 	ex af,af'			;0004	08 	. 
-	in a,(003h)		;0005	db 03 	. . 
-	xor a			;0007	af 	. 
-	out (003h),a		;0008	d3 03 	. . 
-	ld a,02bh		;000a	3e 2b 	> + 
+	in a,(003h)		;0005	db 03 	. .                 ; a := port 3
+	xor a			;0007	af 	.                       ; port 3 := 0
+	out (003h),a		;0008	d3 03 	. .             ;
+	ld a,02bh		;000a	3e 2b 	> +                 ; port 3 := 2
 	out (003h),a		;000c	d3 03 	. . 
-	or 0ffh		;000e	f6 ff 	. . 
+	or 0ffh		;000e	f6 ff 	. .                     ; port 3 := ff
 	out (003h),a		;0010	d3 03 	. . 
-	ld a,001h		;0012	3e 01 	> . 
+	ld a,001h		;0012	3e 01 	> .                 ; port 3 := 1
 	out (003h),a		;0014	d3 03 	. . 
 	ld a,080h		;0016	3e 80 	> . 
-	out (003h),a		;0018	d3 03 	. . 
-	in a,(001h)		;001a	db 01 	. . 
-	ld b,a			;001c	47 	G 
-	and 0d0h		;001d	e6 d0 	. . 
-	cp 090h		;001f	fe 90 	. . 
-	jp nz,l002eh		;0021	c2 2e 00 	. . . 
-	ld a,b			;0024	78 	x 
-	and 020h		;0025	e6 20 	.   
+	out (003h),a		;0018	d3 03 	. .             ; port 3 := 80
+	in a,(001h)		;001a	db 01 	. .                 ; a := port 1
+	ld b,a			;001c	47 	G                       ; b:=a
+	and 0d0h		;001d	e6 d0 	. .                 ; and with bits 1101.000
+	cp 090h		;001f	fe 90 	. .                     ; a == 1001.000 ?
+	jp nz,l002eh		;0021	c2 2e 00 	. . .       ; no
+	ld a,b			;0024	78 	x                       ; a:=b
+	and 020h		;0025	e6 20 	.                   ; and with 0010.0000
 sub_0027h:
 	rrca			;0027	0f 	. 
 	or b			;0028	b0 	. 
