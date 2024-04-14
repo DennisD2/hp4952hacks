@@ -4356,7 +4356,7 @@ l173dh:
 	ld a,c			;173f	79 	y 
 	sub e			;1740	93 	. 
 	ld (hl),e			;1741	73 	s 
-	sub e			;1742	93 	. 
+	sub e			;1742	93 	.
 	ld b,l			;1743	45 	E 
 	sub e			;1744	93 	. 
 	ld (hl),d			;1745	72 	r 
@@ -4405,6 +4405,7 @@ l1771h:
 l1775h:
 	ex (sp),hl			;1775	e3 	.               ; hl:=(sp), (sp):=hl
 	jp l1787h		;1776	c3 87 17 	. . .       ;
+
 	push bc			;1779	c5 	. 
 	ld a,h			;177a	7c 	| 
 	or l			;177b	b5 	. 
@@ -30460,13 +30461,13 @@ la4cdh:
 ; being used by la54bh(). it jumps either to
 ; la5b9h - is inside la54bh
 ; la5ach - is inside la54bh
-; la539h -
-; la50dh -
+; la539h - is some small piece of code directly before la54bh and running into la54bh
+; la50dh - is directly after this function, sub_a4d7h,
 sub_a4d7h:
 	ld hl,(l7b69h)		;a4d7	2a 69 7b 	* i { 
 	ld a,h			;a4da	7c 	| 
 	or l			;a4db	b5 	. 
-	jp z,la5b9h		;a4dc	ca b9 a5 	. . . 
+	jp z,la5b9h		;a4dc	ca b9 a5 	. . .                   ; -> la5b9h ( jumps to ret statement of la54bh, the calling function)
 	ld de,l0008h		;a4df	11 08 00 	. . . 
 	ld hl,(l7b69h)		;a4e2	2a 69 7b 	* i { 
 	add hl,de			;a4e5	19 	. 
@@ -30476,35 +30477,36 @@ sub_a4d7h:
 	ld (07b67h),de		;a4e9	ed 53 67 7b 	. S g { 
 	ld a,e			;a4ed	7b 	{ 
 	cp 017h		;a4ee	fe 17 	. . 
-	jr z,la539h		;a4f0	28 47 	( G 
+	jr z,la539h		;a4f0	28 47 	( G                         ; -> la539h, which is a small code peace running into top of la54bh, the calling function
 	cp 016h		;a4f2	fe 16 	. . 
-	jr z,la539h		;a4f4	28 43 	( C 
+	jr z,la539h		;a4f4	28 43 	( C                         ; -> la539h, which is a small code peace running into top of la54bh, the calling function
 	cp 00ah		;a4f6	fe 0a 	. . 
-	jr nz,la50dh		;a4f8	20 13 	  . 
+	jr nz,la50dh		;a4f8	20 13 	  .                     ; -> la50dh
 	push hl			;a4fa	e5 	. 
 	pop ix		;a4fb	dd e1 	. . 
 	ld a,(ix+003h)		;a4fd	dd 7e 03 	. ~ . 
 	or (ix+004h)		;a500	dd b6 04 	. . . 
 	jp nz,la5ach		;a503	c2 ac a5 	. . . 
 	ld (ix+003h),001h		;a506	dd 36 03 01 	. 6 . . 
-	jp la5ach		;a50a	c3 ac a5 	. . .
+	jp la5ach		;a50a	c3 ac a5 	. . .                   ; -> la5ach
 
 la50dh:
 	cp 01bh		;a50d	fe 1b 	. . 
-	jp nz,la51ch		;a50f	c2 1c a5 	. . . 
+	jp nz,la51ch		;a50f	c2 1c a5 	. . .               ; -> la51ch
 	push hl			;a512	e5 	. 
 	inc hl			;a513	23 	# 
 	ld a,(hl)			;a514	7e 	~ 
 	or a			;a515	b7 	. 
-	jr nz,la51bh		;a516	20 03 	  . 
+	jr nz,la51bh		;a516	20 03 	  .                     ; -> la51bh
 	ld a,003h		;a518	3e 03 	> . 
 	ld (hl),a			;a51a	77 	w 
 la51bh:
 	pop hl			;a51b	e1 	. 
 la51ch:
 	cp 00fh		;a51c	fe 0f 	. . 
-	jp nz,la5ach		;a51e	c2 ac a5 	. . . 
-	jr la539h		;a521	18 16 	. . 
+	jp nz,la5ach		;a51e	c2 ac a5 	. . .               ; -> la5ach
+	jr la539h		;a521	18 16 	. .                         ; -> la539h
+
 	push hl			;a523	e5 	. 
 	inc hl			;a524	23 	# 
 	inc hl			;a525	23 	# 
