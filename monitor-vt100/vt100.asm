@@ -11,6 +11,8 @@ DISASS:              equ 001h
 ; -------------------------------------------------------------------
 ; App has these sections:
 ;
+
+; Ordered by seek value:
 ;  org      seek
 ; ------------------
 ;  0xa000   0x0
@@ -23,6 +25,21 @@ DISASS:              equ 001h
 ;  0xdbe0   0x3be0 code_p_dbe0              small area for variables, size 0x20
 ;  0xc000   0x2000 _splash_screen_data      splash screen and menu data
 ;  0x2a00                                   APP_TARGET_AREA
+;  0xe800   0x4800 code_p_endfill           contains fill bytes up to next multiple of 256
+
+; Ordered by Org value:
+;  org      seek
+; ------------------
+;  0xa000   0x0
+;    a102   0x102                           word, filesize/256, minimum is 1
+;    a147   0x147                           entry point ("jp __init")
+;    a180   0x180                           number in dll fixup list
+;    a190   0x190                           fixup list
+;    a410   0x410                           _load_dll_stub, _dll_tmp, _dll_stub, la246h, __init + the app code?
+;  0x2a00                                   APP_TARGET_AREA
+;  0xc000   0x2000 _splash_screen_data      splash screen and menu data
+;  0xd400   0x3400 code_p_d400              ?
+;  0xdbe0   0x3be0 code_p_dbe0              small area for variables, size 0x20
 ;  0xe800   0x4800 code_p_endfill           contains fill bytes up to next multiple of 256
 
 ; -------------------------------------------------------------------
