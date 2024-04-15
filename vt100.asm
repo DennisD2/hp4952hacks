@@ -2976,7 +2976,7 @@ vt100_start_screen:
 ; POI-210
     ; Some menu structure definition
     ; 1. ref to a menu definition of type string "!...!....!"
-    ; 2. some words which are addresses to functions, being called when selting softkey for some item
+    ; 2. some words which are addresses to functions, being called when selekting softkey for some item
     ;    here, we have 6 such words (two of them are not used and have value 0)
     ; 3. back reference at the end (before menu definition string) pointing to first byte of menu structure definition
     ;
@@ -3184,7 +3184,7 @@ lc42eh:
 	dec b			;c439	05 	. 
 	jp c,lda05h		;c43a	da 05 da 	. . .
 	dec b			;c43d	05 	. 
-	jp c,02e6ch		;c43e	da 6c 2e 	. l .
+	jp c,02e6ch		;c43e	da 6c 2e 	. l . ; 2e6c ? : 2e6c - 2a00 = 46c: c46c = hm maybe variable; no function!
 
 	; 2e6c : 2e6c - 2a00 = 56c: c56c but no usable result
 	ld l,h			;c441	6c 	l 
@@ -3219,9 +3219,9 @@ lc45ah:
 	nop			;c46c	00 	. 
 	nop			;c46d	00 	. 
 	ld a,(hl)			;c46e	7e 	~ 
-	ld l,0beh		;c46f	2e be 	. .
-	ld l,0ceh		;c471	2e ce 	. . 
-	ld l,000h		;c473	2e 00 	. . 
+	ld l,0beh		;c46f	2e be 	. .     ; 2e7e ; -2a00 = 47e, c47e= ASCII 7/8 menu start ???
+	ld l,0ceh		;c471	2e ce 	. .     ; 2ebe ; -2a00 = 4be, c4be=end of ^^^?
+	ld l,000h		;c473	2e 00 	. .     ; 2ece ; ... c4ce, points to after "ASCII 8"
 	nop			;c475	00 	. 
 	nop			;c476	00 	. 
 	nop			;c477	00 	. 
@@ -3258,7 +3258,7 @@ l_c4c6:
     defw 07f20h
 	;jr nz,$+129		;c4ce	20 7f 	  
 
-    ; 2ed6-2a00=4d6 -> c4d6 -> lc4d6
+    ; 2ed6-2a00=4d6 -> c4d6 -> lc4d6, pojnts to "ASCII7 ???
 	defw 02ed6h
 	;sub 02eh		;c4d0	d6 2e 	. .
 
