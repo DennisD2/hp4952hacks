@@ -1,7 +1,7 @@
 HP_4952_Target:      equ 001h
 CPC_Target:          equ 000h
 
-DISASS:              equ 000h
+DISASS:              equ 001h
 
 ; z80dasm 1.1.6
 ; command line: z80dasm -t -a -g 0xa000 -o x.asm VT100.no_header
@@ -2790,9 +2790,11 @@ lb260h:
 
 ;	in original file, we have "nop"	until 0bfffh.
 
-; DD -2-
-include "lib/monitor-i.asm"
-
+; DD -3-
+if DISASS
+    ; include disassembler source
+    include "disassembler.asm"
+endif
 ;------------------------------------------------------------------
 ; c000 area
 ;------------------------------------------------------------------
@@ -2807,7 +2809,7 @@ _splash_screen_data: ; see lib/splash.asm
 	defb "VT100  Emulator", 000h
 
 	defb 005h, 00bh, 083h
-	defb "Rev A.00.03", 000h
+	defb "Rev A.01.01", 000h
 
 ;; "Copyright 1989 Hewlett-Packard Company for the HP4952"
     defb 007h, 009h, 083h
@@ -4158,6 +4160,9 @@ lcb22h:
 	adc a,a			;cb6c	8f 	.
 
 	;; in original file, we have nop until 0d400h
+
+; DD -2-
+include "lib/monitor-i.asm"
 
 ;------------------------------------------------------------------
 ; d400 area

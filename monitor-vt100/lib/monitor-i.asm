@@ -1198,8 +1198,8 @@ if CPC_Target
  endif
 endif
 
-if DISASS
-    ; include disassembler source
-    include "disassembler.asm"
-endif
+;if DISASS
+;    ; include disassembler source
+;    include "disassembler.asm"
+;endif
 
