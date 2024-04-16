@@ -380,6 +380,7 @@ dump_group:    cp      'D'             ; Dump group?
 if DISASS
                cp      'D'             ; Disassemble?
                call    z, disassemble
+               jp      z, main_loop
 endif
                jp      z, main_loop
 
@@ -447,19 +448,19 @@ mdump:          push    af
                 pop     hl              ; HL is the start address again
                 ; This loop will dump 16 memory locations at once - even
                 ; if this turns out to be more than r:equested.
-dump_line:      ld      b, n_dump_bytes          ; This loop will process n_dump_bytes bytes
+mdump_line:      ld      b, n_dump_bytes          ; This loop will process n_dump_bytes bytes
                 push    hl              ; Save HL again
                 call    print_word      ; Print address
                 ld      hl, dump_msg_3  ; and a colon
                 call    puts
                 pop hl                  ; Restore address
                 push    hl              ; We will need HL for the ASCII dump
-dump_loop:      ld      a, (hl)         ; Get the memory content
+mdump_loop:      ld      a, (hl)         ; Get the memory content
                 call    print_byte      ; and print it
                 ld      a, ' '          ; Print a space
                 call    putc
                 inc     hl              ; Increment address counter
-                djnz    dump_loop       ; Continue with this line
+                djnz    mdump_loop       ; Continue with this line
                 ; This loop will dump the very same 16 memory locations - but
                 ; this time printable ASCII characters will be written.
                 ld      b, n_dump_bytes          ; n_dump_bytes characters at a time
@@ -467,26 +468,26 @@ dump_loop:      ld      a, (hl)         ; Get the memory content
                 call    putc            ; to print
                 call    putc
                 pop     hl              ; Restore the start address
-dump_ascii_loop: ld      a, (hl)         ; Get byte
+mdump_ascii_loop: ld      a, (hl)         ; Get byte
                 call    is_print        ; Is it printable?
-                jr      c, dump_al_1    ; Yes
+                jr      c, mdump_al_1    ; Yes
                 ld      a, '.'          ; No - print a dot
-dump_al_1:      call    putc            ; Print the character
+mdump_al_1:      call    putc            ; Print the character
                 inc     hl              ; Increment address to read from
-                djnz    dump_ascii_loop
+                djnz    mdump_ascii_loop
                 ; Now we are finished with printing one line of dump output.
                 call    crlf            ; CR/LF for next line on terminal
                 push    hl              ; Save the current address for later
                 and     a               ; Clear carry
                 sbc     hl, de          ; Have we reached the last address?
                 pop     hl              ; restore the address
-                jr      c, dump_line    ; Dump next line of 16 bytes
+                jr      c, mdump_line    ; Dump next line of 16 bytes
                 pop     hl
                 pop     de
                 pop     bc
                 pop     af
                 ret
-dump_msg_1:      defb    "DUMP: START=", eos
+dump_msg_1:      defb    "MEMDUMP: START=", eos
 dump_msg_2:      defb    " END=", eos
 dump_msg_3:      defb    ": ", eos
 
