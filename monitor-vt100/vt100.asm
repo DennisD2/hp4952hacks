@@ -681,14 +681,14 @@ la5f6h:
 
 sub_a5f9h:
 	call sub_a9d7h		;a5f9	cd d7 a9 	. . .   ; invokes large function
-	call sub_a6d4h		;a5fc	cd d4 a6 	. . .   ; calls 2 patched functions (OS API calls) call 01961h		;a6d4	cd 61 19 	. a . ; Patched to d9ch AND call 01982h		;a6d7	cd 82 19 	. . . ; Patched to d06h
+	call sub_a6d4h		;a5fc	cd d4 a6 	. . .   ; calls 2 patched functions (OS API calls) call 01961h		;a6d4	cd 61 19 	. a . ; Patched to 2d9ch AND call 01982h		;a6d7	cd 82 19 	. . . ; Patched to 2d06h
 	call sub_aee5h		;a5ff	cd e5 ae 	. . .   ; no subs, small
-	call sub_a87bh		;a602	cd 7b a8 	. { .   ; calls 1 patched function (OS API) ; call 0112dh		;a886	cd 2d 11 	. - .   ; Patched to edah
+	call sub_a87bh		;a602	cd 7b a8 	. { .   ; calls 1 patched function (OS API) ; call 0112dh		;a886	cd 2d 11 	. - .   ; Patched to 2edah
 	ret			        ;a605	c9 	.
 sub_a606h:
 	call sub_a8e3h		;a606	cd e3 a8 	. . .   ; "waits for dff0==0 an then writes 5 to it"
 la609h:
-	ret			;a609	c9 	.
+	ret			        ;a609	c9 	.
 
 la60ah:
 ;var_byte_a60a:
@@ -780,21 +780,22 @@ la67ch:
 	ld hl,00000h		;a6c3	21 00 00 	! . . 
 	ld (01df8h),hl		;a6c6	22 f8 1d 	" . . 
 	out (080h),a		;a6c9	d3 80 	. . 
-	pop hl			;a6cb	e1 	. 
-	pop af			;a6cc	f1 	. 
-	pop ix		;a6cd	dd e1 	. . 
-	jp 01103h		;a6cf	c3 03 11 	. . . ; Patched to ecch
+	pop hl			    ;a6cb	e1 	.
+	pop af			    ;a6cc	f1 	.
+	pop ix		        ;a6cd	dd e1 	. .
+	jp 01103h		    ;a6cf	c3 03 11 	. . . ; Patched to 2ecch
+
 la6d2h:
 	jr nz,la6f4h		;a6d2	20 20
 sub_a6d4h:
-	call 01961h		;a6d4	cd 61 19 	. a . ; Patched to d9ch
-	call 01982h		;a6d7	cd 82 19 	. . . ; Patched to d06h
-	xor a			;a6da	af 	. 
+	call 01961h		    ;a6d4	cd 61 19 	. a . ; Patched to 2d9ch
+	call 01982h		    ;a6d7	cd 82 19 	. . . ; Patched to 2d06h
+	xor a			    ;a6da	af 	.
 	ld (07e00h),a		;a6db	32 00 7e 	2 . ~ 
-	ld a,020h		;a6de	3e 20 	>   
+	ld a,020h		    ;a6de	3e 20 	>
 	ld (la6d2h),a		;a6e0	32 d2 a6 	2 . .
 	ld (la6d2h+1),a		;a6e3	32 d3 a6 	2 . .
-	ret			;a6e6	c9 	. 
+	ret			        ;a6e6	c9 	.
 
 sub_a6e7h:
 ;f_a6e7:

@@ -225,7 +225,7 @@ fm_execute:
 (07501h) is being loaded with these values: 0x21, 0x22, 0x62.
 fm_execute() is the only place where 0x62 is loaded into 07501h.
 
-fm_execute is forwarding to a54bh. 
+fm_execute is forwarding to sub_0a54bh. 
 ```asm
 sub_0a54bh:
     ; delay, 0x1234 times looped
@@ -247,13 +247,99 @@ loop_delay_a54e:
 	call write_dbe0		;a56b	cd 3f a5 	. ? .
 	ret			        ;a56e	c9 	. 
 ```
+Function sub_a5f9h:
+```asm
+sub_a5f9h:
+  call sub_a9d7h		;a5f9	cd d7 a9 	. . .   ; invokes large function
+  call sub_a6d4h		;a5fc	cd d4 a6 	. . .   ; calls 2 patched functions (OS API calls) call 01961h		;a6d4	cd 61 19 	. a . ; Patched to 2d9ch AND call 01982h		;a6d7	cd 82 19 	. . . ; Patched to 2d06h
+  call sub_aee5h		;a5ff	cd e5 ae 	. . .   ; no subs, small
+  call sub_a87bh		;a602	cd 7b a8 	. { .   ; calls 1 patched function (OS API) ; call 0112dh		;a886	cd 2d 11 	. - .   ; Patched to 2edah
+  ret			        ;a605	c9 	.
+  sub_a606h:
+  call sub_a8e3h		;a606	cd e3 a8 	. . .   ; "waits for dff0==0 an then writes 5 to it"
+  la609h:
+  ret			        ;a609	c9 	.
+```
 
-sub_a5f9h calls 3 OS API functions:
+And sub_a6d4h:
+```asm
+la6d2h:
+  jr nz,la6f4h		;a6d2	20 20
+  sub_a6d4h:
+  call 01961h		    ;a6d4	cd 61 19 	. a . ; Patched to 2d9ch
+  call 01982h		    ;a6d7	cd 82 19 	. . . ; Patched to 2d06h
+  xor a			    ;a6da	af 	.
+  ld (07e00h),a		;a6db	32 00 7e 	2 . ~
+  ld a,020h		    ;a6de	3e 20 	>
+  ld (la6d2h),a		;a6e0	32 d2 a6 	2 . .
+  ld (la6d2h+1),a		;a6e3	32 d3 a6 	2 . .
+  ret			        ;a6e6	c9 	.
+```
+
+And sub_a87bh:
+```asm
+sub_a87bh:
+	ld a,(03f12h)		;a87b	3a 12 3f 	: . ? 
+	or a			;a87e	b7 	. 
+	jr nz,la8f2h		;a87f	20 71 	  q
+	ld a,0aah		;a881	3e aa 	> . 
+	ld (01df8h),a		;a883	32 f8 1d 	2 . . 
+	call 0112dh		;a886	cd 2d 11 	. - .   ; Patched to edah
+	call out80_a89f		;a889	cd 9f a8 	. . .
+	ld a,001h		;a88c	3e 01 	> . 
+	ld (ldff0h),a		;a88e	32 f0 df 	2 . .
+	ld a,002h		;a891	3e 02 	> . 
+	ld (03f12h),a		;a893	32 12 3f 	2 . ? 
+	ret			;a896	c9 	. 
+```
+
+To summarize the code above, sub_a5f9h calls 3 OS API functions:
 * via sub_a6d4h:
-  * 01961h Patched to d9ch
-  * 01982h Patched to d06h
+  * 01961h "Patched to 2d9ch"
+  * 01982h "Patched to 2d06h"
 * via sub_a87bh:
-  * 0112dh Patched to edah
+  * 0112dh "Patched to 2edah"
+
+01961h and 01982h both can be found in U503_04952-10026_MBM27C512.BIN.dasm.
+0112dh too, but this looks strange.
+
+As an example, sub_1961h:
+```asm
+; seems to be OS API function 01961h, called by vt100:sub_a6d4h
+fapi_1961h:
+sub_1961h:
+  xor a			    ;1961	af 	.
+  ld (l1a1dh),a		;1962	32 1d 1a 	2 . .
+  ld (l7e03h),a		;1965	32 03 7e 	2 . ~
+  ld hl,l7e2bh		;1968	21 2b 7e 	! + ~
+  ld (hl),a			;196b	77 	w
+  ld de,l7e2ch		;196c	11 2c 7e 	. , ~
+  ld bc,l001fh+1		;196f	01 20 00 	.   .
+  ldir		        ;1972	ed b0 	. .
+  ld hl,l7e09h		;1974	21 09 7e 	! . ~
+  ld (07e07h),hl		;1977	22 07 7e 	" . ~
+  dec a			    ;197a	3d 	=
+  ld (l7e00h),a		;197b	32 00 7e 	2 . ~
+  ld (l7e04h),a		;197e	32 04 7e 	2 . ~
+  ret			        ;1981	c9 	.
+```
+
+And sub_1982h:
+```asm
+; seems to be OS API function 01982h, called by vt100:sub_a6d4h
+; accesses port 0xbb, writes 0xc to that port
+fapi_1982h:
+sub_1982h:
+	di			        ;1982	f3 	.
+	ld hl,l1991h		;1983	21 91 19 	! . . 
+	ld (07504h),hl		;1986	22 04 75 	" . u 
+	ld a,00ch		    ;1989	3e 0c 	> .
+	out (0bbh),a		;198b	d3 bb 	. . 
+	call sub_162fh		;198d	cd 2f 16 	. / . 
+	ret			        ;1990	c9 	.
+```
+
+-----------
 
 After several approaches to get a clue what's going on, by following all subroutines and
 jumps spawning of from this function, I gave up. Without almost any hint or documentation

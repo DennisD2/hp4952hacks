@@ -3391,7 +3391,8 @@ l1119h:
 	dec c			;1129	0d 	. 
 	add a,d			;112a	82 	. 
 	inc de			;112b	13 	. 
-	add a,l			;112c	85 	. 
+	add a,l			;112c	85 	.
+; maybe an OS API function, but has no defined end... ret/jp
 sub_112dh:
 	call sub_0d44h		;112d	cd 44 0d 	. D . 
 	add a,a			;1130	87 	. 
@@ -4791,30 +4792,35 @@ sub_1955h:
 	ex de,hl			;195f	eb 	. 
 	ret			;1960	c9 	. 
 
+; seems to be OS API function 01961h, called by vt100:sub_a6d4h
+fapi_1961h:
 sub_1961h:
-	xor a			;1961	af 	. 
+	xor a			    ;1961	af 	.
 	ld (l1a1dh),a		;1962	32 1d 1a 	2 . . 
 	ld (l7e03h),a		;1965	32 03 7e 	2 . ~ 
 	ld hl,l7e2bh		;1968	21 2b 7e 	! + ~ 
 	ld (hl),a			;196b	77 	w 
 	ld de,l7e2ch		;196c	11 2c 7e 	. , ~ 
 	ld bc,l001fh+1		;196f	01 20 00 	.   . 
-	ldir		;1972	ed b0 	. . 
+	ldir		        ;1972	ed b0 	. .
 	ld hl,l7e09h		;1974	21 09 7e 	! . ~ 
 	ld (07e07h),hl		;1977	22 07 7e 	" . ~ 
-	dec a			;197a	3d 	= 
+	dec a			    ;197a	3d 	=
 	ld (l7e00h),a		;197b	32 00 7e 	2 . ~ 
 	ld (l7e04h),a		;197e	32 04 7e 	2 . ~ 
-	ret			;1981	c9 	. 
+	ret			        ;1981	c9 	.
 
+; seems to be OS API function 01982h, called by vt100:sub_a6d4h
+; accesses port 0xbb, writes 0xc to that port
+fapi_1982h:
 sub_1982h:
-	di			;1982	f3 	. 
+	di			        ;1982	f3 	.
 	ld hl,l1991h		;1983	21 91 19 	! . . 
 	ld (07504h),hl		;1986	22 04 75 	" . u 
-	ld a,00ch		;1989	3e 0c 	> . 
+	ld a,00ch		    ;1989	3e 0c 	> .
 	out (0bbh),a		;198b	d3 bb 	. . 
 	call sub_162fh		;198d	cd 2f 16 	. / . 
-	ret			;1990	c9 	. 
+	ret			        ;1990	c9 	.
 
 l1991h:
 	call sub_1996h		;1991	cd 96 19 	. . . 
@@ -34689,29 +34695,31 @@ lbdc4h:
 	rlca			;be02	07 	. 
 	ld (l750fh),a		;be03	32 0f 75 	2 . u 
 	ld a,012h		;be06	3e 12 	> . 
-	ld (07501h),a		;be08	32 01 75 	2 . u 
-	di			;be0b	f3 	. 
+	ld (07501h),a		;be08	32 01 75 	2 . u
+	di			        ;be0b	f3 	.
 	ld hl,l1991h		;be0c	21 91 19 	! . . 
 	ld (07504h),hl		;be0f	22 04 75 	" . u 
-	ld a,00ch		;be12	3e 0c 	> . 
+	ld a,00ch		    ;be12	3e 0c 	> .
 	out (0bbh),a		;be14	d3 bb 	. . 
 	call sub_162fh		;be16	cd 2f 16 	. / . 
-	ei			;be19	fb 	. 
-	jp l1459h		;be1a	c3 59 14 	. Y . 
-	ld d,b			;be1d	50 	P 
-	ld l,a			;be1e	6f 	o 
+	ei			        ;be19	fb 	.
+	jp l1459h		    ;be1a	c3 59 14 	. Y .
+
+	; "Power-on Self Test Failure "
+	ld d,b			    ;be1d	50 	P
+	ld l,a			    ;be1e	6f 	o
 	ld (hl),a			;be1f	77 	w 
-	ld h,l			;be20	65 	e 
+	ld h,l			    ;be20	65 	e
 	ld (hl),d			;be21	72 	r 
-	dec l			;be22	2d 	- 
-	ld l,a			;be23	6f 	o 
+	dec l			    ;be22	2d 	-
+	ld l,a			    ;be23	6f 	o
 	ld l,(hl)			;be24	6e 	n 
 	jr nz,lbe7ah		;be25	20 53 	  S 
-	ld h,l			;be27	65 	e 
-	ld l,h			;be28	6c 	l 
+	ld h,l			    ;be27	65 	e
+	ld l,h			    ;be28	6c 	l
 	ld h,(hl)			;be29	66 	f 
 	jr nz,lbe80h		;be2a	20 54 	  T 
-	ld h,l			;be2c	65 	e 
+	ld h,l			    ;be2c	65 	e
 	ld (hl),e			;be2d	73 	s 
 	ld (hl),h			;be2e	74 	t 
 	jr nz,lbe77h		;be2f	20 46 	  F 
