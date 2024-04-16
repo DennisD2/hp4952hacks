@@ -39,12 +39,13 @@ it to app_target_area, it would fail.
 | 0xa000 - ?      | Non-Application RAM 32KB   |
 | ? - ?           | U502 ROM 64KB              |
 | ? - ?           | U503 ROM 64KB              |
+| ? - ?           | U204 ROM 32KB              |
 | ? - ?           | Data Capture RAM           |
 | ? - ?           | RAM from Extension Options |
 
 U500 clearly contains code.
 
-Besides U500, there are also ROMs U502 and U503 
+Besides U500, there are also ROMs U502 and U503 and U204
 that look like they contain Z80 code (maybe boot+"OS" code)
 They have each 64KB too.
 
@@ -121,8 +122,10 @@ Looks like also boot code: floppy handling, self test,
 
 
 #### U204
-This 32KB ROM seems to contain 68000 CPU code. These are the only strings to be found
-in the ROM:
+Current guess: Contains boot bode.
+
+My first impression was, that this 32KB ROM seems to contain 68000 CPU code only. 
+These are the only strings to be found in the ROM:
 ```
 Error! Entry Mode=User
 ---Bus Error---#
@@ -137,24 +140,13 @@ Error! Entry Mode=User
 ---1111 Exception---
 Run Aborted! Mode=User
 ```
+And that looks like some text strings in code handling 68000 exceptions. 
+So I supposed first U204 contains 68000 code, but very low level functions.
 
-Example "1010 Exception", I found this somewhere in the Internet:
+Later I found that this is not true. The chip may contain 68000 code, but it
+also contains Z80 code being executed during boot time and startup.
 
-*Opcodes beginning with Hex 'A' (1010_xxxx_xxxx_xxxx) and Hex 'F' 
-were traditionally used on the 68000 architecture to implement
-coprocessors.
-For example, the 680x0 family originally had a separate Floating 
-Point processor. All opcodes for floating point operations had an 
-'F' as the top nibble, and the 680x0 handed them off to the 
-coprocessor for execution. If you tried to execute floating point 
-code on a 680x0 processor without an FPU, you would get an 
-"Unimplementd F-Line Opcode" exception.*
-
-
-And that looks like some text strings in code
-handling 68000 exceptions. So I suppose U204 contains
-68000 code, but very low level functions.
-
+Maybe this ROM contains the boot code for the whole device.
 
 #### U304
 This chip is the 87C51 CPU, it contains also a 4KB ROM part,
@@ -164,7 +156,8 @@ with code for it.
 In application code, many out/in calls can be seen.
 
 #### Data transfer with SCC chip
-By checking the schematics, SCC CE is driven by A14=15=1 (and IO/~M = 1). This means, if
+By checking the schematics (of HP4951, because there is no schematics
+available for HP4952) , SCC CE is driven by A14=15=1 (and IO/~M = 1). This means, if
 SCC should be invoked, upper address byte of address bus need to be used.
 (Detail: A15,A14 and IO/~M go into a AND gate, followed by inverter. So these signals
 are combined by NAND function, is zero only if all inputs are high.)
@@ -323,7 +316,7 @@ Some friendly guys even have written a Z80 decoder for sigrok/pulseview. This de
 bugs, but is even with bugs a great help in understanding what the HP4952A is doing.
 
 So I hooked up the logic analyzer to the HP4952A. Close to the Z80 (Toshiba TMP84C00)
-there is an XTal with  7.3728Mhz. I suppose that this is part of clock oscillator
+there is an Xtal with  7.3728Mhz. I suppose that this is part of clock oscillator
 for the Z80. From logic analyzer I see roughly 400ns / 2.5Mhz for a full clock cycle.
 So this is somehow strange. 
 
@@ -404,6 +397,80 @@ file U204_04952-10029_TMS27C256.BIN.dasm . Code piece is:
 ```
 I kept in the copy above an old comment from me from two weeks ago, where I was checking ROM content code-wise.
 There I was also considering that area as maybe related to SCC handling, but without any level of certainty.
+
+### Strange intermediate result: Toshiba TMP84C00 is not executing all Z80 code !?
+When HP4952 is executing app code, like my monitor code, the TMP84C00 seems
+not to be involved. No activity on the pins the Logic Analyzer is checking.
+I thought the whole time, until I found this, that the TMP84C00 is the chip
+that controls the whole device and runs all Z80 code.
+
+But now, it looks like only if SCC is accessed, the TMP84C00 is being used. 
+
+So some other CPU-like chip is executing the Z80 code. This is very strange, 
+mostly because there is no other Z80 chip in the device.
+
+Maybe the PAL/GAL chip on memory board named "1820-4838" is executing Z80 code.
+
+See my input to some discussion here: 
+https://hackaday.io/project/163027-hp-4952a-turned-general-purpose-cpm-machine
+
+Because there is nothing known about that chip, I cannot proceed with my approach,
+looking at TMP84C00 only. 
+
+So I came back to the approach analyzing the working VT100 app code to get a clue
+how to access SCC chip. 
+
+# VT100 app memory map
+App is being loaded to 0xa0000 RAM. From there, parts are copied to fsafe RAM areas by apps own startup code.
+Menu system is set up and control is given back to menu handler.
+
+App involvement comes, if the user selects "VT100" menu item. 
+
+Then the VT100 menues are active, e.g. fm_execute function is called by menu handler if "Execute" menu
+item is selected, or fm_setup is called if "Setup" menu item is selected.
+
+App setup code is in load area 0xa000.
+
+Menu setup code and data is in 0xc000 area.
+
+Then there is a 0xd400 area, purpose unknown.
+
+A small variable buffer area is at 0xdbe0.
+
+App code / data end seems to be at 0xe800. 
+
+From 0xe800 to and of file (0xf8fe), there are fill bytes 0x20,0x82, which may be just fill bytes, or maybe
+this is some kind of screen data buffer (because 0x20=SPACE and 0x83 "normal text" mode attribute).
+
+| org    | (org)  | seek   | Labels                               | Comment                                  | Free Space  |
+|--------|--------|--------|--------------------------------------|------------------------------------------|-------------|
+| 0xa000 |        | 0x0    |                                      | 0xa000 area, app init code               |
+|        | 0xa102 | 0x102  |                                      | word, filesize/256, minimum is 1         |
+|        | 0xa147 | 0x147  | entry point ("jp __init")            |                                          |
+|        | 0xa180 | 0x180  |                                      | number in dll fixup list                 |
+|        | 0xa190 | 0x190  |                                      | fixup list                               |
+|        | 0xa410 | 0x410  | _load_dll_stub, _dll_tmp, _dll_stub, | + the app code?                          |
+|        |        |        | la246h, __init                       |                                          |
+|        | 0xb264 |        |                                      | end of 0xa000 area code                  |
+|        | 0xb265 |        |                                      | start fill with zero bytes               | 0xd9a=3842  |
+|        | 0xbfff |        |                                      | end of 0xa000 area                       |
+| 0xc000 |        | 0x2000 | _splash_screen_data                  | 0xc000 area, splash screen and menu data |
+|        | 0xcb6c |        |                                      | end of 0xc000 area code                  |
+|        | 0xcb6d |        |                                      | start fill with zero bytes               | 0x892=2194  |
+|        | 0xd3ff |        |                                      | end of 0xc000 area                       |
+| 0xd400 |        | 0x3400 | code_p_d400                          | 0xd400 area                              |
+|        | 0xd896 |        |                                      | end of code_p_d400 area code             |
+|        | 0xd897 |        |                                      | start fill with zero bytes               | 0x348=840   |
+|        | 0xdbdf |        |                                      | end of code_p_d400 area                  |  
+| 0xdbe0 |        | 0x3be0 | code_p_dbe0                          | small area for variables, size 0x20      |
+| 0xdc00 |        |        |                                      | a var here?                              |
+| 0xde00 |        |        |                                      | a var here?                              |
+| 0xe800 |        | 0x4800 | code_p_endfill                       | start of fill bytes 0x20,0x83            | 0x10fe=4350 |
+| 0xf8fe |        |        | _file_end                            | end of file, last byte                   |
+
+Monitor-vaxman original source 0x8d1=2257 bytes size. 
+
+Monitor with Disassembler: 0x121b = 4635 bytes. 
 
 ## Further reading
 
