@@ -4793,7 +4793,7 @@ sub_1955h:
 	ret			;1960	c9 	. 
 
 ; seems to be OS API function 01961h, called by vt100:sub_a6d4h
-fapi_1961h:
+;fapi_1961h:
 sub_1961h:
 	xor a			    ;1961	af 	.
 	ld (l1a1dh),a		;1962	32 1d 1a 	2 . . 
@@ -4812,7 +4812,7 @@ sub_1961h:
 
 ; seems to be OS API function 01982h, called by vt100:sub_a6d4h
 ; accesses port 0xbb, writes 0xc to that port
-fapi_1982h:
+;fapi_1982h:
 sub_1982h:
 	di			        ;1982	f3 	.
 	ld hl,l1991h		;1983	21 91 19 	! . . 
