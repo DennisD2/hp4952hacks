@@ -3113,7 +3113,8 @@ fm_execute:
 	ld (07501h),a		;c333	32 01 75 	2 . u   ;
 	ld a,006h		;c336	3e 06 	> .             ; Load Page 6 (Application RAM)
 	call os_loadpage		;c338	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
-	call 0a54bh		;c33b	cd 4b a5 	. K .       ; maybe code in U503 at loc a54b, (or U502 but 503 looks more realistic)
+	;call 0a54bh		;c33b	cd 4b a5 	. K .       ; maybe code in U503 at loc a54b, (or U502 but 503 looks more realistic)
+	call initialize
 	ld a,022h		;c33e	3e 22 	> "             ; (07501h):=0x22
 	ld (07501h),a		;c340	32 01 75 	2 . u   ;
 	ld a,(_tmp_page)		;c343	3a 96 a4 	: . . ; a:=tmp_page

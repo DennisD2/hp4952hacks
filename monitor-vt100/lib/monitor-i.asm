@@ -1189,8 +1189,9 @@ puts_end:       pop     hl
 
 app_exit:
 if HP_4952_Target
-                call    _clear_screen
-                jp      014d5h				; Return to main menu. HP4592a
+                ;call    _clear_screen
+                ;jp      014d5h				; Return to main menu. HP4592a
+                ret
 else
 if CPC_Target
                 ret                     ; CPC
