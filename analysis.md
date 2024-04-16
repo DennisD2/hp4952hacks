@@ -237,7 +237,7 @@ loop_delay_a54e:
 	jr nz,loop_delay_a54e		;a551	20 fb 	  .
 
 	call read_dbe0		;a553	cd 33 a5 	. 3 .
-	call sub_a5f9h		;a556	cd f9 a5 	. . .   ; calls only 4 other subs; these invoke 3 OS API calls
+	call sub_a5f9h		;a556	cd f9 a5 	. . .   ; calls 4 other subs; these invoke 3 OS API calls
 	call sub_a6e7h		;a559	cd e7 a6 	. . .   ; calling sub_a6e7h twice, has no subs
 	call sub_a6e7h		;a55c	cd e7 a6 	. . .   ; "
 	call sub_a702h		;a55f	cd 02 a7 	. . .   ; calling sub_a702h twice, has no subs
