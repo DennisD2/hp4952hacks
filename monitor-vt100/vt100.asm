@@ -589,13 +589,18 @@ loop_delay_a54e:
 	jr nz,loop_delay_a54e		;a551	20 fb 	  .
 
 	call read_dbe0		;a553	cd 33 a5 	. 3 .
-	call sub_a5f9h		;a556	cd f9 a5 	. . .   ; calls only 4 other subs; these invoke 3 OS API calls
+	;call initialize ; no SCC access so far
+	call sub_a5f9h		;a556	cd f9 a5 	. . .   ; calls 4 other subs; these invoke 3 OS API calls
+	call initialize ;  SCC access done, but terminal not yet running
 	call sub_a6e7h		;a559	cd e7 a6 	. . .   ; calling sub_a6e7h twice, has no subs
 	call sub_a6e7h		;a55c	cd e7 a6 	. . .   ; "
+	;call initialize ; SCC access done, but terminal not yet running
 	call sub_a702h		;a55f	cd 02 a7 	. . .   ; calling sub_a702h twice, has no subs
 	call sub_a702h		;a562	cd 02 a7 	. . .   ; "
-	call sub_a56fh		;a565	cd 6f a5 	. o .   ; large function, see below
+	;call initialize ; SCC access done, but terminal not yet running
+;;	;call sub_a56fh		;a565	cd 6f a5 	. o .   ; large function, see below
 	call sub_a606h		;a568	cd 06 a6 	. . .   ; "waits for dff0==0 an then writes 5 to it"
+	;call initialize ; Terminal already runs
 	call write_dbe0		;a56b	cd 3f a5 	. ? .
 	ret			        ;a56e	c9 	.
 
@@ -3131,7 +3136,7 @@ fm_execute:
 	ld a,(_tmp_page)		;c343	3a 96 a4 	: . . ; a:=tmp_page
 	call os_loadpage		;c346	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in _tmp_page
 	ld hl,00001h		;c349	21 01 00 	! . .   ; hl:=1
-	ret			;c34c	c9 	. 
+	ret			;c34c	c9 	.
 
     ; function called by menu selection
     ; c34d function, "Simulate" from main menu
