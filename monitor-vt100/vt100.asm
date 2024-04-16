@@ -579,6 +579,7 @@ write_dbe0:
 	ldir		;a548	ed b0 	. . 
 	ret			;a54a	c9 	. 
 
+sub_0a54bh:
     ; delay, 0x1234 times looped
 	ld hl,01234h		;a54b	21 34 12 	! 4 .   ; hl:=0x1234
 loop_delay_a54e:
@@ -586,9 +587,10 @@ loop_delay_a54e:
 	ld a,l			;a54f	7d 	} 
 	or h			;a550	b4 	. 
 	jr nz,loop_delay_a54e		;a551	20 fb 	  .
+
 	call read_dbe0		;a553	cd 33 a5 	. 3 .
-	call sub_a5f9h		;a556	cd f9 a5 	. . .
-	call sub_a6e7h		;a559	cd e7 a6 	. . .
+	call sub_a5f9h		;a556	cd f9 a5 	. . .   ; calls only 4 other subs
+	call sub_a6e7h		;a559	cd e7 a6 	. . .   ; var_byte_a9c5:=1 and calls sub_aa9ah (large function)
 	call sub_a6e7h		;a55c	cd e7 a6 	. . .
 	call sub_a702h		;a55f	cd 02 a7 	. . .
 	call sub_a702h		;a562	cd 02 a7 	. . .
@@ -1455,38 +1457,38 @@ var_byte_aa99:
 
 sub_aa9ah:
 	;; sub_aa9ah this is large function...
-	; could be a read in function from keybaord see cps to 013 and such
-	ld hl,(var_byte_a9bf)		;aa9a	2a bf a9 	* . .
-	call sub_ace8h		;aa9d	cd e8 ac 	. . .
-	ld a,(var_byte_a9c0)		;aaa0	3a c0 a9 	: . .
-	ld l,a			;aaa3	6f 	o
-	ld h,000h		;aaa4	26 00 	& .
-	add hl,hl			;aaa6	29 	)
-	add hl,de			;aaa7	19 	.
-	ld (var_word_a9bd),hl		;aaa8	22 bd a9 	" . .
-	ld l,000h		;aaab	2e 00 	. .
-laaadh:
-	cp 020h		;aaad	fe 20 	.
-	jr c,laab6h		;aaaf	38 05 	8 .
-	sub 010h		;aab1	d6 10 	. .
-	inc l			;aab3	2c 	,
-	jr laaadh		;aab4	18 f7 	. .
+	; could be a read in function from keyboard see cps to 013 and such
+	ld hl,(var_byte_a9bf)		;aa9a	2a bf a9 	* . .       ; hl:=var_byte_a9bf
+	call sub_ace8h		;aa9d	cd e8 ac 	. . .               ;
+	ld a,(var_byte_a9c0)		;aaa0	3a c0 a9 	: . .       ; a:=var_byte_a9c0
+	ld l,a			;aaa3	6f 	o                               ; l:=a
+	ld h,000h		;aaa4	26 00 	& .                         ; h:=0
+	add hl,hl			;aaa6	29 	)                           ; hl:=2*hl
+	add hl,de			;aaa7	19 	.                           ; hl += de
+	ld (var_word_a9bd),hl		;aaa8	22 bd a9 	" . .       ; var_word_a9bd := hl
+	ld l,000h		;aaab	2e 00 	. .                         ; l:=0
+laaadh: ; counts a down to value  < 0x20
+	cp 020h		;aaad	fe 20 	.                               ; a<0x20 ?
+	jr c,laab6h		;aaaf	38 05 	8 .                         ; yes, --> laab6h
+	sub 010h		;aab1	d6 10 	. .                         ; no, a:=a-0x10
+	inc l			;aab3	2c 	,                               ; l++
+	jr laaadh		;aab4	18 f7 	. .                         ; loop again, --> laaadh
 laab6h:
-	ld (var_byte_aa96),a		;aab6	32 96 aa 	2 . .
-	ld a,l			;aab9	7d 	}
-	rlca			;aaba	07 	.
+	ld (var_byte_aa96),a		;aab6	32 96 aa 	2 . .       ; var_byte_aa96 := a
+	ld a,l			;aab9	7d 	}                               ; a:=l
+	rlca			;aaba	07 	.                               ; a<<4
 	rlca			;aabb	07 	.
 	rlca			;aabc	07 	.
 	rlca			;aabd	07 	.
-	ld (var_byte_aa99),a		;aabe	32 99 aa 	2 . .
-	ld a,(var_byte_a9bf)		;aac1	3a bf a9 	: . .
-	ld l,013h		;aac4	2e 13 	. .
-	cp 015h		    ;aac6	fe 15 	. .
-	jr nc,laad3h		;aac8	30 09 	0 .
-	ld l,008h		;aaca	2e 08 	. .
-	cp 013h		    ;aacc	fe 13 	. .
-	jr c,laad3h		;aace	38 03 	8 .
-	ld hl,(var_byte_a9c4)		;aad0	2a c4 a9 	* . .
+	ld (var_byte_aa99),a		;aabe	32 99 aa 	2 . .       ; var_byte_aa99 := a
+	ld a,(var_byte_a9bf)		;aac1	3a bf a9 	: . .       ; a:=var_byte_a9bf
+	ld l,013h		;aac4	2e 13 	. .                         ; l:=0x13
+	cp 015h		    ;aac6	fe 15 	. .                         ; a>0x15 ?
+	jr nc,laad3h		;aac8	30 09 	0 .                     ; yes --> laad3h
+	ld l,008h		;aaca	2e 08 	. .                         ; no, l:=0x8
+	cp 013h		    ;aacc	fe 13 	. .                         ; a<0x13 ?
+	jr c,laad3h		;aace	38 03 	8 .                         ; yes, --> laad3h
+	ld hl,(var_byte_a9c4)		;aad0	2a c4 a9 	* . .       ; no, hl:= var_byte_a9c4
 laad3h:
 	sub l			;aad3	95 	.
 	ld (var_byte_aa97),a		;aad4	32 97 aa 	2 . .
@@ -3115,7 +3117,7 @@ fm_execute:
 	ld (07501h),a		;c333	32 01 75 	2 . u   ;
 	ld a,006h		;c336	3e 06 	> .             ; Load Page 6 (Application RAM)
 	call os_loadpage		;c338	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
-	;call 0a54bh		;c33b	cd 4b a5 	. K .       ; maybe code in U503 at loc a54b, (or U502 but 503 looks more realistic)
+	;call sub_0a54bh		;c33b	cd 4b a5 	. K .       ;
 	call initialize
 	ld a,022h		;c33e	3e 22 	> "             ; (07501h):=0x22
 	ld (07501h),a		;c340	32 01 75 	2 . u   ;
