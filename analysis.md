@@ -211,7 +211,9 @@ fm_execute:
 	ld (07501h),a		;c333	32 01 75 	2 . u   ;
 	ld a,006h		;c336	3e 06 	> .             ; Load Page 6 (Application RAM)
 	call os_loadpage		;c338	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
-	call 0a54bh		;c33b	cd 4b a5 	. K .       ; maybe code in U503 at loc a54b, (or U502 but 503 looks more realistic)
+
+	call 0a54bh		;c33b	cd 4b a5 	. K .       
+
 	ld a,022h		;c33e	3e 22 	> "             ; (07501h):=0x22
 	ld (07501h),a		;c340	32 01 75 	2 . u   ;
 	ld a,(_tmp_page)		;c343	3a 96 a4 	: . . ; a:=tmp_page
@@ -223,72 +225,37 @@ fm_execute:
 (07501h) is being loaded with these values: 0x21, 0x22, 0x62.
 fm_execute() is the only place where 0x62 is loaded into 07501h.
 
-fm_execute is forwarding to a54bh. I suppose this is code in ROM U503.
+fm_execute is forwarding to a54bh. 
 ```asm
-	; POI-220: could be entry point for VT100 Execute code at fm_execute in vt100.asm
-	; contains no loop
-la54bh:
-	ld d,(hl)		;a54b	56 	V 
-	ld (07b73h),de		;a54c	ed 53 73 7b 	. S s { 
-	call sub_a5bah		;a550	cd ba a5 	. . . 
-	call sub_a5d6h		;a553	cd d6 a5 	. . . 
-	ld hl,(07b73h)		;a556	2a 73 7b 	* s { 
-	inc hl		        ;a559	23 	# 
-	inc hl		        ;a55a	23 	# 
-	ld (07b73h),hl		;a55b	22 73 7b 	" s { 
-	call sub_a5bah		;a55e	cd ba a5 	. . . 
-	ld de,l0008h+2		;a561	11 0a 00 	. . . 
-	ld hl,(l7b69h)		;a564	2a 69 7b 	* i { 
-	add hl,de		;a567	19 	. 
-	ld e,(hl)		;a568	5e 	^ 
-	inc hl		        ;a569	23 	# 
-	ld d,(hl)		;a56a	56 	V 
-	ld (07b73h),de		;a56b	ed 53 73 7b 	. S s { 
-	inc de		        ;a56f	13 	. 
-	inc de		        ;a570	13 	. 
-	ld (07b73h),de		;a571	ed 53 73 7b 	. S s { 
-	ld a,(07b67h)		;a575	3a 67 7b 	: g { 
-	cp 00fh		        ;a578	fe 0f 	. . 
-	jr nz,la583h		;a57a	20 07 	  . 
-	ld a,004h		;a57c	3e 04 	> . 
-	ld (07b67h),a		;a57e	32 67 7b 	2 g { 
-	jr la588                ;a581	18 05 	. . 
-la583h:
-	ld a,008h		;a583	3e 08 	> . 
-	ld (07b67h),a		;a585	32 67 7b 	2 g { 
-la588h:
-	ld de,l0006h		;a588	11 06 00 	. . . 
-	ld hl,(l7b69h)		;a58b	2a 69 7b 	* i { 
-	add hl,de		;a58e	19 	. 
-	ld (l7b79h+2),hl	;a58f	22 7b 7b 	" { { 
-	ld hl,(07b73h)		;a592	2a 73 7b 	* s { 
-	ld e,(hl)		;a595	5e 	^ 
-	inc hl		        ;a596	23 	# 
-	ld d,(hl)		;a597	56 	V 
-	ld hl,(07b67h)		;a598	2a 67 7b 	* g { 
-	add hl,de		;a59b	19 	. 
-	ld de,l0019h		;a59c	11 19 00 	. . . 
-	ex de,hl		;a59f	eb 	. 
-	call sub_1767h		;a5a0	cd 67 17 	. g . 
-	inc hl	       	        ;a5a3	23 	# 
-	inc hl			;a5a4	23 	# 
-	ex de,hl		;a5a5	eb 	. 
-	ld hl,(l7b79h+2)	;a5a6	2a 7b 7b 	* { { 
-	ld (hl),e		;a5a9	73 	s 
-	inc hl		        ;a5aa	23 	# 
-	ld (hl),d		;a5ab	72 	r 
-la5ach:
-	ld hl,(l7b69h)		;a5ac	2a 69 7b 	* i { 
-	ld e,(hl)		;a5af	5e 	^ 
-	inc hl		        ;a5b0	23 	# 
-	ld d,(hl)		;a5b1	56 	V 
-	ld (l7b69h),de		;a5b2	ed 53 69 7b 	. S i { 
-	jp sub_a4d7h		;a5b6	c3 d7 a4 	. . . 
-la5b9h:
-	ret		        ;a5b9	c9 	. 
+sub_0a54bh:
+    ; delay, 0x1234 times looped
+	ld hl,01234h		;a54b	21 34 12 	! 4 .   ; hl:=0x1234
+loop_delay_a54e:
+	dec hl			;a54e	2b 	+ 
+	ld a,l			;a54f	7d 	} 
+	or h			;a550	b4 	. 
+	jr nz,loop_delay_a54e		;a551	20 fb 	  .
+
+	call read_dbe0		;a553	cd 33 a5 	. 3 .
+	call sub_a5f9h		;a556	cd f9 a5 	. . .   ; calls only 4 other subs; these invoke 3 OS API calls
+	call sub_a6e7h		;a559	cd e7 a6 	. . .   ; calling sub_a6e7h twice, has no subs
+	call sub_a6e7h		;a55c	cd e7 a6 	. . .   ; "
+	call sub_a702h		;a55f	cd 02 a7 	. . .   ; calling sub_a702h twice, has no subs
+	call sub_a702h		;a562	cd 02 a7 	. . .   ; "
+	call sub_a56fh		;a565	cd 6f a5 	. o .   ; large function, see below
+	call sub_a606h		;a568	cd 06 a6 	. . .   ; "waits for dff0==0 an then writes 5 to it"
+	call write_dbe0		;a56b	cd 3f a5 	. ? .
+	ret			        ;a56e	c9 	. 
 ```
 
-After several approaches to get a clue whats going on, by following all subroutines and
+sub_a5f9h calls 3 OS API functions:
+* via sub_a6d4h:
+  * 01961h Patched to d9ch
+  * 01982h Patched to d06h
+* via sub_a87bh:
+  * 0112dh Patched to edah
+
+After several approaches to get a clue what's going on, by following all subroutines and
 jumps spawning of from this function, I gave up. Without almost any hint or documentation
 regarding the system it would last forever to get a grip on that task.
 

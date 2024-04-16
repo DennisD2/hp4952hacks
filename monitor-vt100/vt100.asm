@@ -589,15 +589,17 @@ loop_delay_a54e:
 	jr nz,loop_delay_a54e		;a551	20 fb 	  .
 
 	call read_dbe0		;a553	cd 33 a5 	. 3 .
-	call sub_a5f9h		;a556	cd f9 a5 	. . .   ; calls only 4 other subs
-	call sub_a6e7h		;a559	cd e7 a6 	. . .   ; var_byte_a9c5:=1 and calls sub_aa9ah (large function)
-	call sub_a6e7h		;a55c	cd e7 a6 	. . .
-	call sub_a702h		;a55f	cd 02 a7 	. . .
-	call sub_a702h		;a562	cd 02 a7 	. . .
-	call sub_a56fh		;a565	cd 6f a5 	. o .
-	call sub_a606h		;a568	cd 06 a6 	. . .
+	call sub_a5f9h		;a556	cd f9 a5 	. . .   ; calls only 4 other subs; these invoke 3 OS API calls
+	call sub_a6e7h		;a559	cd e7 a6 	. . .   ; calling sub_a6e7h twice, has no subs
+	call sub_a6e7h		;a55c	cd e7 a6 	. . .   ; "
+	call sub_a702h		;a55f	cd 02 a7 	. . .   ; calling sub_a702h twice, has no subs
+	call sub_a702h		;a562	cd 02 a7 	. . .   ; "
+	call sub_a56fh		;a565	cd 6f a5 	. o .   ; large function, see below
+	call sub_a606h		;a568	cd 06 a6 	. . .   ; "waits for dff0==0 an then writes 5 to it"
 	call write_dbe0		;a56b	cd 3f a5 	. ? .
-	ret			;a56e	c9 	. 
+	ret			        ;a56e	c9 	.
+
+; large function, loads a from 03f01h and tests a against various values (ASCII chars?)
 sub_a56fh:
 	call sub_af71h		;a56f	cd 71 af 	. q .
 	jr z,la5b7h		;a572	28 43 	( C
@@ -605,37 +607,37 @@ sub_a56fh:
 	and c			;a577	a1 	. 
 	ld c,a			;a578	4f 	O 
 	jp p,la580h		;a579	f2 80 a5 	. . .
-	res 7,b		;a57c	cb b8 	. . 
+	res 7,b		;a57c	cb b8 	. .                 ; clear bits 7+6 in b
 	res 6,b		;a57e	cb b0 	. . 
 la580h:
-	ld a,c			;a580	79 	y
-	cp 020h		;a581	fe 20 	.   
-	jr nc,la59fh		;a583	30 1a 	0 .
-	cp 01bh		;a585	fe 1b 	. . 
-	jr z,la59fh		;a587	28 16 	( .
-	cp 00ah		;a589	fe 0a 	. . 
-	jr z,la59fh		;a58b	28 12 	( .
-	cp 00dh		;a58d	fe 0d 	. . 
-	jr z,la59fh		;a58f	28 0e 	( .
-	cp 008h		;a591	fe 08 	. . 
-	jr z,la59fh		;a593	28 0a 	( .
-	cp 007h		;a595	fe 07 	. . 
-	jr z,la59fh		;a597	28 06 	( .
-	ld a,(03f0eh)		;a599	3a 0e 3f 	: . ? 
-	or a			;a59c	b7 	. 
-	jr z,la5a4h		;a59d	28 05 	( .
+	ld a,c			;a580	79 	y                   ; a:=c
+	cp 020h		;a581	fe 20 	.                   ; a > 0x20 ?
+	jr nc,la59fh		;a583	30 1a 	0 .         ; yes -> la59fh
+	cp 01bh		;a585	fe 1b 	. .                 ; no, a == 0x1b ?
+	jr z,la59fh		;a587	28 16 	( .             ; yes -> la59fh
+	cp 00ah		;a589	fe 0a 	. .                 ; no, a = 0x0a CR ?
+	jr z,la59fh		;a58b	28 12 	( .             ; yes -> la59fh
+	cp 00dh		;a58d	fe 0d 	. .                 ; no, a == 0x0d LF ?
+	jr z,la59fh		;a58f	28 0e 	( .             ; yes -> la59fh
+	cp 008h		;a591	fe 08 	. .                 ; no, a == 0x08 ?
+	jr z,la59fh		;a593	28 0a 	( .             ; yes -> la59fh
+	cp 007h		;a595	fe 07 	. .                 ; no, a == 0x07 ?
+	jr z,la59fh		;a597	28 06 	( .             ; yes -> la59fh
+	ld a,(03f0eh)		;a599	3a 0e 3f 	: . ?   ; a:=(03f0eh)
+	or a			;a59c	b7 	.                   ; a==0 ?
+	jr z,la5a4h		;a59d	28 05 	( .             ; yes -> la5a4h
 la59fh:
-	push bc			;a59f	c5 	. 
+	push bc			;a59f	c5 	.                   ; save bc
 	call sub_aa21h		;a5a0	cd 21 aa 	. ! .
-	pop bc			;a5a3	c1 	. 
+	pop bc			;a5a3	c1 	.                   ; restore bc
 la5a4h:
-	ld a,005h		;a5a4	3e 05 	> .
-	cp c			;a5a6	b9 	. 
-	jr nz,la5b5h		;a5a7	20 0c 	  .
-	ld a,(03f06h)		;a5a9	3a 06 3f 	: . ? 
-	cp 001h		;a5ac	fe 01 	. . 
-	jr nz,la5b5h		;a5ae	20 05 	  .
-	ld a,006h		;a5b0	3e 06 	> . 
+	ld a,005h		;a5a4	3e 05 	> .             ; a:= 0x5
+	cp c			;a5a6	b9 	.                   ; a==c ?
+	jr nz,la5b5h		;a5a7	20 0c 	  .         ; no -> la5b5h
+	ld a,(03f06h)		;a5a9	3a 06 3f 	: . ?   ; yes, a:=(03f06h)
+	cp 001h		;a5ac	fe 01 	. .                 ; a==0x1 ?
+	jr nz,la5b5h		;a5ae	20 05 	  .         ; no -> la5b5h
+	ld a,006h		;a5b0	3e 06 	> .             ; yes, a:=0x6
 	call sub_a912h		;a5b2	cd 12 a9 	. . .
 la5b5h:
 	jr sub_a56fh		;a5b5	18 b8 	. .
@@ -645,30 +647,30 @@ la5b7h:
 	jr z,la5f6h		;a5bb	28 39 	( 9
 	jp nc,la5d5h		;a5bd	d2 d5 a5 	. . .
 	call sub_a912h		;a5c0	cd 12 a9 	. . .
-	cp 00dh		;a5c3	fe 0d 	. . 
+	cp 00dh		;a5c3	fe 0d 	. .                 ; a == 0x0d LF ?
 	jr nz,la5f6h		;a5c5	20 2f 	  /
 	ld a,(03f10h)		;a5c7	3a 10 3f 	: . ? 
-	cp 001h		;a5ca	fe 01 	. . 
+	cp 001h		;a5ca	fe 01 	. .                 ; a == 0x01 ?
 	jr nz,la5f6h		;a5cc	20 28 	  (
-	ld a,00ah		;a5ce	3e 0a 	> . 
+	ld a,00ah		;a5ce	3e 0a 	> .             ; a == 0x0a CR ?
 	call sub_a912h		;a5d0	cd 12 a9 	. . .
 	jr la5f6h		;a5d3	18 21 	. !
 la5d5h:
-	cp 0f8h		;a5d5	fe f8 	. . 
+	cp 0f8h		;a5d5	fe f8 	. .                 ; a == 0xf8 ? '<' key
 	ret z			;a5d7	c8 	. 
 
     ; checks a against 0xfa,fb,ff and calls functions
-	cp 0fah		;a5d8	fe fa 	. . 
+	cp 0fah		;a5d8	fe fa 	. .                 ; a == 0xfa ? _key_enter
 	jr nz,la5e1h		;a5da	20 05 	  .
 	call sub_a922h		;a5dc	cd 22 a9 	. " .
 	jr la5f6h		;a5df	18 15 	. .
 la5e1h:
-	cp 0fbh		;a5e1	fe fb 	. . 
+	cp 0fbh		;a5e1	fe fb 	. .                 ; a == 0xfb ? (maybe some modifier key?)
 	jr nz,la5eah		;a5e3	20 05 	  .
 	call sub_a702h		;a5e5	cd 02 a7 	. . .
 	jr la5f6h		;a5e8	18 0c 	. .
 la5eah:
-	cp 0ffh		;a5ea	fe ff 	. . 
+	cp 0ffh		;a5ea	fe ff 	. .                 ; _key_none
 	jr nz,la5f3h		;a5ec	20 05 	  .
 	call sub_a6e7h		;a5ee	cd e7 a6 	. . .
 	jr la5f6h		;a5f1	18 03 	. .
@@ -676,14 +678,15 @@ la5f3h:
 	call sub_a9e0h		;a5f3	cd e0 a9 	. . .
 la5f6h:
 	jp sub_a56fh		;a5f6	c3 6f a5 	. o .
+
 sub_a5f9h:
-	call sub_a9d7h		;a5f9	cd d7 a9 	. . .
-	call sub_a6d4h		;a5fc	cd d4 a6 	. . .
-	call sub_aee5h		;a5ff	cd e5 ae 	. . .
-	call sub_a87bh		;a602	cd 7b a8 	. { .
-	ret			;a605	c9 	. 
+	call sub_a9d7h		;a5f9	cd d7 a9 	. . .   ; invokes large function
+	call sub_a6d4h		;a5fc	cd d4 a6 	. . .   ; calls 2 patched functions (OS API calls) call 01961h		;a6d4	cd 61 19 	. a . ; Patched to d9ch AND call 01982h		;a6d7	cd 82 19 	. . . ; Patched to d06h
+	call sub_aee5h		;a5ff	cd e5 ae 	. . .   ; no subs, small
+	call sub_a87bh		;a602	cd 7b a8 	. { .   ; calls 1 patched function (OS API) ; call 0112dh		;a886	cd 2d 11 	. - .   ; Patched to edah
+	ret			        ;a605	c9 	.
 sub_a606h:
-	call sub_a8e3h		;a606	cd e3 a8 	. . .
+	call sub_a8e3h		;a606	cd e3 a8 	. . .   ; "waits for dff0==0 an then writes 5 to it"
 la609h:
 	ret			;a609	c9 	.
 
@@ -795,7 +798,7 @@ sub_a6d4h:
 
 sub_a6e7h:
 ;f_a6e7:
-	ld a,(la6d2h)		;a6e7	3a d2 a6 	: . .   ; (0a6d2h)==0x20 SPACE ?
+	ld a,(la6d2h)		;a6e7	3a d2 a6 	: . .       ; (0a6d2h)==0x20 SPACE ?
 	cp 020h		;a6ea	fe 20 	.   
 	jr nz,la6f2h		;a6ec	20 04 	  .             ; no -> l_a6f2
 	ld a,02ah		;a6ee	3e 2a 	> *                 ; yes , a:=2a
@@ -811,7 +814,8 @@ la6f4h:
 
 read_a6d2:
 	ld a,(la6d2h)		;a6fe	3a d2 a6 	: . .   ; a:=(0a6d2h)
-	ret			;a701	c9 	. 
+	ret			;a701	c9 	.
+
 sub_a702h:
 	ld a,(la6d2h+1)		;a702	3a d3 a6 	: . .   : a:= (0a6d3)
 	cp 020h		;a705	fe 20 	.                   ; a==SPACE?
@@ -1328,9 +1332,9 @@ set_var_byte_a9c6:
 
 sub_a9d7h:
     ; a:=1
-	ld a,001h		;a9d7	3e 01 	> .
-	ld (var_byte_a9c5),a		;a9d9	32 c5 a9 	2 . .
-	call sub_aa9ah		;a9dc	cd 9a aa 	. . .
+	ld a,001h		;a9d7	3e 01 	> .                     ; a:=1
+	ld (var_byte_a9c5),a		;a9d9	32 c5 a9 	2 . .   ; var_byte_a9c5:=1
+	call sub_aa9ah		;a9dc	cd 9a aa 	. . .           : large function...
 	ret			;a9df	c9 	.
 
 sub_a9e0h:
@@ -1456,7 +1460,7 @@ var_byte_aa99:
 	;nop			;aa99	00 	.
 
 sub_aa9ah:
-	;; sub_aa9ah this is large function...
+	;; sub_aa9ah this is large function... called 12 times
 	; could be a read in function from keyboard see cps to 013 and such
 	ld hl,(var_byte_a9bf)		;aa9a	2a bf a9 	* . .       ; hl:=var_byte_a9bf
 	call sub_ace8h		;aa9d	cd e8 ac 	. . .               ;
@@ -2334,33 +2338,35 @@ laf67h:
 	ld (lde07h),a		;af6b	32 07 de 	2 . .
 	ld a,h			;af6e	7c 	| 
 	or l			;af6f	b5 	. 
-	ret			;af70	c9 	. 
+	ret			;af70	c9 	.
+
 sub_af71h:
-	ld a,001h		;af71	3e 01 	> . 
-	ld (lde06h),a		;af73	32 06 de 	2 . .
+	ld a,001h		;af71	3e 01 	> .             ; (lde06h):=1
+	ld (lde06h),a		;af73	32 06 de 	2 . .   ;
 laf76h:
-	ld a,(lde07h)		;af76	3a 07 de 	: . .
-	or a			;af79	b7 	. 
-	jr nz,laf76h		;af7a	20 fa 	  .
-	ld hl,(lde04h)		;af7c	2a 04 de 	* . .
-	ld a,h			;af7f	7c 	| 
+	ld a,(lde07h)		;af76	3a 07 de 	: . .   ; a:=(lde07h)
+	or a			;af79	b7 	.                   ; a==0?
+	jr nz,laf76h		;af7a	20 fa 	  .         ; no -> loop back to laf76h so: wait for a==0
+	ld hl,(lde04h)		;af7c	2a 04 de 	* . .   ; yes hl:=(lde04h)
+	ld a,h			;af7f	7c 	|                   ; hl==0 ?
 	or l			;af80	b5 	. 
-	jr z,laf97h		;af81	28 14 	( .
-	dec hl			;af83	2b 	+ 
-	ld (lde04h),hl		;af84	22 04 de 	" . .
-	ld hl,(lde02h)		;af87	2a 02 de 	* . .
-	ld c,(hl)			;af8a	4e 	N 
-	inc l			;af8b	2c 	, 
-	ld b,(hl)			;af8c	46 	F 
-	inc hl			;af8d	23 	# 
-	set 2,h		;af8e	cb d4 	. . 
-	res 1,h		;af90	cb 8c 	. . 
-	ld (lde02h),hl		;af92	22 02 de 	" . .
-	or 0ffh		;af95	f6 ff 	. . 
+	jr z,laf97h		;af81	28 14 	( .             ; yes -> laf97h
+	dec hl			;af83	2b 	+                   ; hl--
+	ld (lde04h),hl		;af84	22 04 de 	" . .   ; lde04h:=hl
+	ld hl,(lde02h)		;af87	2a 02 de 	* . .   ; hl:=lde02h
+	ld c,(hl)			;af8a	4e 	N               ; c:=(hl)
+	inc l			;af8b	2c 	,                   ; l++
+	ld b,(hl)			;af8c	46 	F               ; b:=(hl)
+	inc hl			;af8d	23 	#                   ; l++
+	set 2,h		;af8e	cb d4 	. .                 ; sets bit 2 in h
+	res 1,h		;af90	cb 8c 	. .                 ; clears bit 1 in h
+	ld (lde02h),hl		;af92	22 02 de 	" . .   ; (lde02h):=hl
+	or 0ffh		;af95	f6 ff 	. .                 ; a:=0xff (why? like makes no sense)
 laf97h:
-	ld a,000h		;af97	3e 00 	> .
-	ld (lde06h),a		;af99	32 06 de 	2 . .
-	ret			;af9c	c9 	. 
+	ld a,000h		;af97	3e 00 	> .             ; (lde06h):=0
+	ld (lde06h),a		;af99	32 06 de 	2 . .   ;
+	ret			;af9c	c9 	.                       ;
+
 laf9dh:
 	nop			;af9d	00 	. 
 laf9eh:
