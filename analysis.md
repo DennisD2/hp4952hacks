@@ -442,8 +442,8 @@ App code / data end seems to be at 0xe800.
 From 0xe800 to and of file (0xf8fe), there are fill bytes 0x20,0x82, which may be just fill bytes, or maybe
 this is some kind of screen data buffer (because 0x20=SPACE and 0x83 "normal text" mode attribute).
 
-| org    | (org)  | seek   | Labels                               | Comment                                  | Free Space  |
-|--------|--------|--------|--------------------------------------|------------------------------------------|-------------|
+| org    | (org)  | seek   | Labels                               | Comment                                  | Free Space            |
+|--------|--------|--------|--------------------------------------|------------------------------------------|-----------------------|
 | 0xa000 |        | 0x0    |                                      | 0xa000 area, app init code               |
 |        | 0xa102 | 0x102  |                                      | word, filesize/256, minimum is 1         |
 |        | 0xa147 | 0x147  | entry point ("jp __init")            |                                          |
@@ -452,23 +452,23 @@ this is some kind of screen data buffer (because 0x20=SPACE and 0x83 "normal tex
 |        | 0xa410 | 0x410  | _load_dll_stub, _dll_tmp, _dll_stub, | + the app code?                          |
 |        |        |        | la246h, __init                       |                                          |
 |        | 0xb264 |        |                                      | end of 0xa000 area code                  |
-|        | 0xb265 |        |                                      | start fill with zero bytes               | 0xd9a=3842  |
+|        | 0xb265 |        |                                      | start fill with zero bytes               | 0xd9a=3842 MON        |
 |        | 0xbfff |        |                                      | end of 0xa000 area                       |
 | 0xc000 |        | 0x2000 | _splash_screen_data                  | 0xc000 area, splash screen and menu data |
 |        | 0xcb6c |        |                                      | end of 0xc000 area code                  |
-|        | 0xcb6d |        |                                      | start fill with zero bytes               | 0x892=2194  |
+|        | 0xcb6d |        |                                      | start fill with zero bytes               | 0x892=2194            |
 |        | 0xd3ff |        |                                      | end of 0xc000 area                       |
 | 0xd400 |        | 0x3400 | code_p_d400                          | 0xd400 area                              |
 |        | 0xd896 |        |                                      | end of code_p_d400 area code             |
-|        | 0xd897 |        |                                      | start fill with zero bytes               | 0x348=840   |
+|        | 0xd897 |        |                                      | start fill with zero bytes               | 0x348=840 SCREEN+KBD  |
 |        | 0xdbdf |        |                                      | end of code_p_d400 area                  |  
 | 0xdbe0 |        | 0x3be0 | code_p_dbe0                          | small area for variables, size 0x20      |
 | 0xdc00 |        |        |                                      | a var here?                              |
 | 0xde00 |        |        |                                      | a var here?                              |
-| 0xe800 |        | 0x4800 | code_p_endfill                       | start of fill bytes 0x20,0x83            | 0x10fe=4350 |
+| 0xe800 |        | 0x4800 | code_p_endfill                       | start of fill bytes 0x20,0x83            | 0x10fe=4350           |
 | 0xf8fe |        |        | _file_end                            | end of file, last byte                   |
 
-Monitor-vaxman original source 0x8d1=2257 bytes size. 
+Monitor w/o Disassembler: 0x711 = 1809 bytes. 
 
 Monitor with Disassembler: 0x121b = 4635 bytes. 
 

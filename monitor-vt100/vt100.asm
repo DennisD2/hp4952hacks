@@ -1,7 +1,7 @@
 HP_4952_Target:      equ 001h
 CPC_Target:          equ 000h
 
-DISASS:              equ 001h
+DISASS:              equ 000h
 
 ; z80dasm 1.1.6
 ; command line: z80dasm -t -a -g 0xa000 -o x.asm VT100.no_header
@@ -170,7 +170,6 @@ _fileflags:
 _entryaddr:
 	;jp 0a497h		;a147	c3 97 a4 	. . .
     jp __init
-    ;jp initialize       ; call monitor
 
 ;; Some applications define main application entry point here
 ;; See  lib/strap.asm
@@ -352,6 +351,7 @@ _load_dll_stub:
     ;; 0a180h -> num_fixups
 	ld ix,__dll_fixups		        ;a41e	dd 21 90 a1 	. ! . .
 	ld bc,(num_fixups)		;a422	ed 4b 80 a1 	. K . .
+la426h:
     ld l,(ix+000h)                  ;
     ld h,(ix+001h)                  ;
     ld e,(hl)                       ; Read L Byte
@@ -371,7 +371,7 @@ _load_dll_stub:
     dec bc                          ;
     ld a,b                          ;
     or c                            ;
-    jr nz,$-34                      ; More entries?
+    jr nz,la426h                      ; More entries?
     ret                             ;
 
 ;; Local temp index variable
@@ -543,14 +543,14 @@ loop_a4d4:
 	push hl			;a517	e5 	.                       ; save hl
 	call 01109h		;a518	cd 09 11 	. . . 			; ;; call main menu handler	, Patched to 02eceh
 	pop hl			;a51b	e1 	.                       ; restore hl
-	jr $+11		;a51c	18 09 	. .                     ; uncoditioned jr to l_a52d
+	jr la527h		;a51c	18 09 	. .                     ; uncoditioned jr to l_a52d
 l_a51e:
 	call set_3f12_to_2		;a51e	cd ec a8 	. . .
 	call write_dbe0		;a521	cd 3f a5 	. ? .
 
     call f_2cfc + app_target_area-_splash_screen_data
 	;call 02cfch		;a524	cd fc 2c 	. . ,
-
+la527h:
 	ld hl,0761ch		;a527	21 1c 76 	! . v       ; (a4cbh):=0x761
 	ld (var_word_a4cb),hl		;a52a	22 cb a4 	" . .   ;
 l_a52d:
@@ -585,96 +585,103 @@ loop_delay_a54e:
 	dec hl			;a54e	2b 	+ 
 	ld a,l			;a54f	7d 	} 
 	or h			;a550	b4 	. 
-	jr nz,$-3		;a551	20 fb 	  .             ; -> loop_delay_a54e
-
-	call read_dbe0		;a553	cd 33 a5 	. 3 .   ; read back what we just wrote
-	call f_a5f9		;a556	cd f9 a5 	. . .
-	call 0a6e7h		;a559	cd e7 a6 	. . . 
-	call 0a6e7h		;a55c	cd e7 a6 	. . . 
-	call 0a702h		;a55f	cd 02 a7 	. . . 
-	call 0a702h		;a562	cd 02 a7 	. . . 
-	call 0a56fh		;a565	cd 6f a5 	. o . 
-	call 0a606h		;a568	cd 06 a6 	. . . 
+	jr nz,loop_delay_a54e		;a551	20 fb 	  .
+	call read_dbe0		;a553	cd 33 a5 	. 3 .
+	call sub_a5f9h		;a556	cd f9 a5 	. . .
+	call sub_a6e7h		;a559	cd e7 a6 	. . .
+	call sub_a6e7h		;a55c	cd e7 a6 	. . .
+	call sub_a702h		;a55f	cd 02 a7 	. . .
+	call sub_a702h		;a562	cd 02 a7 	. . .
+	call sub_a56fh		;a565	cd 6f a5 	. o .
+	call sub_a606h		;a568	cd 06 a6 	. . .
 	call write_dbe0		;a56b	cd 3f a5 	. ? .
 	ret			;a56e	c9 	. 
-
-    ; checks b against several values
-	call 0af71h		;a56f	cd 71 af 	. q . 
-	jr z,$+69		;a572	28 43 	( C 
+sub_a56fh:
+	call sub_af71h		;a56f	cd 71 af 	. q .
+	jr z,la5b7h		;a572	28 43 	( C
 	ld a,(03f01h)		;a574	3a 01 3f 	: . ? 
 	and c			;a577	a1 	. 
 	ld c,a			;a578	4f 	O 
-	jp p,0a580h		;a579	f2 80 a5 	. . . 
+	jp p,la580h		;a579	f2 80 a5 	. . .
 	res 7,b		;a57c	cb b8 	. . 
 	res 6,b		;a57e	cb b0 	. . 
-	ld a,c			;a580	79 	y 
+la580h:
+	ld a,c			;a580	79 	y
 	cp 020h		;a581	fe 20 	.   
-	jr nc,$+28		;a583	30 1a 	0 . 
+	jr nc,la59fh		;a583	30 1a 	0 .
 	cp 01bh		;a585	fe 1b 	. . 
-	jr z,$+24		;a587	28 16 	( . 
+	jr z,la59fh		;a587	28 16 	( .
 	cp 00ah		;a589	fe 0a 	. . 
-	jr z,$+20		;a58b	28 12 	( . 
+	jr z,la59fh		;a58b	28 12 	( .
 	cp 00dh		;a58d	fe 0d 	. . 
-	jr z,$+16		;a58f	28 0e 	( . 
+	jr z,la59fh		;a58f	28 0e 	( .
 	cp 008h		;a591	fe 08 	. . 
-	jr z,$+12		;a593	28 0a 	( . 
+	jr z,la59fh		;a593	28 0a 	( .
 	cp 007h		;a595	fe 07 	. . 
-	jr z,$+8		;a597	28 06 	( . 
+	jr z,la59fh		;a597	28 06 	( .
 	ld a,(03f0eh)		;a599	3a 0e 3f 	: . ? 
 	or a			;a59c	b7 	. 
-	jr z,$+7		;a59d	28 05 	( . 
+	jr z,la5a4h		;a59d	28 05 	( .
+la59fh:
 	push bc			;a59f	c5 	. 
-	call 0aa21h		;a5a0	cd 21 aa 	. ! . 
+	call sub_aa21h		;a5a0	cd 21 aa 	. ! .
 	pop bc			;a5a3	c1 	. 
-	ld a,005h		;a5a4	3e 05 	> . 
+la5a4h:
+	ld a,005h		;a5a4	3e 05 	> .
 	cp c			;a5a6	b9 	. 
-	jr nz,$+14		;a5a7	20 0c 	  . 
+	jr nz,la5b5h		;a5a7	20 0c 	  .
 	ld a,(03f06h)		;a5a9	3a 06 3f 	: . ? 
 	cp 001h		;a5ac	fe 01 	. . 
-	jr nz,$+7		;a5ae	20 05 	  . 
+	jr nz,la5b5h		;a5ae	20 05 	  .
 	ld a,006h		;a5b0	3e 06 	> . 
-	call 0a912h		;a5b2	cd 12 a9 	. . . 
-	jr $-70		;a5b5	18 b8 	. . 
+	call sub_a912h		;a5b2	cd 12 a9 	. . .
+la5b5h:
+	jr sub_a56fh		;a5b5	18 b8 	. .
+la5b7h:
 	ei			;a5b7	fb 	. 
-	call 0a71dh		;a5b8	cd 1d a7 	. . . 
-	jr z,$+59		;a5bb	28 39 	( 9 
-	jp nc,0a5d5h		;a5bd	d2 d5 a5 	. . . 
-	call 0a912h		;a5c0	cd 12 a9 	. . . 
+	call sub_a71dh		;a5b8	cd 1d a7 	. . .
+	jr z,la5f6h		;a5bb	28 39 	( 9
+	jp nc,la5d5h		;a5bd	d2 d5 a5 	. . .
+	call sub_a912h		;a5c0	cd 12 a9 	. . .
 	cp 00dh		;a5c3	fe 0d 	. . 
-	jr nz,$+49		;a5c5	20 2f 	  / 
+	jr nz,la5f6h		;a5c5	20 2f 	  /
 	ld a,(03f10h)		;a5c7	3a 10 3f 	: . ? 
 	cp 001h		;a5ca	fe 01 	. . 
-	jr nz,$+42		;a5cc	20 28 	  ( 
+	jr nz,la5f6h		;a5cc	20 28 	  (
 	ld a,00ah		;a5ce	3e 0a 	> . 
-	call 0a912h		;a5d0	cd 12 a9 	. . . 
-	jr $+35		;a5d3	18 21 	. ! 
+	call sub_a912h		;a5d0	cd 12 a9 	. . .
+	jr la5f6h		;a5d3	18 21 	. !
+la5d5h:
 	cp 0f8h		;a5d5	fe f8 	. . 
 	ret z			;a5d7	c8 	. 
 
     ; checks a against 0xfa,fb,ff and calls functions
 	cp 0fah		;a5d8	fe fa 	. . 
-	jr nz,$+7		;a5da	20 05 	  . 
-	call 0a922h		;a5dc	cd 22 a9 	. " . 
-	jr $+23		;a5df	18 15 	. . 
+	jr nz,la5e1h		;a5da	20 05 	  .
+	call sub_a922h		;a5dc	cd 22 a9 	. " .
+	jr la5f6h		;a5df	18 15 	. .
+la5e1h:
 	cp 0fbh		;a5e1	fe fb 	. . 
-	jr nz,$+7		;a5e3	20 05 	  . 
-	call 0a702h		;a5e5	cd 02 a7 	. . . 
-	jr $+14		;a5e8	18 0c 	. . 
+	jr nz,la5eah		;a5e3	20 05 	  .
+	call sub_a702h		;a5e5	cd 02 a7 	. . .
+	jr la5f6h		;a5e8	18 0c 	. .
+la5eah:
 	cp 0ffh		;a5ea	fe ff 	. . 
-	jr nz,$+7		;a5ec	20 05 	  . 
-	call 0a6e7h		;a5ee	cd e7 a6 	. . . 
-	jr $+5		;a5f1	18 03 	. . 
-	call 0a9e0h		;a5f3	cd e0 a9 	. . . 
-	jp 0a56fh		;a5f6	c3 6f a5 	. o .
-
-f_a5f9:
-	call fun_a9d7		;a5f9	cd d7 a9 	. . .
-	call 0a6d4h		;a5fc	cd d4 a6 	. . . 
-	call 0aee5h		;a5ff	cd e5 ae 	. . . 
-	call 0a87bh		;a602	cd 7b a8 	. { . 
+	jr nz,la5f3h		;a5ec	20 05 	  .
+	call sub_a6e7h		;a5ee	cd e7 a6 	. . .
+	jr la5f6h		;a5f1	18 03 	. .
+la5f3h:
+	call sub_a9e0h		;a5f3	cd e0 a9 	. . .
+la5f6h:
+	jp sub_a56fh		;a5f6	c3 6f a5 	. o .
+sub_a5f9h:
+	call sub_a9d7h		;a5f9	cd d7 a9 	. . .
+	call sub_a6d4h		;a5fc	cd d4 a6 	. . .
+	call sub_aee5h		;a5ff	cd e5 ae 	. . .
+	call sub_a87bh		;a602	cd 7b a8 	. { .
 	ret			;a605	c9 	. 
-
-	call 0a8e3h		;a606	cd e3 a8 	. . .
+sub_a606h:
+	call sub_a8e3h		;a606	cd e3 a8 	. . .
 la609h:
 	ret			;a609	c9 	.
 
@@ -773,37 +780,38 @@ la67ch:
 	pop ix		;a6cd	dd e1 	. . 
 	jp 01103h		;a6cf	c3 03 11 	. . . ; Patched to ecch
 la6d2h:
-	jr nz,$+34		;a6d2	20 20
+	jr nz,la6f4h		;a6d2	20 20
 sub_a6d4h:
 	call 01961h		;a6d4	cd 61 19 	. a . ; Patched to d9ch
 	call 01982h		;a6d7	cd 82 19 	. . . ; Patched to d06h
 	xor a			;a6da	af 	. 
 	ld (07e00h),a		;a6db	32 00 7e 	2 . ~ 
 	ld a,020h		;a6de	3e 20 	>   
-	ld (0a6d2h),a		;a6e0	32 d2 a6 	2 . . 
-	ld (0a6d3h),a		;a6e3	32 d3 a6 	2 . . 
+	ld (la6d2h),a		;a6e0	32 d2 a6 	2 . .
+	ld (la6d2h+1),a		;a6e3	32 d3 a6 	2 . .
 	ret			;a6e6	c9 	. 
 
-f_a6e7:
-	ld a,(0a6d2h)		;a6e7	3a d2 a6 	: . .   ; (0a6d2h)==0x20 SPACE ?
+sub_a6e7h:
+;f_a6e7:
+	ld a,(la6d2h)		;a6e7	3a d2 a6 	: . .   ; (0a6d2h)==0x20 SPACE ?
 	cp 020h		;a6ea	fe 20 	.   
 	jr nz,la6f2h		;a6ec	20 04 	  .             ; no -> l_a6f2
-	ld a,02ah		;a6ee	3e 2a 	> *             ; yes , a:=2a
-	jr $+4		;a6f0	18 02 	. .                 ; -> l_a6f4
+	ld a,02ah		;a6ee	3e 2a 	> *                 ; yes , a:=2a
+	jr la6f4h		;a6f0	18 02 	. .                 ; -> l_a6f4
 la6f2h:
 	ld a,020h		;a6f2	3e 20 	>               ; a:=0x20
 la6f4h:
     ; copies a to 0a6d2, calls a function and reads a from 0a6d2
-	ld (0a6d2h),a		;a6f4	32 d2 a6 	2 . .   ; (0a6d2h):=a
+	ld (la6d2h),a		;a6f4	32 d2 a6 	2 . .   ; (0a6d2h):=a
 	call set_byte_4346		;a6f7	cd b2 ab 	. . .   ; a -> 0x4346 var
-	ld a,(0a6d2h)		;a6fa	3a d2 a6 	: . .   ; read back 0a6d2h
+	ld a,(la6d2h)		;a6fa	3a d2 a6 	: . .   ; read back 0a6d2h
 	ret			;a6fd	c9 	. 
 
 read_a6d2:
 	ld a,(la6d2h)		;a6fe	3a d2 a6 	: . .   ; a:=(0a6d2h)
 	ret			;a701	c9 	. 
-
-	ld a,(0a6d3h)		;a702	3a d3 a6 	: . .   : a:= (0a6d3)
+sub_a702h:
+	ld a,(la6d2h+1)		;a702	3a d3 a6 	: . .   : a:= (0a6d3)
 	cp 020h		;a705	fe 20 	.                   ; a==SPACE?
 	jr nz,la70dh 	;a707	20 04 	  .             ; no, -> l_a70d
 	ld a,02ah		;a709	3e 2a 	> *             ; yes, a:=0x2a, '*'
@@ -811,13 +819,11 @@ read_a6d2:
 la70dh:
 	ld a,020h		;a70d	3e 20 	>
 la70fh:
-;l_a70f:
-	ld (0a6d3h),a		;a70f	32 d3 a6 	2 . . ^ ; a6d3h:=a
+	ld (la6d2h+1),a		;a70f	32 d3 a6 	2 . .
 	call set_byte_4372		;a712	cd b6 ab 	. . .
-	ld a,(0a6d3h)		;a715	3a d3 a6 	: . .   ; a:=a6d3h
+	ld a,(la6d2h+1)		;a715	3a d3 a6 	: . .
 	ret			;a718	c9 	. 
-
-	ld a,(0a6d3h)		;a719	3a d3 a6 	: . . 
+	ld a,(la6d2h+1)		;a719	3a d3 a6 	: . .
 	ret			;a71c	c9 	. 
 
 sub_a71dh:
@@ -890,51 +896,50 @@ l_a765:
 	ld a,02ah		;a773	3e 2a 	> *             ; (0a6d3h):= 0x2a *
 	ld (0a6d3h),a		;a775	32 d3 a6 	2 . .   ;
 	call set_byte_4372		;a778	cd b6 ab 	. . .
-	jr $-58		;a77b	18 c4 	. .                 ; -> l_a723
+	jr la741h		;a77b	18 c4 	. .                 ; -> l_a723
 
 la77dh:
 l_a77d:
 	ld (0a6d3h),a		;a77d	32 d3 a6 	2 . .
 	call set_byte_4372		;a780	cd b6 ab 	. . .
 la783h:
-    xor a
-    ret
+	xor a			;a783	af 	.
+	ret			;a784	c9 	.
 
 sub_a785h:
 	cp 03ah		;a785	fe 3a 	. :         ; a>0x3a ':' ?
-	jr nc,$+5		;a787	30 03 	0 .     ; yes -> l_a78b
-l_a789:
+	jr nc,la78ch		;a787	30 03 	0 .     ; yes -> l_a78b
+;l_a789:
     ; a is a number
     ; returns int value from '1'-'9', 0x31 -> 0x1
 	sub 030h		;a789	d6 30 	. 0
-l_a78b:
+;l_a78b:
 	ret			;a78b	c9 	. 
 
 la78ch:
-	sub 057h		;a78c	d6 57 	. W
-	ret p			;a78e	f0 	. 
-
+	sub 057h		;a78c	d6 57 	. W 
+	ret p			;a78e	f0 	.
 	add a,020h		;a78f	c6 20 	.   
 	ret			;a791	c9 	.
 
     ; this below does not look like code, opcodes all ff, fb etc.
 la792h:
-	ret m			;a792	f8 	.
+	ret m			;a792	f8 	. 
 	rst 38h			;a793	ff 	. 
 	cp 0fdh		;a794	fe fd 	. .     ; a795 is function entry from above !?!
 	call m,0fafbh		;a796	fc fb fa 	. . .
 	ld sp,hl			;a799	f9 	. 
 	rst 18h			;a79a	df 	.
 
-l_a79b:
+;l_a79b:
 	dec c			;a79b	0d 	. 
 	ex af,af'			;a79c	08 	. 
 	rst 18h			;a79d	df 	. 
 	dec c			;a79e	0d 	. 
 	dec c			;a79f	0d 	. 
 	dec c			;a7a0	0d 	.
-l_a7a1:
-	jr nz,$+50		;a7a1	20 30 	  0     ; --> a7f1, but there is data
+;l_a7a1:
+	jr nz,la7d3h		;a7a1	20 30 	  0     ; --> a7f1, but there is data
 	                                        ; also, in case "z", we run into data
 
 ;; character array follows, containing 0-9,a-z, A-Z,
@@ -943,8 +948,9 @@ l_a7a1:
 	defb "[\\]^_"
 
 la7d2h:
-    defb 0f8h
-    ;ret m			;a7d2	f8 	.
+    ;defb 0f8h
+    ret m			;a7d2	f8 	.
+la7d3h:
     ; next lines until defb do not look like code
     defb 0ffh, 0feh, 0fdh, 0fch, 0fbh, 0fah, 0f9h, 0f7h, 0f6h, 0f5h, 0f4h
     defb 00dh, 00dh, 00dh
@@ -1106,7 +1112,7 @@ sub_a8e3h:
     ; waits for dff0==0 an then writes 5 to it
 	call waitforz_dff0_a897		;a8e3	cd 97 a8 	. . .
 	ld a,005h		;a8e6	3e 05 	> .             ; (0dff0h):=5
-	ld (0dff0h),a		;a8e8	32 f0 df 	2 . . 
+	ld (ldff0h),a		;a8e8	32 f0 df 	2 . .
 	ret			;a8eb	c9 	. 
 
 set_3f12_to_2:
@@ -1164,7 +1170,7 @@ la92dh:
 	ret			;a93f	c9 	. 
 
 la940h:
-	nop			;a940	00 	.
+	nop			;a940	00 	. 
 	ld b,b			;a941	40 	@
 la942h:
 	nop			;a942	00 	.
@@ -1244,7 +1250,7 @@ sub_a9a4h:
 	ret			;a9af	c9 	. 
 
 sub_a9b0h:
-	xor a			;a9b0	af 	.
+	xor a			;a9b0	af 	. 
 	ld (la944h),a		;a9b1	32 44 a9 	2 D .
 	ld hl,(la940h)		;a9b4	2a 40 a9 	* @ .
 	call sub_a99fh		;a9b7	cd 9f a9 	. . .
@@ -1318,7 +1324,7 @@ set_var_byte_a9c6:
 	ld (var_byte_a9c6),a		;a9d3	32 c6 a9 	2 . .
 	ret			            ;a9d6	c9 	.
 
-fun_a9d7:
+sub_a9d7h:
     ; a:=1
 	ld a,001h		;a9d7	3e 01 	> .
 	ld (var_byte_a9c5),a		;a9d9	32 c5 a9 	2 . .
@@ -1364,7 +1370,7 @@ laa1dh:
 laa20h:
 	ret			;aa20	c9 	.
 sub_aa21h:
-	ld a,(0af9dh)		;aa21	3a 9d af 	: . .
+	ld a,(laf9dh)		;aa21	3a 9d af 	: . .
 	or a			;aa24	b7 	.
 	jp nz,lafech		;aa25	c2 ec af 	. . .
 	ld a,c			;aa28	79 	y
@@ -1461,7 +1467,7 @@ sub_aa9ah:
 	ld l,000h		;aaab	2e 00 	. .
 laaadh:
 	cp 020h		;aaad	fe 20 	.
-	jr c,$+7		;aaaf	38 05 	8 .
+	jr c,laab6h		;aaaf	38 05 	8 .
 	sub 010h		;aab1	d6 10 	. .
 	inc l			;aab3	2c 	,
 	jr laaadh		;aab4	18 f7 	. .
@@ -1476,10 +1482,10 @@ laab6h:
 	ld a,(var_byte_a9bf)		;aac1	3a bf a9 	: . .
 	ld l,013h		;aac4	2e 13 	. .
 	cp 015h		    ;aac6	fe 15 	. .
-	jr nc,$+11		;aac8	30 09 	0 .
+	jr nc,laad3h		;aac8	30 09 	0 .
 	ld l,008h		;aaca	2e 08 	. .
 	cp 013h		    ;aacc	fe 13 	. .
-	jr c,$+5		;aace	38 03 	8 .
+	jr c,laad3h		;aace	38 03 	8 .
 	ld hl,(var_byte_a9c4)		;aad0	2a c4 a9 	* . .
 laad3h:
 	sub l			;aad3	95 	.
@@ -1488,14 +1494,14 @@ laad3h:
 	ld (var_byte_aa98),a		;aad8	32 98 aa 	2 . .
 	ld a,(var_byte_a9c5)		;aadb	3a c5 a9 	: . .
 	or a			;aade	b7 	.
-	jr nz,$+17		;aadf	20 0f 	  .
+	jr nz,laaf0h		;aadf	20 0f 	  .
 	ld a,(var_byte_a9c4)		;aae1	3a c4 a9 	: . .
 	cp l			;aae4	bd 	.
-	jr nz,$+11		;aae5	20 09 	  .
+	jr nz,laaf0h		;aae5	20 09 	  .
 	ld hl,(var_byte_aa99)		;aae7	2a 99 aa 	* . .
 	ld a,(var_byte_a9c1)		;aaea	3a c1 a9 	: . .
 	cp l			;aaed	bd 	.
-	jr z,$+31		;aaee	28 1d 	( .
+	jr z,lab0dh		;aaee	28 1d 	( .
 laaf0h:
 	ld a,(var_byte_aa99)		;aaf0	3a 99 aa 	: . .
 	ld (var_byte_a9c1),a		;aaf3	32 c1 a9 	2 . .
@@ -1538,7 +1544,7 @@ lab48h:
 	sub 00ah		;ab48	d6 0a 	. .
 	jr c,lab51h			;ab4a	38 05 	8 .
 	inc (ix-002h)		;ab4c	dd 34 fe 	. 4 .
-	jr $-7		;ab4f	18 f7 	. .
+	jr lab48h		;ab4f	18 f7 	. .
 lab51h:
 	add a,00ah		;ab51	c6 0a 	. .
 	add a,030h		;ab53	c6 30 	. 0
@@ -1557,26 +1563,30 @@ sub_ab59h:
 	add hl,de			;ab67	19 	.
 	ld a,(var_byte_a9c4)		;ab68	3a c4 a9 	: . .
 	cp 008h		;ab6b	fe 08 	. .
-	jr z,$+6		;ab6d	28 04 	( .
+	jr z,lab73h		;ab6d	28 04 	( .
 	ld de,0000eh		;ab6f	11 0e 00 	. . .
 	add hl,de			;ab72	19 	.
+lab73h:
 	ld e,(hl)			;ab73	5e 	^
 	inc hl			;ab74	23 	#
 	ld d,(hl)			;ab75	56 	V
 	ld hl,043c2h		;ab76	21 c2 43 	! . C
+lab79h:
 	ld a,(de)			;ab79	1a 	.
 	or a			;ab7a	b7 	.
 	ret z			;ab7b	c8 	.
-
+lab7ch:
 	ld (hl),a			;ab7c	77 	w
 	inc de			;ab7d	13 	.
 	inc hl			;ab7e	23 	#
 	inc hl			;ab7f	23 	#
-	jr $-7		;ab80	18 f7 	. .
+	jr lab79h		;ab80	18 f7 	. .
+lab82h:
 	and c			;ab82	a1 	.
 	xor e			;ab83	ab 	.
 	and l			;ab84	a5 	.
 	xor e			;ab85	ab 	.
+lab86h:
 	and b			;ab86	a0 	.
 	xor e			;ab87	ab 	.
 	and h			;ab88	a4 	.
@@ -1599,26 +1609,31 @@ sub_ab59h:
 	xor e			;ab99	ab 	.
 	xor l			;ab9a	ad 	.
 	xor e			;ab9b	ab 	.
+lab9ch:
 	xor b			;ab9c	a8 	.
 	xor e			;ab9d	ab 	.
 	sbc a,d			;ab9e	9a 	.
 	sbc a,d			;ab9f	9a 	.
 	sbc a,d			;aba0	9a 	.
 	or e			;aba1	b3 	.
+laba2h:
 	nop			;aba2	00 	.
 	sbc a,d			;aba3	9a 	.
 	sbc a,d			;aba4	9a 	.
 	or d			;aba5	b2 	.
 	or c			;aba6	b1 	.
 	nop			;aba7	00 	.
+laba8h:
 	sbc a,d			;aba8	9a 	.
 	sbc a,d			;aba9	9a 	.
 	sbc a,d			;abaa	9a 	.
 	cp h			;abab	bc 	.
+labach:
 	nop			;abac	00 	.
 	sbc a,d			;abad	9a 	.
 	sbc a,d			;abae	9a 	.
 	cp b			;abaf	b8 	.
+labb0h:
 	or h			;abb0	b4 	.
 	nop			;abb1	00 	.
 set_byte_4346:
@@ -1631,32 +1646,37 @@ set_byte_4372:
 	ret			;abb9	c9 	.
 sub_abbah:
 	ld hl,0000dh		;abba	21 0d 00 	! . .
+labbdh:
 	dec l			;abbd	2d 	-
 	push hl			;abbe	e5 	.
-	call 0acd0h		;abbf	cd d0 ac 	. . .
+	call sub_acd0h		;abbf	cd d0 ac 	. . .
+labc2h:
 	pop hl			;abc2	e1 	.
 	push hl			;abc3	e5 	.
-	call 0a945h		;abc4	cd 45 a9 	. E .
+	call la944h+1		;abc4	cd 45 a9 	. E .
 	pop hl			;abc7	e1 	.
 	ld a,h			;abc8	7c 	|
 	or l			;abc9	b5 	.
-	jr nz,$-13		;abca	20 f1 	  .
+	jr nz,labbdh		;abca	20 f1 	  .
+labcch:
 	ret			;abcc	c9 	.
 
 sub_abcdh:
 	ld hl,0000dh		;abcd	21 0d 00 	! . .
-	ld de,0abefh		;abd0	11 ef ab 	. . .
-	call 0a945h		;abd3	cd 45 a9 	. E .
+	ld de,labefh		;abd0	11 ef ab 	. . .
+	call la944h+1		;abd3	cd 45 a9 	. E .
 	ld hl,0000eh		;abd6	21 0e 00 	! . .
-	ld de,0ac2fh		;abd9	11 2f ac 	. / .
-	call 0a945h		;abdc	cd 45 a9 	. E .
+	ld de,lac2fh		;abd9	11 2f ac 	. / .
+labdch:
+	call la944h+1		;abdc	cd 45 a9 	. E .
 	ld hl,0000fh		;abdf	21 0f 00 	! . .
-	ld de,0ac6fh		;abe2	11 6f ac 	. o .
-	call 0a945h		;abe5	cd 45 a9 	. E .
+	ld de,lac6fh		;abe2	11 6f ac 	. o .
+	call la944h+1			;abe5	cd 45 a9 	. E .
 	call read_a6d2		;abe8	cd fe a6 	. . .
 	call set_byte_4346		;abeb	cd b2 ab 	. . .
 	ret			;abee	c9 	.
 
+labefh:
     ;; "Cap  "
     defb "C",0abh,"a",0abh, "p", 0abh, " ", 0abh, " ", 083h
 	;ld b,e			;abef	43 	C
@@ -1702,27 +1722,38 @@ sub_abcdh:
 
     ;; Hex Break Lock
 	ld c,b			;ac19	48 	H
+lac1ah:
 	xor e			;ac1a	ab 	.
 	ld h,l			;ac1b	65 	e
 	xor e			;ac1c	ab 	.
 	ld a,b			;ac1d	78 	x
+lac1eh:
 	xor e			;ac1e	ab 	.
-	jr nz,$-83		;ac1f	20 ab 	  .
+	jr nz,labcch		;ac1f	20 ab 	  .
 	jr nz,$-83		;ac21	20 ab 	  .
-	jr nz,$-123		;ac23	20 83 	  .
+	jr nz,laba8h		;ac23	20 83 	  .
 	ld b,d			;ac25	42 	B
+lac26h:
 	xor e			;ac26	ab 	.
 	ld (hl),d			;ac27	72 	r
+lac28h:
 	xor e			;ac28	ab 	.
 	ld h,l			;ac29	65 	e
+lac2ah:
 	xor e			;ac2a	ab 	.
 	ld h,c			;ac2b	61 	a
+lac2ch:
 	xor e			;ac2c	ab 	.
+lac2dh:
 	ld l,e			;ac2d	6b 	k
+lac2eh:
 	xor e			;ac2e	ab 	.
+lac2fh:
 	ld c,h			;ac2f	4c 	L
+lac30h:
 	xor e			;ac30	ab 	.
 	ld l,a			;ac31	6f 	o
+lac32h:
 	xor e			;ac32	ab 	.
 	ld h,e			;ac33	63 	c
 	xor e			;ac34	ab 	.
@@ -1759,9 +1790,7 @@ sub_abcdh:
 	xor e			;ac54	ab 	.
 	ld l,l			;ac55	6d 	m
 	xor e			;ac56	ab 	.
-	jr nz,$-123		;ac57	20 83 	  .
-
-	;; "Entr "
+	jr nz,labdch		;ac57	20 83 	  .
 	ld b,l			;ac59	45 	E
 	xor e			;ac5a	ab 	.
 	ld l,(hl)			;ac5b	6e 	n
@@ -1778,6 +1807,7 @@ sub_abcdh:
 	jr nz,$-83		;ac69	20 ab 	  .
 	jr nz,$-83		;ac6b	20 ab 	  .
 	jr nz,$-83		;ac6d	20 ab 	  .
+lac6fh:
 	sbc a,h			;ac6f	9c 	.
 	add a,d			;ac70	82 	.
 	sbc a,d			;ac71	9a 	.
@@ -1861,8 +1891,8 @@ fun_acaf_loop:
 	ei			;acce	fb 	.                       ;
 	ret			;accf	c9 	.
 ; end of fun_acaf
-
-	call 0acf8h		;acd0	cd f8 ac 	. . .
+sub_acd0h:
+	call sub_acf8h		;acd0	cd f8 ac 	. . .
 	ld a,(var_byte_a9c1)		;acd3	3a c1 a9 	: . .
 	ld e,a			;acd6	5f 	_
 	ld d,000h		;acd7	16 00 	. .
@@ -2128,10 +2158,11 @@ sub_ae3ch:
 sub_ae5eh:
 ;; '0' handling 0x30
 	cp 000h		;ae5e	fe 00 	. .                         ; a==0x0?
-	jr z,$+6		;ae60	28 04 	( .                     ; jp l_ae69
+	jr z,lae66h		;ae60	28 04 	( .                     ; jp l_ae69
 
 	cp 030h		;ae62	fe 30 	. 0                         ; a==0x30? (RS)
-	jr nz,$+26		;ae64	20 18 	  .                     ; jp l_ae7e
+	jr nz,lae7eh		;ae64	20 18 	  .                     ; jp l_ae7e
+lae66h:
 	ld hl,(var_word_a9bd)		;ae66	2a bd a9 	* . .   ; hl:=var_word_a9bd
 l_ae69:
 	ld de,(var_word_a9bd)		;ae69	ed 5b bd a9 	. [ . . ; de:=var_word_a9bd
@@ -2146,6 +2177,7 @@ l_ae69:
 	ret			;ae7d	c9 	.
 
 ;; '1' handling
+lae7eh:
 l_ae7e:
 	cp 031h		;ae7e	fe 31 	. 1                         ; a==0x31?
 	jr nz,lae97h		;ae80	20 15 	  .                     ; lae97h
@@ -2208,7 +2240,7 @@ l_aed6:
 	ret			;aed6	c9 	. 
 
 laed7h:
-;; again, '2' handling???
+;; again, '2' handling???	
 	cp 032h		;aed7	fe 32 	. 2                         ; a==0x32?
 	ret nz			;aed9	c0 	.                           ; np, return
 
@@ -2307,8 +2339,8 @@ sub_af71h:
 laf76h:
 	ld a,(lde07h)		;af76	3a 07 de 	: . .
 	or a			;af79	b7 	. 
-	jr nz,$-4		;af7a	20 fa 	  . 
-	ld hl,(0de04h)		;af7c	2a 04 de 	* . . 
+	jr nz,laf76h		;af7a	20 fa 	  .
+	ld hl,(lde04h)		;af7c	2a 04 de 	* . .
 	ld a,h			;af7f	7c 	| 
 	or l			;af80	b5 	. 
 	jr z,laf97h		;af81	28 14 	( .
@@ -2758,6 +2790,8 @@ lb260h:
 
 ;	in original file, we have "nop"	until 0bfffh.
 
+; DD -2-
+include "lib/monitor-i.asm"
 
 ;------------------------------------------------------------------
 ; c000 area
@@ -2857,13 +2891,16 @@ f_2b23:
 	ld (0761fh),hl		;c12c	22 1f 76 	" . v
 	ld (07624h),hl		;c12f	22 24 76 	" $ v   ; (07624) := 2a7b
 	ld a,(_tmp_page)	;c132	3a 96 a4 	: . .
+lc135h:
 	call os_loadpage    ;c135	cd 60 0e 	. ` .   ; Patched to 02d02h, Page-in _tmp_page
 	ld hl,08326h		;c138	21 26 83 	! & .   ; hl:=08326h
+lc13bh:
 	ld e,(hl)			;c13b	5e 	^               ; de := word at 08326h
 	inc hl			    ;c13c	23 	#               ;
 	ld d,(hl)			;c13d	56 	V               ;
 	inc hl			    ;c13e	23 	#               ; hl++
 	push hl			    ;c13f	e5 	.               ; save hl
+lc140h:
 	ex de,hl			;c140	eb 	.               ; hl:=de
 	; copy 0x40 bytes from hl to space at l_2a8b
 	ld de,l_2a8b+app_target_area-_splash_screen_data		;c141	11 8b 2a 	. . *   ; de:=02a8bh
@@ -2982,7 +3019,7 @@ vt100_start_screen:
 ; POI-210
     ; Some menu structure definition
     ; 1. ref to a menu definition of type string "!...!....!"
-    ; 2. some words which are addresses to functions, being called when selting softkey for some item
+    ; 2. some words which are addresses to functions, being called when selekting softkey for some item
     ;    here, we have 6 such words (two of them are not used and have value 0)
     ; 3. back reference at the end (before menu definition string) pointing to first byte of menu structure definition
     ;
@@ -3152,7 +3189,8 @@ term_setup_screen:
 	dec bc			;c3fd	0b 	. 
 	inc de			;c3fe	13 	. 
 	inc de			;c3ff	13 	. 
-	ld bc,00101h		;c400	01 01 01 	. . . 
+lc400h:
+	ld bc,00101h		;c400	01 01 01 	. . .
 	ld bc,00101h		;c403	01 01 01 	. . . 
 	ld bc,00101h		;c406	01 01 01 	. . . 
 	nop			;c409	00 	. 
@@ -3167,9 +3205,10 @@ term_setup_screen:
 	ld a,(bc)			;c413	0a 	. 
 	ccf			;c414	3f 	? 
 	inc c			;c415	0c 	. 
-	ccf			;c416	3f 	? 
+lc416h:
+	ccf			;c416	3f 	?
 	ld c,03fh		;c417	0e 3f 	. ? 
-	djnz $+65		;c419	10 3f 	. ? 
+	djnz lc45ah		;c419	10 3f 	. ?
 	call m,0fcd9h		;c41b	fc d9 fc 	. . . 
 	exx			;c41e	d9 	. 
 	call m,0fcd9h		;c41f	fc d9 fc 	. . . 
@@ -3179,21 +3218,23 @@ term_setup_screen:
 	call m,0fcd9h		;c427	fc d9 fc 	. . . 
 	exx			;c42a	d9 	. 
 	call m,005d9h		;c42b	fc d9 05 	. . . 
-	jp c,0da05h		;c42e	da 05 da 	. . . 
+lc42eh:
+	jp c,lda05h		;c42e	da 05 da 	. . .
 	dec b			;c431	05 	. 
-	jp c,0da05h		;c432	da 05 da 	. . . 
+	jp c,lda05h		;c432	da 05 da 	. . .
 	dec b			;c435	05 	. 
-	jp c,0da05h		;c436	da 05 da 	. . . 
+	jp c,lda05h		;c436	da 05 da 	. . .
 	dec b			;c439	05 	. 
-	jp c,0da05h		;c43a	da 05 da 	. . . 
+	jp c,lda05h		;c43a	da 05 da 	. . .
 	dec b			;c43d	05 	. 
-	jp c,02e6ch		;c43e	da 6c 2e 	. l .
+	jp c,02e6ch		;c43e	da 6c 2e 	. l . ; 2e6c ? : 2e6c - 2a00 = 46c: c46c = hm maybe variable; no function!
 
 	; 2e6c : 2e6c - 2a00 = 56c: c56c but no usable result
 	ld l,h			;c441	6c 	l 
 	ld l,06ch		;c442	2e 6c 	. l 
 	ld l,06ch		;c444	2e 6c 	. l 
-	ld l,06ch		;c446	2e 6c 	. l 
+lc446h:
+	ld l,06ch		;c446	2e 6c 	. l
 	ld l,06ch		;c448	2e 6c 	. l 
 	ld l,06ch		;c44a	2e 6c 	. l 
 	ld l,06ch		;c44c	2e 6c 	. l 
@@ -3207,7 +3248,8 @@ term_setup_screen:
 	nop			;c457	00 	. 
 	nop			;c458	00 	. 
 	nop			;c459	00 	. 
-	ld l,(hl)			;c45a	6e 	n 
+lc45ah:
+	ld l,(hl)			;c45a	6e 	n
 	ld l,0deh		;c45b	2e de 	. . 
 	ld l,088h		;c45d	2e 88 	. . 
 	cpl			;c45f	2f 	/ 
@@ -3220,9 +3262,9 @@ term_setup_screen:
 	nop			;c46c	00 	. 
 	nop			;c46d	00 	. 
 	ld a,(hl)			;c46e	7e 	~ 
-	ld l,0beh		;c46f	2e be 	. .
-	ld l,0ceh		;c471	2e ce 	. . 
-	ld l,000h		;c473	2e 00 	. . 
+	ld l,0beh		;c46f	2e be 	. .     ; 2e7e ; -2a00 = 47e, c47e= ASCII 7/8 menu start ???
+	ld l,0ceh		;c471	2e ce 	. .     ; 2ebe ; -2a00 = 4be, c4be=end of ^^^?
+	ld l,000h		;c473	2e 00 	. .     ; 2ece ; ... c4ce, points to after "ASCII 8"
 	nop			;c475	00 	. 
 	nop			;c476	00 	. 
 	nop			;c477	00 	. 
@@ -3259,7 +3301,7 @@ l_c4c6:
     defw 07f20h
 	;jr nz,$+129		;c4ce	20 7f 	  
 
-    ; 2ed6-2a00=4d6 -> c4d6 -> lc4d6
+    ; 2ed6-2a00=4d6 -> c4d6 -> lc4d6, pojnts to "ASCII7 ???
 	defw 02ed6h
 	;sub 02eh		;c4d0	d6 2e 	. .
 
@@ -3343,8 +3385,10 @@ l_c53d:
  
 	inc bc			;c54c	03 	. 
 	nop			;c54d	00 	. 
-	ld d,h			;c54e	54 	T 
-	cpl			;c54f	2f 	/ 
+lc54eh:
+	ld d,h			;c54e	54 	T
+lc54fh:
+	cpl			;c54f	2f 	/
 	nop			;c550	00 	. 
 	nop			;c551	00 	. 
 	nop			;c552	00 	. 
@@ -3353,16 +3397,19 @@ l_c53d:
 	defb "Even  ", 000h
 
 	inc b			;c55b	04 	. 
-	nop			;c55c	00 	. 
+lc55ch:
+	nop			;c55c	00 	.
 	ld h,e			;c55d	63 	c 
 	cpl			;c55e	2f 	/ 
 	nop			;c55f	00 	. 
 	nop			;c560	00 	. 
-	nop			;c561	00 	. 
+lc561h:
+	nop			;c561	00 	.
 	nop			;c562	00 	. 
 
 	defb "Space ", 000h	
 
+lc56ah:
 	inc c			;c56a	0c 	. 
 	nop			;c56b	00 	. 
 	ld (hl),d			;c56c	72 	r 
@@ -3375,7 +3422,8 @@ l_c53d:
 	defb "Mark  ", 000h	
 
 	ld b,e			;c579	43 	C 
-	nop			;c57a	00 	. 
+lc57ah:
+	nop			;c57a	00 	.
 	add a,c			;c57b	81 	. 
 	cpl			;c57c	2f 	/ 
 	nop			;c57d	00 	. 
@@ -3403,11 +3451,14 @@ l_c53d:
     defb 07ch
 	;jr nz,$+126		;c5d6	20 7c 	  |
 	rst 38h			;c5d8	ff 	. 
-	rla			;c5d9	17 	. 
-	ret po			;c5da	e0 	. 
+lc5d9h:
+	rla			;c5d9	17 	.
+lc5dah:
+	ret po			;c5da	e0 	.
 
 	cpl			;c5db	2f 	/ 
-	nop			;c5dc	00 	. 
+lc5dch:
+	nop			;c5dc	00 	.
 	nop			;c5dd	00 	. 
 	nop			;c5de	00 	. 
 	nop			;c5df	00 	. 
@@ -3421,7 +3472,8 @@ l_c53d:
 	nop			;c5eb	00 	. 
 	nop			;c5ec	00 	. 
 	nop			;c5ed	00 	. 
-	
+
+	lc5eeh:
 	defb "1200 ", 000h
 	
 	rst 38h			;c5f4	ff 	. 
@@ -3444,7 +3496,7 @@ l_c53d:
 
 	cp a			;c610	bf 	. 
 	nop			;c611	00 	. 
-	jr $+50		;c612	18 30 	. 0 
+	jr $+50		;c612	18 30 	. 0
 	nop			;c614	00 	. 
 	nop			;c615	00 	. 
 	nop			;c616	00 	. 
@@ -3738,7 +3790,9 @@ l_c53d:
 fm_setup:
 	ld a,006h		;c8d4	3e 06 	> . ; Load Page 6 (Application RAM)
 	call os_loadpage		;c8d6	cd 60 0e 	. ` . ; Patched to 02d02h, Page-in 6
+lc8d9h:
 	call read_dbe0		;c8d9	cd 33 a5 	. 3 .
+lc8dch:
 	ld hl,(03f00h)		;c8dc	2a 00 3f 	* . ? 
 	push hl			;c8df	e5 	. 
 	ld hl,(03f02h)		;c8e0	2a 02 3f 	* . ? 
@@ -3751,7 +3805,7 @@ fm_setup:
 	;call 03344h		;c8ec	cd 44 33 	. D 3
 	ld hl,00032h		;c8ef	21 32 00 	! 2 .
 	push hl			;c8f2	e5 	. 
-	call 0d9f9h		;c8f3	cd f9 d9 	. . . 
+	call sub_d9f9h		;c8f3	cd f9 d9 	. . .
 	pop hl			;c8f6	e1 	. 
 	ld a,(03f12h)		;c8f7	3a 12 3f 	: . ? 
 	ld c,a			;c8fa	4f 	O 
@@ -4124,7 +4178,7 @@ code_p_d400:
 	jp 07828h		;d414	c3 28 78 	. ( x 
 ld417h:
 	call 0793dh		;d417	cd 3d 79 	. = y
-	jr z,$+14		;d41a	28 0c 	( .             ; jr l_d426
+	jr z,ld428h		;d41a	28 0c 	( .
 	ld c,l			;d41c	4d 	M 
 	ld b,h			;d41d	44 	D 
 	call 07bf5h		;d41e	cd f5 7b 	. . { 
@@ -4161,7 +4215,7 @@ ld434h:
 	jp z,0792ah		;d465	ca 2a 79 	. * y
 	pop hl			;d468	e1 	.                   ; restore hl
 	ld a,000h		;d469	3e 00 	> .             ; (0dff0h):=0
-	ld (0dff0h),a		;d46b	32 f0 df 	2 . .   ;
+	ld (ldff0h),a		;d46b	32 f0 df 	2 . .   ;
 	jp 07817h		;d46e	c3 17 78 	. . x 
 	call 079cch		;d471	cd cc 79 	. . y 
 	call 079d2h		;d474	cd d2 79 	. . y 
@@ -4170,8 +4224,7 @@ ld434h:
 
 	call 07ad9h		;d47b	cd d9 7a 	. . z 
 	ret			;d47e	c9 	. 
-
-	ld a,(0dff1h)		;d47f	3a f1 df 	: . . 
+	ld a,(ldff1h)		;d47f	3a f1 df 	: . .
 	ld c,a			;d482	4f 	O 
 	call 0798dh		;d483	cd 8d 79 	. . y 
 	ld a,(var_byte_dbea)		;d486	3a ea db 	: . .
@@ -4224,7 +4277,7 @@ ld4a5h:
 
 	call 07b9bh		;d4d3	cd 9b 7b 	. . { 
 	ld a,000h		;d4d6	3e 00 	> . 
-	ld (0dff0h),a		;d4d8	32 f0 df 	2 . . 
+	ld (ldff0h),a		;d4d8	32 f0 df 	2 . .
 	ld a,(078d2h)		;d4db	3a d2 78 	: . x 
 	ld (01994h),a		;d4de	32 94 19 	2 . . 
 	ld hl,0790eh		;d4e1	21 0e 79 	! . y 
@@ -4246,7 +4299,7 @@ ld4a5h:
 	out (000h),a		;d505	d3 00 	. . 
 	ld a,000h		;d507	3e 00 	> . 
 	ld (09dffh),a		;d509	32 ff 9d 	2 . . 
-	jr $+37		;d50c	18 23 	. # 
+	jr ld531h		;d50c	18 23 	. #
 	ld hl,(07915h)		;d50e	2a 15 79 	* . y 
 	ld (00066h),hl		;d511	22 66 00 	" f . 
 	ret			;d514	c9 	. 
@@ -4372,7 +4425,7 @@ ld596h:
 	jr nz,ld5deh		;d5d9	20 03 	  .
 	ld a,(var_byte_dbe0)		;d5db	3a e0 db 	: . .
 ld5deh:
-	or 080h		;d5de	f6 80 	. .
+	or 080h		;d5de	f6 80 	. . 
 	ld (07aadh),a		;d5e0	32 ad 7a 	2 . z 
 	or 002h		;d5e3	f6 02 	. . 
 	ld (07a92h),a		;d5e5	32 92 7a 	2 . z 
@@ -4382,7 +4435,7 @@ ld5deh:
 	jr nz,ld5f4h		;d5ef	20 03 	  .
 	ld a,(var_byte_dbe0)		;d5f1	3a e0 db 	: . .
 ld5f4h:
-	rlca			;d5f4	07 	.
+	rlca			;d5f4	07 	. 
 	or 010h		;d5f5	f6 10 	. . 
 	ld (07a90h),a		;d5f7	32 90 7a 	2 . z 
 	ld (07aabh),a		;d5fa	32 ab 7a 	2 . z 
@@ -4726,7 +4779,7 @@ ld811h:
 	ret			;d83f	c9 	. 
 ld840h:
 	xor a			;d840	af 	. 
-	ld (0de07h),a		;d841	32 07 de 	2 . . 
+	ld (lde07h),a		;d841	32 07 de 	2 . .
 	ret			;d844	c9 	. 
 
 	ld a,001h		;d845	3e 01 	> . 
@@ -4776,10 +4829,25 @@ ld870h:
 	or 0ffh		;d88f	f6 ff 	. . 
 ld891h:
 	ld a,000h		;d891	3e 00 	> .
-	ld (0de06h),a		;d893	32 06 de 	2 . . 
+	ld (lde06h),a		;d893	32 06 de 	2 . .
 	ret			;d896	c9 	.
 ;; in original file, we have nop until 0dbdfh
 
+;; DD -1-
+    ;include "lib/string.asm"
+include "lib/screen.asm"            ; e92d-e83c = 0xf1=241 bytes
+    ;include "lib/printf.asm"
+include "lib/keyb.asm"               ; e96c-e83c = 0x130=304 bytes ; screen+keyb = e9dc-e83c 0x1a0=416 bytes
+
+    org 0d9f9h
+    seek 039f9h
+sub_d9f9h:
+	nop			;d9f9	00 	.
+
+    org 0da05h
+    seek 03a05h
+lda05h:
+	nop			;da05	00 	.
 ;------------------------------------------------------------------
 ; dbe0 area
 ;------------------------------------------------------------------
@@ -4871,24 +4939,25 @@ le83ah:
 ;****************************************************************************************
 ; HP4952 footer start
 ;****************************************************************************************
-include "lib/string.asm"
-include "lib/screen.asm"
-include "lib/printf.asm"
-include "lib/keyb.asm"
-include "lib/monitor-i.asm"
 
     org 0eeffh
     seek 04effh
     defb 000h
 ;; in original file, we have nop until 0e7ffh
-	;org 0e800h
-	;seek 04800h
+	org 0e800h
+	seek 04800h
+
 code_p_endfill:
 ;; from here to file end, we have, in original app, the pattern "20 83"
 ;; so from e800/e801  to f8fe/f8ff
 ;; For unknown reason, we need to have this space, can be filled with e.g. nops.
 ;; Fill to end of file
-        ;org 0f8ffh
-        ;seek 058ffh
-        ;defb 000h
+        defb 0ffh
+        defb 0ffh
+        defb 0ffh
+        defb 0ffh
+        defb 0ffh
+        defb 0ffh
+        defb 0ffh
+
 _file_end:
