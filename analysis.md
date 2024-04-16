@@ -300,7 +300,7 @@ To summarize the code above, sub_a5f9h calls 3 OS API functions:
 * via sub_a87bh:
   * 0112dh "Patched to 2edah"
 
-01961h and 01982h both can be found in U503_04952-10026_MBM27C512.BIN.dasm.
+01961h and 01982h both can be found in ROM U503, see U503_04952-10026_MBM27C512.BIN.dasm.
 0112dh too, but this looks strange.
 
 As an example, sub_1961h:
@@ -324,7 +324,7 @@ sub_1961h:
   ret			        ;1981	c9 	.
 ```
 
-And sub_1982h:
+And sub_1982h, which is first code that does an out-call:
 ```asm
 ; seems to be OS API function 01982h, called by vt100:sub_a6d4h
 ; accesses port 0xbb, writes 0xc to that port

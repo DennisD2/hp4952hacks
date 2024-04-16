@@ -4819,7 +4819,7 @@ sub_1982h:
 	ld (07504h),hl		;1986	22 04 75 	" . u 
 	ld a,00ch		    ;1989	3e 0c 	> .
 	out (0bbh),a		;198b	d3 bb 	. . 
-	call sub_162fh		;198d	cd 2f 16 	. / . 
+	call sub_162fh		;198d	cd 2f 16 	. / .   ; does outs to port 33,32,30
 	ret			        ;1990	c9 	.
 
 l1991h:
