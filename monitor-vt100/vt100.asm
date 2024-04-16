@@ -4952,12 +4952,8 @@ code_p_endfill:
 ;; so from e800/e801  to f8fe/f8ff
 ;; For unknown reason, we need to have this space, can be filled with e.g. nops.
 ;; Fill to end of file
-        defb 0ffh
-        defb 0ffh
-        defb 0ffh
-        defb 0ffh
-        defb 0ffh
-        defb 0ffh
-        defb 0ffh
+        ;org 0f8ffh
+        ;seek 058ffh
+        ;defb 000h
 
 _file_end:
