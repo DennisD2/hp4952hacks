@@ -37601,6 +37601,7 @@ ld08eh:
 	ei			;d09b	fb 	. 
 	ret			;d09c	c9 	. 
 
+; some initialization. also for SCC
 	di			;d09d	f3 	. 
 	exx			;d09e	d9 	. 
 	ld a,070h		;d09f	3e 70 	> p 

@@ -389,7 +389,8 @@ endif
 group_error:    ld      hl, group_err_msg
                 jr      print_error
 cmd_error:      ld      hl, command_err_msg
-print_error:    call    putc            ; Echo the illegal character
+print_error:    ;call    putc            ; Echo the illegal character
+                call    print_byte
                 call    puts            ; and print the error message
                 jp      main_loop
 ;

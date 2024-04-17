@@ -499,7 +499,7 @@ looking at TMP84C00 only.
 So I came back to the approach analyzing the working VT100 app code to get a clue
 how to access SCC chip. 
 
-# VT100 app memory map
+## VT100 app memory map
 App is being loaded to 0xa0000 RAM. From there, parts are copied to fsafe RAM areas by apps own startup code.
 Menu system is set up and control is given back to menu handler.
 
@@ -550,6 +550,149 @@ this is some kind of screen data buffer (because 0x20=SPACE and 0x83 "normal tex
 Monitor w/o Disassembler: 0x711 = 1809 bytes. 
 
 Monitor with Disassembler: 0x121b = 4635 bytes. 
+
+## fm_execute SCC initialization
+inside the fm_execute function, SCC is initialized. With logic analyzer I found that the 
+initialization is done during call of sub function sub_a5f9h.
+```asm
+sub_0a54bh:
+; delay, 0x1234 times looped
+ld hl,01234h		;a54b	21 34 12 	! 4 .   ; hl:=0x1234
+loop_delay_a54e:
+dec hl			;a54e	2b 	+
+ld a,l			;a54f	7d 	}
+or h			;a550	b4 	.
+jr nz,loop_delay_a54e		;a551	20 fb 	  .
+
+	call read_dbe0		;a553	cd 33 a5 	. 3 .
+	;call monitor ; no SCC access so far
+	call sub_a5f9h		;a556	cd f9 a5 	. . .   ; calls 4 other subs; these invoke 3 OS API calls
+	call monitor ;  SCC access done, but terminal not yet running
+	call sub_a6e7h		;a559	cd e7 a6 	. . .   ; calling sub_a6e7h twice, has no subs
+	call sub_a6e7h		;a55c	cd e7 a6 	. . .   ; "
+	;call monitor ; SCC access done, but terminal not yet running
+	call sub_a702h		;a55f	cd 02 a7 	. . .   ; calling sub_a702h twice, has no subs
+	call sub_a702h		;a562	cd 02 a7 	. . .   ; "
+	;call monitor ; SCC access done, but terminal not yet running
+;;	;call sub_a56fh		;a565	cd 6f a5 	. o .   ; large function, see below
+call sub_a606h		;a568	cd 06 a6 	. . .   ; "waits for dff0==0 an then writes 5 to it"
+;call monitor ; Terminal already runs
+call write_dbe0		;a56b	cd 3f a5 	. ? .
+ret			        ;a56e	c9 	.
+```
+
+The initialization is like:
+```asm
+ret
+;address 79cf on data bus, so I guess its read from stack, return address
+; this is command read, at pc, which is now 79cf
+call 79afh
+; address 79d2 on data bus, so I guess its written to stack, return address for call above
+
+ld a,09h
+out (21h),a
+ld a,0c0h
+out (21h),a
+ld a,09h
+out (21h),a
+ld a,82h
+out (21h),a
+
+ld a,09h
+out (20h),a
+ld a,42h
+out (20h),a
+
+ld a,00h
+out (40h),a
+ret
+;address 79d2 on data bus, so I guess its read from stack, return address
+```
+
+The lines above look like content of a ROM that is mapped into memory at the time of execution. When I
+check the addresses e.g. 79af later in monitor, the content is different. But when I checked all ROMs, there
+is no such a command sequence in any ROM.
+
+Next SCC data is
+```
+4, 5c
+a, 0
+6, ff
+7, ff
+3, d0
+5, e2
+1, 0
+2, 50
+8, 50
+c, ae
+d, 0
+e, 3
+f, 0
+
+4, 5c             ; 0101.1100; 01xx. = x16 clock mode, .11xx = 2 stopbits/char
+a, 0
+6, 16 
+7, 16
+3, d0
+5, e0
+1, 0
+b, 50
+c, be (z80: ae)   ; lower byte baud rate gen 0xb3 = 190   
+d, 0              ; upper byte baud rate gen 
+e, 3              ; BRG enable, BRG clock source = PCLK pin
+f, 0
+3, d0 (z80: d1)
+
+in a,(0x23)
+
+3, d0
+3, d0
+
+...
+out (0x20),a...
+in a,(0x22)...
+
+```
+
+Data is written out in a loop:
+```asm
+  ld    a,l
+  ld    (07a9ah),a
+  ld    (07ab3h),a
+  ld    a,h
+  ld    (07a9ch),a
+  ld    (07ab5h),a
+  ld    c,021h      ; target port for outloop
+  ld    hl,07a87h
+  call  07abbh
+outloop:
+  ld    a,(hl)      ; read first byte
+  or    a
+  ret   z           ; end if first byte a==0
+  out   c,(a)       ; write out first byte
+  inc   hl
+  ld    a,(hl)      ; read 2nd byte
+  out   c,(a)       ; write out second byte
+  inc   hl
+  jr    outloop     ; $-10 repeat loop
+```
+
+This code piece is also not contained in any ROM.
+
+### Checking Time Constant value in WR12 and WR13
+WR12 is lower byte = 0xbe, WR13=0x00 upper byte.
+lower byte baud rate gen 0x00be = 190 = Time Constant.
+
+Formula:
+(Clock Frequency / (2 x Desired_Rate * BR_Clock_Period)) -2
+
+E.g. Desired_Rate = 1200, clock freq. = 7,3728 Mhz
+BR_Clock_Period = 1 (from examples in Internet).
+
+Then, to have the value 190 valid for 1200 Baud, we need a clock frequency of 7.28348 Mhz/16
+The divider by 16 is selected as x16 clock mode in WR4. 
+Because the SCC is configured to read clock from PCLK pin, this pin should have the =7,3728 Mhz.
+Measured there, value is fine.
 
 ## Further reading
 
