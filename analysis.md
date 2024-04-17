@@ -339,6 +339,27 @@ sub_1982h:
 	ret			        ;1990	c9 	.
 ```
 
+And 0112dh in U503, which is inside of some other function. There is no return statement close,
+the code looks strange.
+```asm
+...
+	jp c,l44cdh		;1126	da cd 44 	. . D 
+	dec c			;1129	0d 	. 
+	add a,d			;112a	82 	. 
+	inc de			;112b	13 	. 
+	add a,l			;112c	85 	.
+; maybe an OS API function, but has no defined end... ret/jp
+sub_112dh:
+	call sub_0d44h		;112d	cd 44 0d 	. D . 
+	add a,a			;1130	87 	. 
+	ld d,b			;1131	50 	P 
+	and a			;1132	a7 	. 
+sub_1133h:
+	call sub_0d44h		;1133	cd 44 0d 	. D . 
+	add a,a			;1136	87 	. 
+	add hl,sp			;1137	39 	9 
+...
+```
 -----------
 
 After several approaches to get a clue what's going on, by following all subroutines and
