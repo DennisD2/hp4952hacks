@@ -637,7 +637,7 @@ a, 0
 5, e0
 1, 0
 b, 50
-c, be (z80: ae)   ; lower byte baud rate gen 0xb3 = 190   
+c, be (z80: ae)   ; lower byte baud rate gen 0xbe = 190   
 d, 0              ; upper byte baud rate gen 
 e, 3              ; BRG enable, BRG clock source = PCLK pin
 f, 0
@@ -679,20 +679,28 @@ outloop:
 
 This code piece is also not contained in any ROM.
 
-### Checking Time Constant value in WR12 and WR13
-WR12 is lower byte = 0xbe, WR13=0x00 upper byte.
-lower byte baud rate gen 0x00be = 190 = Time Constant.
+### Verifying Time Constant value in WR12 and WR13
+In example above, we read these values from data bus:
+```asm
+c, be             ; lower byte baud rate gen 0xbe = 190   
+d, 0              ; upper byte baud rate gen = 0
+```
+WR12 is lower byte = 0xbe, WR13 upper byte = 0x00. This means, 0x00be = 190 decimal = Time Constant.
 
-Formula:
+Is this value valid or pure nonsense (i.e. is my bus data analysis based on valid data or not) ?
+
+Formula (SCC user manual page 168):<br>
 (Clock Frequency / (2 x Desired_Rate * BR_Clock_Period)) -2
 
-E.g. Desired_Rate = 1200, clock freq. = 7,3728 Mhz
+E.g.: Desired_Rate = 1200, clock freq. = 7,3728 Mhz, 
 BR_Clock_Period = 1 (from examples in Internet).
 
-Then, to have the value 190 valid for 1200 Baud, we need a clock frequency of 7.28348 Mhz/16
+Then, to have the value 190 valid for 1200 Baud, we need a clock frequency of 7.3728 Mhz/16
+
 The divider by 16 is selected as x16 clock mode in WR4. 
+
 Because the SCC is configured to read clock from PCLK pin, this pin should have the =7,3728 Mhz.
-Measured there, value is fine.
+Measured there, value is fine. So the value 190 is valid.
 
 ## Further reading
 
