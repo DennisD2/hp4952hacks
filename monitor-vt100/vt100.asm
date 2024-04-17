@@ -589,18 +589,18 @@ loop_delay_a54e:
 	jr nz,loop_delay_a54e		;a551	20 fb 	  .
 
 	call read_dbe0		;a553	cd 33 a5 	. 3 .
-	;call initialize ; no SCC access so far
+	;call monitor ; no SCC access so far
 	call sub_a5f9h		;a556	cd f9 a5 	. . .   ; calls 4 other subs; these invoke 3 OS API calls
-	call initialize ;  SCC access done, but terminal not yet running
+	call monitor ;  SCC access done, but terminal not yet running
 	call sub_a6e7h		;a559	cd e7 a6 	. . .   ; calling sub_a6e7h twice, has no subs
 	call sub_a6e7h		;a55c	cd e7 a6 	. . .   ; "
-	;call initialize ; SCC access done, but terminal not yet running
+	;call monitor ; SCC access done, but terminal not yet running
 	call sub_a702h		;a55f	cd 02 a7 	. . .   ; calling sub_a702h twice, has no subs
 	call sub_a702h		;a562	cd 02 a7 	. . .   ; "
-	;call initialize ; SCC access done, but terminal not yet running
+	;call monitor ; SCC access done, but terminal not yet running
 ;;	;call sub_a56fh		;a565	cd 6f a5 	. o .   ; large function, see below
 	call sub_a606h		;a568	cd 06 a6 	. . .   ; "waits for dff0==0 an then writes 5 to it"
-	;call initialize ; Terminal already runs
+	;call monitor ; Terminal already runs
 	call write_dbe0		;a56b	cd 3f a5 	. ? .
 	ret			        ;a56e	c9 	.
 
@@ -690,6 +690,7 @@ sub_a5f9h:
 	call sub_aee5h		;a5ff	cd e5 ae 	. . .   ; no subs, small
 	call sub_a87bh		;a602	cd 7b a8 	. { .   ; calls 1 patched function (OS API) ; call 0112dh		;a886	cd 2d 11 	. - .   ; Patched to 2edah
 	ret			        ;a605	c9 	.
+
 sub_a606h:
 	call sub_a8e3h		;a606	cd e3 a8 	. . .   ; "waits for dff0==0 an then writes 5 to it"
 la609h:
@@ -4858,6 +4859,23 @@ ld891h:
 include "lib/screen.asm"            ; e92d-e83c = 0xf1=241 bytes
     ;include "lib/printf.asm"
 include "lib/keyb.asm"               ; e96c-e83c = 0x130=304 bytes ; screen+keyb = e9dc-e83c 0x1a0=416 bytes
+
+; DD replacing ROM function for analysis
+fapi_1982h:
+; replaces sub_1982h:
+	di			        ;1982	f3 	.
+	    ; next 3 lines new DD
+        ;ei
+        ;call monitor
+        ;di
+	;ld hl,l1991h		;1983	21 91 19 	! . .
+	ld hl,01991h		;1983	21 91 19 	! . .
+	ld (07504h),hl		;1986	22 04 75 	" . u
+	ld a,00ch		    ;1989	3e 0c 	> .
+	out (0bbh),a		;198b	d3 bb 	. .
+	call 0162fh		;198d	cd 2f 16 	. / .
+	;call sub_162fh		;198d	cd 2f 16 	. / .
+	ret			        ;1990	c9 	.
 
     org 0d9f9h
     seek 039f9h

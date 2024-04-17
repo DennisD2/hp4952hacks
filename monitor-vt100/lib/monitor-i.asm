@@ -113,7 +113,7 @@ tab:             equ     009h             ; Tabulator
 ; Main entry point (RST 00H);
 ;
 rst_00:         di                      ; Disable interrupts
-                jr      initialize      ; Jump over the RST-area
+                jr      monitor      ; Jump over the RST-area
 ;
 ;  RST-area - here is the main entry point into the monitor. The calling
 ; standard looks like this;
@@ -257,7 +257,7 @@ dispatch_table: ; defw    cold_start      ; 000h = clear etc.
 ; a 512 byte buffer for data transfers to and from the IDE disk, the stack
 ; pointer is initialized to start at the beginning of this buffer space.
 ;
-initialize:      ;ld      sp, start_type - 01h
+monitor:      ;ld      sp, start_type - 01h
 ;
 ; Initialize UART to 9600,8N1;
 ;
