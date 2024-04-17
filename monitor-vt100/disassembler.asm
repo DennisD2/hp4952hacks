@@ -3,9 +3,13 @@
 ; **********************************************************************
 include "missing.asm"
 
-kData:          equ 09000h         ;Typically 0FC00h (to 0FFFFh)
-kStrBuffer:     equ kData+00180h   ;String buffer              (to +001FFh)
+
+;kData:          equ 09000h         ;Typically 0FC00h (to 0FFFFh)
+;kStrBuffer:     equ kData+00180h   ;String buffer              (to +001FFh)
 kStrSize:       equ 128            ;Size of string buffer
+kData:
+kStrBuffer:
+	defs kStrSize, 000h
 
 ; This module provides instruction disassembly support. There are two
 ; main public functions which disassemble an instruction and provide the

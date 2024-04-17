@@ -580,6 +580,7 @@ call sub_a606h		;a568	cd 06 a6 	. . .   ; "waits for dff0==0 an then writes 5 to
 call write_dbe0		;a56b	cd 3f a5 	. ? .
 ret			        ;a56e	c9 	.
 ```
+For analysis of sub_a5f9h, see further below.
 
 The initialization is like:
 ```asm
@@ -678,6 +679,21 @@ outloop:
 ```
 
 This code piece is also not contained in any ROM.
+
+In function sub_a5f9h, the call sub_a87bh is doing SCC initialization.
+```asm
+sub_a5f9h:
+	call sub_a9d7h		;a5f9	cd d7 a9 	. . .   ; invokes large function
+	call sub_a6d4h		;a5fc	cd d4 a6 	. . .   ; calls 2 patched functions (OS API calls) call 01961h		;a6d4	cd 61 19 	. a . ; Patched to 2d9ch AND call 01982h		;a6d7	cd 82 19 	. . . ; Patched to 2d06h
+    ;call monitor ; no SCC access so far
+	call sub_aee5h		;a5ff	cd e5 ae 	. . .   ; no subs, small
+	;call monitor ; no SCC access so far
+	call sub_a87bh		;a602	cd 7b a8 	. { .   ; calls 1 patched function (OS API) ; call 0112dh		;a886	cd 2d 11 	. - .   ; Patched to 2edah
+	;call monitor ; SCC access done
+	ret
+```
+
+
 
 ### Verifying Time Constant value in WR12 and WR13
 In example above, we read these values from data bus:
