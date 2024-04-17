@@ -4866,22 +4866,7 @@ include "lib/screen.asm"            ; e92d-e83c = 0xf1=241 bytes
     ;include "lib/printf.asm"
 include "lib/keyb.asm"               ; e96c-e83c = 0x130=304 bytes ; screen+keyb = e9dc-e83c 0x1a0=416 bytes
 
-; DD replacing ROM function for analysis
-fapi_1982h:
-; replaces sub_1982h:
-	di			        ;1982	f3 	.
-	    ; next 3 lines new DD
-        ;ei
-        ;call monitor
-        ;di
-	;ld hl,l1991h		;1983	21 91 19 	! . .
-	ld hl,01991h		;1983	21 91 19 	! . .
-	ld (07504h),hl		;1986	22 04 75 	" . u
-	ld a,00ch		    ;1989	3e 0c 	> .
-	out (0bbh),a		;198b	d3 bb 	. .
-	call 0162fh		;198d	cd 2f 16 	. / .
-	;call sub_162fh		;198d	cd 2f 16 	. / .
-	ret			        ;1990	c9 	.
+; no space here
 
     org 0d9f9h
     seek 039f9h
