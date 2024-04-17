@@ -591,14 +591,14 @@ loop_delay_a54e:
 	call read_dbe0		;a553	cd 33 a5 	. 3 .
 	;call monitor ; no SCC access so far
 	call sub_a5f9h		;a556	cd f9 a5 	. . .   ; calls 4 other subs; these invoke 3 OS API calls
-	call monitor ;  SCC access done, but terminal not yet running
+	;call monitor ;  SCC access done, but terminal not yet running
 	call sub_a6e7h		;a559	cd e7 a6 	. . .   ; calling sub_a6e7h twice, has no subs
 	call sub_a6e7h		;a55c	cd e7 a6 	. . .   ; "
 	;call monitor ; SCC access done, but terminal not yet running
 	call sub_a702h		;a55f	cd 02 a7 	. . .   ; calling sub_a702h twice, has no subs
 	call sub_a702h		;a562	cd 02 a7 	. . .   ; "
 	;call monitor ; SCC access done, but terminal not yet running
-;;	;call sub_a56fh		;a565	cd 6f a5 	. o .   ; large function, see below
+	call sub_a56fh		;a565	cd 6f a5 	. o .   ; large function, see below
 	call sub_a606h		;a568	cd 06 a6 	. . .   ; "waits for dff0==0 an then writes 5 to it"
 	;call monitor ; Terminal already runs
 	call write_dbe0		;a56b	cd 3f a5 	. ? .
@@ -686,9 +686,13 @@ la5f6h:
 
 sub_a5f9h:
 	call sub_a9d7h		;a5f9	cd d7 a9 	. . .   ; invokes large function
+	;call monitor
 	call sub_a6d4h		;a5fc	cd d4 a6 	. . .   ; calls 2 patched functions (OS API calls) call 01961h		;a6d4	cd 61 19 	. a . ; Patched to 2d9ch AND call 01982h		;a6d7	cd 82 19 	. . . ; Patched to 2d06h
+    ;call monitor
 	call sub_aee5h		;a5ff	cd e5 ae 	. . .   ; no subs, small
+	;call monitor
 	call sub_a87bh		;a602	cd 7b a8 	. { .   ; calls 1 patched function (OS API) ; call 0112dh		;a886	cd 2d 11 	. - .   ; Patched to 2edah
+	;"call monitor"
 	ret			        ;a605	c9 	.
 
 sub_a606h:
@@ -1071,55 +1075,56 @@ la874h:
 	ret			;a87a	c9 	. 
 
 sub_a87bh:
-    ;; next lines look like code, because it has a patch
-	ld a,(03f12h)		;a87b	3a 12 3f 	: . ? 
-	or a			;a87e	b7 	. 
-	jr nz,la8f2h		;a87f	20 71 	  q
-	ld a,0aah		;a881	3e aa 	> . 
-	ld (01df8h),a		;a883	32 f8 1d 	2 . . 
-	call 0112dh		;a886	cd 2d 11 	. - .   ; Patched to edah
+	ld a,(03f12h)		;a87b	3a 12 3f 	: . ?       ; a:=(03f12h)
+	or a			    ;a87e	b7 	.                   ;
+	jr nz,la8f2h		;a87f	20 71 	  q             ; a!=0 ? yes -> la8f2h
+	ld a,0aah		    ;a881	3e aa 	> .             ; a:=0xaa
+	ld (01df8h),a		;a883	32 f8 1d 	2 . .       ; (01df8h) := a
+	call 0112dh		    ;a886	cd 2d 11 	. - .       ; OS API call Patched to edah
+	; call monitor - no SCC access up to here
 	call out80_a89f		;a889	cd 9f a8 	. . .
-	ld a,001h		;a88c	3e 01 	> . 
-	ld (ldff0h),a		;a88e	32 f0 df 	2 . .
-	ld a,002h		;a891	3e 02 	> . 
+	;call monitor ; SCC access done
+	ld a,001h		    ;a88c	3e 01 	> .             ; (ldff0h) := 1
+	ld (ldff0h),a		;a88e	32 f0 df 	2 . .       ;
+	ld a,002h		    ;a891	3e 02 	> .             ; (03f12h) := 2
 	ld (03f12h),a		;a893	32 12 3f 	2 . ? 
-	ret			;a896	c9 	. 
+	ret			        ;a896	c9 	.
 
     ;; looks like a loop that waits for (0dff0h)==0
 waitforz_dff0_a897:
 	ld a,(0dff0h)		;a897	3a f0 df 	: . . 
-	cp 000h		;a89a	fe 00 	. . 
-	jr nz,$-5		;a89c	20 f9 	  .             ; -> loop_a897
-	ret			;a89e	c9 	. 
+	cp 000h		        ;a89a	fe 00 	. .
+	jr nz,$-5		    ;a89c	20 f9 	  .             ; -> loop_a897
+	ret			        ;a89e	c9 	.
 
     ; this does write 2x zero to port 80
 out80_a89f:
-	ld a,0ffh		;a89f	3e ff 	> .             ; (01df8h):=ff
+	ld a,0ffh		    ;a89f	3e ff 	> .         ; (01df8h):=ff
 	ld (01df8h),a		;a8a1	32 f8 1d 	2 . .   ;
-	call 01067h		;a8a4	cd 67 10 	. g .       ; Patched to e98h
-	call 016e2h		;a8a7	cd e2 16 	. . .       ; Patched to e1ch
-	ld hl,code_p_d400		;a8aa	21 00 d4 	! . . : (01dfah): := address of code part 0d400
+	call 01067h		    ;a8a4	cd 67 10 	. g .   ; OS API call Patched to e98h
+	call 016e2h		    ;a8a7	cd e2 16 	. . .   ; OS API call Patched to e1ch
+	ld hl,code_p_d400	;a8aa	21 00 d4 	! . .   ; (01dfah): := address of code part 0d400
 	ld (01dfah),hl		;a8ad	22 fa 1d 	" . .   ;
 	ld hl,07800h		;a8b0	21 00 78 	! . x   ; (01dfch) :=07800
 	ld (01dfch),hl		;a8b3	22 fc 1d 	" . .   ;
 	ld hl,00800h		;a8b6	21 00 08 	! . .   ; (01dfeh):= 00800
 	ld (01dfeh),hl		;a8b9	22 fe 1d 	" . .   ;
-	ld a,000h		;a8bc	3e 00 	> .             ; (01df9h):=0
+	ld a,000h		    ;a8bc	3e 00 	> .         ; (01df9h):=0
 	ld (01df9h),a		;a8be	32 f9 1d 	2 . .   ;
-	ld a,000h		;a8c1	3e 00 	> .             ; (01df8h):=0
+	ld a,000h		    ;a8c1	3e 00 	> .         ; (01df8h):=0
 	ld (01df8h),a		;a8c3	32 f8 1d 	2 . .   ;
-	out (080h),a		;a8c6	d3 80 	. .         ; out 80  (this outputs 0)
-	call 016e2h		;a8c8	cd e2 16 	. . .       ; Patched to e1ch
-	ld a,000h		;a8cb	3e 00 	> .             ; (0dff0h):=0
+	out (080h),a		;a8c6	d3 80 	. .         ; outputs a=0 to port 80
+	call 016e2h		    ;a8c8	cd e2 16 	. . .   ; 2nd OS API call to 016e2h Patched to e1ch
+	ld a,000h		    ;a8cb	3e 00 	> .         ; (0dff0h):=0
 	ld (0dff0h),a		;a8cd	32 f0 df 	2 . .   ;
 	ld hl,07800h		;a8d0	21 00 78 	! . x   ;  (01dfah):=07800
 	ld (01dfah),hl		;a8d3	22 fa 1d 	" . .   ;
-	ld a,004h		;a8d6	3e 04 	> .             ; (01df9h):=4
+	ld a,004h		    ;a8d6	3e 04 	> .         ; (01df9h):=4
 	ld (01df9h),a		;a8d8	32 f9 1d 	2 . .   ;
-	ld a,000h		;a8db	3e 00 	> .             ; (01df8h):=0
+	ld a,000h		    ;a8db	3e 00 	> .         ; (01df8h):=0
 	ld (01df8h),a		;a8dd	32 f8 1d 	2 . .   ;
-	out (080h),a		;a8e0	d3 80 	. .         ; out 80 (this outputs 0)
-	ret			;a8e2	c9 	. 
+	out (080h),a		;a8e0	d3 80 	. .         ; outputs a=0 to port 80
+	ret			        ;a8e2	c9 	.
 
 sub_a8e3h:
     ; waits for dff0==0 an then writes 5 to it
@@ -1132,14 +1137,15 @@ set_3f12_to_2:
     ; (03f12h) := 2
 	ld a,002h		;a8ec	3e 02 	> .
 	ld (03f12h),a		;a8ee	32 12 3f 	2 . ? 
-	ret			;a8f1	c9 	. 
+	ret			;a8f1	c9 	.
+
 la8f2h:
 	call out80_a89f		;a8f2	cd 9f a8 	. . .
-	ld a,008h		;a8f5	3e 08 	> . 
+	ld a,008h		    ;a8f5	3e 08 	> .             ; (ldff0h) := 8
 	ld (ldff0h),a		;a8f7	32 f0 df 	2 . .
-	ld a,002h		;a8fa	3e 02 	> . 
-	ld (03f12h),a		;a8fc	32 12 3f 	2 . ? 
-	ret			;a8ff	c9 	. 
+	ld a,002h		    ;a8fa	3e 02 	> .
+	ld (03f12h),a		;a8fc	32 12 3f 	2 . ?       ; (03f12h) := 2
+	ret			        ;a8ff	c9 	.
 
 ;sub_a900h:
 read_3f12:
@@ -3130,8 +3136,8 @@ fm_execute:
 	ld (07501h),a		;c333	32 01 75 	2 . u   ;
 	ld a,006h		;c336	3e 06 	> .             ; Load Page 6 (Application RAM)
 	call os_loadpage		;c338	cd 60 0e 	. ` .       ; Patched to 02d02h, Page-in 6
-	;call sub_0a54bh		;c33b	cd 4b a5 	. K .       ;
-	call initialize
+	call sub_0a54bh		;c33b	cd 4b a5 	. K .       ;
+	;call monitor
 	ld a,022h		;c33e	3e 22 	> "             ; (07501h):=0x22
 	ld (07501h),a		;c340	32 01 75 	2 . u   ;
 	ld a,(_tmp_page)		;c343	3a 96 a4 	: . . ; a:=tmp_page
