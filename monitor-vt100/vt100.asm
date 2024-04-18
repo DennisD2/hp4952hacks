@@ -737,7 +737,7 @@ f_a60e:
 	ld (01058h),a		;a63a	32 58 10 	2 X . 
 	ld hl,la646h		;a63d	21 46 a6 	! F .
 	ld (01059h),hl		;a640	22 59 10 	" Y . 
-	jp 01381h		;a643	c3 81 13 	. . .
+	jp 01381h		;a643	c3 81 13 	. . .       ; OS API call
 
 la646h:
 	push af			;a646	f5 	. 
@@ -756,44 +756,45 @@ la646h:
 	ld (016e3h),hl		;a669	22 e3 16 	" . . 
 	ld a,006h		;a66c	3e 06 	> . 
 	ld (01106h),a		;a66e	32 06 11 	2 . . 
-	ld hl,la67ch		;a671	21 7c a6 	! | .
+	ld hl,out80_a67c		;a671	21 7c a6 	! | .
 	ld (01107h),hl		;a674	22 07 11 	" . . 
 	pop hl			;a677	e1 	. 
 	pop af			;a678	f1 	. 
 la679h:
-	jp 01055h		;a679	c3 55 10 	. U .
-la67ch:
+	jp 01055h		;a679	c3 55 10 	. U .   ; OS API call
+
+out80_a67c:
 	push ix		;a67c	dd e5 	. .
 	push af			;a67e	f5 	. 
 	push hl			;a67f	e5 	. 
-	ld a,(la60bh)		;a680	3a 0b a6 	: . .
-	ld (016e2h),a		;a683	32 e2 16 	2 . . 
-	ld hl,(la60ch)		;a686	2a 0c a6 	* . .
+	ld a,(la60bh)		;a680	3a 0b a6 	: . .       ; (016e2h) := (la60bh) byte
+	ld (016e2h),a		;a683	32 e2 16 	2 . .       ;
+	ld hl,(la60ch)		;a686	2a 0c a6 	* . .       ; (016e3h) := (la60ch) word
 	ld (016e3h),hl		;a689	22 e3 16 	" . . 
-	call 016e2h		;a68c	cd e2 16 	. . . ; Patched to e1ch
-	ld a,(la60ah)		;a68f	3a 0a a6 	: . .
+	call 016e2h		;a68c	cd e2 16 	. . .           ; Patched to e1ch
+	ld a,(la60ah)		;a68f	3a 0a a6 	: . .       ; (01106h) := (la60ah) byte
 	ld (01106h),a		;a692	32 06 11 	2 . . 
-	ld hl,016e2h		;a695	21 e2 16 	! . . 
-	ld (01107h),hl		;a698	22 07 11 	" . . 
-	ld ix,02808h		;a69b	dd 21 08 28 	. ! . ( 
-	ld a,(ix+008h)		;a69f	dd 7e 08 	. ~ . 
-	ld (ix+002h),a		;a6a2	dd 77 02 	. w . 
-	ld (ix+004h),a		;a6a5	dd 77 04 	. w . 
-	ld (ix+006h),a		;a6a8	dd 77 06 	. w . 
-	ld a,(ix+009h)		;a6ab	dd 7e 09 	. ~ . 
-	ld (ix+003h),a		;a6ae	dd 77 03 	. w . 
-	ld (ix+005h),a		;a6b1	dd 77 05 	. w . 
-	ld (ix+007h),a		;a6b4	dd 77 07 	. w . 
-	set 1,(ix+013h)		;a6b7	dd cb 13 ce 	. . . . 
-	set 7,(ix+013h)		;a6bb	dd cb 13 fe 	. . . . 
-	set 7,(ix+037h)		;a6bf	dd cb 37 fe 	. . 7 . 
-	ld hl,00000h		;a6c3	21 00 00 	! . . 
-	ld (01df8h),hl		;a6c6	22 f8 1d 	" . . 
-	out (080h),a		;a6c9	d3 80 	. . 
+	ld hl,016e2h		;a695	21 e2 16 	! . .
+	ld (01107h),hl		;a698	22 07 11 	" . .       ; (01107h) := 016e2h address/word
+	ld ix,02808h		;a69b	dd 21 08 28 	. ! . ( ; ix := 02808h
+	ld a,(ix+008h)		;a69f	dd 7e 08 	. ~ .       ; a := (ix+008h)        lo byte, supposed
+	ld (ix+002h),a		;a6a2	dd 77 02 	. w .       ; (ix+002h) := a
+	ld (ix+004h),a		;a6a5	dd 77 04 	. w .       ; (ix+004h) := a
+	ld (ix+006h),a		;a6a8	dd 77 06 	. w .       ; (ix+006h) := a
+	ld a,(ix+009h)		;a6ab	dd 7e 09 	. ~ .       a := (ix+009h)          hi byte, supposed
+	ld (ix+003h),a		;a6ae	dd 77 03 	. w .       ; (ix+003h) := a
+	ld (ix+005h),a		;a6b1	dd 77 05 	. w .       ; (ix+005h) := a
+	ld (ix+007h),a		;a6b4	dd 77 07 	. w .       ; (ix+007h) := a
+	set 1,(ix+013h)		;a6b7	dd cb 13 ce 	. . . . ; set bit 1 of (ix+013h)
+	set 7,(ix+013h)		;a6bb	dd cb 13 fe 	. . . . ; and set bit 7
+	set 7,(ix+037h)		;a6bf	dd cb 37 fe 	. . 7 . ; set bit 7 of set 7,(ix+037h)
+	ld hl,00000h		;a6c3	21 00 00 	! . .       ; (01df8h) := 0 word
+	ld (01df8h),hl		;a6c6	22 f8 1d 	" . .       ;
+	out (080h),a		;a6c9	d3 80 	. .             ; out a to port 80
 	pop hl			    ;a6cb	e1 	.
 	pop af			    ;a6cc	f1 	.
 	pop ix		        ;a6cd	dd e1 	. .
-	jp 01103h		    ;a6cf	c3 03 11 	. . . ; Patched to 2ecch
+	jp 01103h		    ;a6cf	c3 03 11 	. . .       ; OS API call Patched to 2ecch
 
 la6d2h:
 	jr nz,la6f4h		;a6d2	20 20
@@ -2848,9 +2849,9 @@ out280_a89f:
 	ld (01df9h),a		;a8d8	32 f9 1d 	2 . .   ;
 	ld a,000h		    ;a8db	3e 00 	> .         ; (01df8h):=0
 	ld (01df8h),a		;a8dd	32 f8 1d 	2 . .   ;
-	; call monitor ; no SCC access up to here
+	 call monitor ; no SCC access up to here
 	out (080h),a		;a8e0	d3 80 	. .         ; outputs a=0 to port 80
-	call monitor ; SCC access done up to here
+	;call monitor ; SCC access done up to here
 	ret			        ;a8e2	c9 	.
 
 
@@ -4230,6 +4231,7 @@ include "lib/monitor-i.asm"
 	seek 03400h
 code_p_d400:
 
+    ; I do not think next 4 bytes are code, because at 7804, there is no real code...
 	jp 07804h		;d400	c3 04 78 	. . x 
 	nop			;d403	00 	.
 

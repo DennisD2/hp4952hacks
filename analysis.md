@@ -156,6 +156,10 @@ with code for it.
 In application code, many out/in calls can be seen.
 
 #### Data transfer with SCC chip
+
+##### HP4951 only
+*The mechanism below is true only for HP4951. HP4952 is doing it in a different, much more complex, way.*
+
 By checking the schematics (of HP4951, because there is no schematics
 available for HP4952) , SCC CE is driven by A14=15=1 (and IO/~M = 1). This means, if
 SCC should be invoked, upper address byte of address bus need to be used.
@@ -201,6 +205,9 @@ So, addresses for SCC always look like Cx0x, Cx1x, Cx2x, Cx3x.
 | 0         | 1         | Control byte (command), PORTA |
 | 1         | 0         | Data byte, PORTB   |
 | 1         | 1         | Data byte, PORTA    |
+
+*But as I wrote at the start of this section, all above is only true for HP4951. HP4952 is different. It does not use 
+A15,14,9,8 for SCC access.*
 
 ##### fm_execute call chain
 ```asm
@@ -365,11 +372,6 @@ sub_1133h:
 	add hl,sp			;1137	39 	9 
 ...
 ```
------------
-
-After several approaches to get a clue what's going on, by following all subroutines and
-jumps spawning of from this function, I gave up. Without almost any hint or documentation
-regarding the system it would last forever to get a grip on that task.
 
 Because I also have a Kingst LA5032 logic analyzer in my toolbox, I tried to do some 
 hardware analysis to move forward.
@@ -582,7 +584,7 @@ ret			        ;a56e	c9 	.
 ```
 For analysis of sub_a5f9h, see further below.
 
-The initialization is like:
+The initialization, traced by logic analyzer, is like:
 ```asm
 ret
 ;address 79cf on data bus, so I guess its read from stack, return address
@@ -614,7 +616,7 @@ The lines above look like content of a ROM that is mapped into memory at the tim
 check the addresses e.g. 79af later in monitor, the content is different. But when I checked all ROMs, there
 is no such a command sequence in any ROM.
 
-Next SCC data is
+Next SCC, again traced by logic analyzer, data is:
 ```
 4, 5c
 a, 0
@@ -655,7 +657,7 @@ in a,(0x22)...
 
 ```
 
-Data is written out in a loop:
+Data is written out in a loop (but as said, this code is nowhere in the ROMs!!!):
 ```asm
   ld    a,l
   ld    (07a9ah),a
@@ -678,9 +680,35 @@ outloop:
   jr    outloop     ; $-10 repeat loop
 ```
 
-This code piece is also not contained in any ROM.
+This code piece above is also not contained in any ROM.
 
-In function sub_a5f9h, the call sub_a87bh is doing SCC initialization.
+### Short intermission: Verifying Time Constant value in WR12 and WR13
+In example above, we read these values from data bus:
+```asm
+c, be             ; lower byte baud rate gen 0xbe = 190   
+d, 0              ; upper byte baud rate gen = 0
+```
+WR12 is lower byte = 0xbe, WR13 upper byte = 0x00. This means, 0x00be = 190 decimal = Time Constant.
+
+Is this value valid or pure nonsense (i.e. is my bus data analysis based on valid data or not) ?
+
+Formula (SCC user manual page 168):<br>
+(Clock Frequency / (2 x Desired_Rate * BR_Clock_Period)) -2
+
+E.g.: Desired_Rate = 1200, clock freq. = 7,3728 Mhz,
+BR_Clock_Period = 1 (from examples in Internet).
+
+Then, to have the value 190 valid for 1200 Baud, we need a clock frequency of 7.3728 Mhz/16
+
+The divider by 16 is selected as x16 clock mode in WR4.
+
+Because the SCC is configured to read clock from PCLK pin, this pin should have the =7,3728 Mhz.
+Measured there, value is fine. So the value 190 is valid.
+
+### Further analysis
+Let's analyze the subroutines further, maybe that is of help...
+
+
 ```asm
 sub_a5f9h:
 	call sub_a9d7h		;a5f9	cd d7 a9 	. . .   ; invokes large function
@@ -692,13 +720,32 @@ sub_a5f9h:
 	;call monitor ; SCC access done
 	ret
 ```
+In function sub_a5f9h, the call sub_a87bh is doing SCC initialization. Here it is:
+```asm
+sub_a87bh:
+	ld a,(03f12h)		;a87b	3a 12 3f 	: . ?       ; a:=(03f12h)
+	or a			    ;a87e	b7 	.                   ;
+	jr nz,la8f2h		;a87f	20 71 	  q             ; a!=0 ? yes -> la8f2h
+	ld a,0aah		    ;a881	3e aa 	> .             ; a:=0xaa
+	ld (01df8h),a		;a883	32 f8 1d 	2 . .       ; (01df8h) := a
+	call 0112dh		    ;a886	cd 2d 11 	. - .       ; OS API call Patched to edah
+	; call monitor ; no SCC access up to here
+	call out80_a89f		;a889	cd 9f a8 	. . .                                   <-------- kicks off SCC access
+	;call monitor ; SCC access done
+	ld a,001h		    ;a88c	3e 01 	> .             ; (ldff0h) := 1
+	ld (ldff0h),a		;a88e	32 f0 df 	2 . .       ;
+	ld a,002h		    ;a891	3e 02 	> .             ; (03f12h) := 2
+	ld (03f12h),a		;a893	32 12 3f 	2 . ? 
+	ret			        ;a896	c9 	.
+```
 
+### out80_a89f function kicking of SCC access
 Finally, in this function, the second out to port 80 seems to start SCC. After line a8e0,
-SCC is accessed in a never ending loop.
+SCC is accessed in a never ending loop. So, this triggers somehow some invisible code.
 ```asm
 ; SCC access initialization
     ; this does write 2x zero to port 80
-out280_a89f:
+out80_a89f:
 	ld a,0ffh		    ;a89f	3e ff 	> .         ; (01df8h):=ff
 	ld (01df8h),a		;a8a1	32 f8 1d 	2 . .   ;
 	call 01067h		    ;a8a4	cd 67 10 	. g .   ; OS API call Patched to e98h
@@ -726,8 +773,8 @@ out280_a89f:
 	ld a,000h		    ;a8db	3e 00 	> .         ; (01df8h):=0
 	ld (01df8h),a		;a8dd	32 f8 1d 	2 . .   ;
 	; call monitor ; no SCC access up to here
-	out (080h),a		;a8e0	d3 80 	. .         ; outputs a=0 to port 80
-	call monitor ; SCC access done up to here
+	out (080h),a		;a8e0	d3 80 	. .         ; outputs a=0 to port 80 <-------- kicks off SCC working!
+	;call monitor ; SCC access done up to here
 	ret			        ;a8e2	c9 	.
 ```
 
@@ -743,22 +790,9 @@ Memory setup before ```out (080h),a``` call:
 | 01dfeh          | Maybe a size value. Values: 0800,                                   |
 | 01df9h          | Some "command"/parameter value? Values: 4,0                         |
 | 01df8h          | Some "command"/parameter value? Values: 0                           |
-| call 016e2h     | could be in U502 or U503. U502 is more realistic.                   |
+| call 016e2h     | could be in U502 or U503. U503 is more realistic.                  |
 
-U502:
-```asm
-l0003h:
-	ld c,02bh		;0003	0e 2b 	. +                 ; is some value, 2b0e 
-
-sub_16e2h:
-	ld a,h			;16e2	7c 	|                       ; hl==0 ?
-	or l			;16e3	b5 	. 
-	jp z,096ebh		;16e4	ca eb 96 	. . .           ; yes, -> 096ebh ; where is 096ebh?
-	ld hl,l0003h    ;16e7	21 03 00 	! . .           ; no, hl:=l0003h
-	ret			    ;16ea	c9 	. 
-```
-
-U503:
+l16e2h in U503:
 ```asm
 l16e2h:
 	ld a,(0750ah)	;16e2	3a 0a 75 	: . u           ; a:=(0750ah)
@@ -766,28 +800,71 @@ l16e2h:
 	ret z			;16e6	c8 	.                       ; return a==0
 ```
 
-### Verifying Time Constant value in WR12 and WR13
-In example above, we read these values from data bus:
+I have checked memory locations 0d400, 07800, 0800. They all do not contain bytes that could
+be command bytes for the SCC chip. Also, they do not look like Z80 code. 
+
+So the mystery remains: From where does the Toshiba Z80 CPU gets its code to execute. I can see
+the code running on the CPU, but did not find the code in any ROM. 
+
+One guess was that the "other" Z80 CPU sets up that code on the fly in RAM and then activates
+the Toshiba CPU to execute it. This would be a strange approach, but if the code does not come from 
+ROM, it must come from RAM then. But I haven't found any hint that there is code to do that.
+
+Another function doing things like out80_a89f in U503 code.
+This function does writes to addresses, so this code must have been copied to a RAM area 
+before execution.
+
 ```asm
-c, be             ; lower byte baud rate gen 0xbe = 190   
-d, 0              ; upper byte baud rate gen = 0
+l0400h:
+	nop			;0400	00 	. 
+	nop			;0401	00 	. 
+	
+l2096h:
+	jr l2099h		;2096	18 01 	. . 
+l2098h:
+	and a			;2098	a7 	. 
+l2099h:
+	ex af,af'			;2099	08 	. 
+		
+l20ddh:
+	xor a			;20dd	af 	. 
+	ld c,a			;20de	4f 	O 
+	ld e,a			;20df	5f 	_ 
+	ld a,0fch		;20e0	3e fc 	> . 
+	ld d,a			;20e2	57 	W 
+	
+l2092h:
+	ld (l4700h),a		;2092	32 00 47 	2 . G 
+	scf			;2095	37 	7 
+
+; POI-300 out80 function
+	call l16e2h		;5dc8	cd e2 16 	. . .           ;
+	ld hl,(l2096h)		;5dcb	2a 96 20 	* .         ; (l1dfch) := (l2096h)
+	ld (l1dfch),hl		;5dce	22 fc 1d 	" . .       ;
+	ld hl,(l2098h)		;5dd1	2a 98 20 	* .         ; (l1dfeh) := (l2098h)
+	ld (l1dfeh),hl		;5dd4	22 fe 1d 	" . .       ;
+	ld hl,l20ddh		;5dd7	21 dd 20 	! .         ; (l1dfah) := l20ddh address
+	ld (l1dfah),hl		;5dda	22 fa 1d 	" . . 
+	ld hl,l0400h		;5ddd	21 00 04 	! . .       ; (l1df8h) := l0400h addresss
+	ld (l1df8h),hl		;5de0	22 f8 1d 	" . . 
+	out (080h),a		;5de3	d3 80 	. . 
+	ld hl,(l2092h+2)		;5de5	2a 94 20 	* .     ; (l2092h+2) ++ ; 
+	inc hl			;5de8	23 	#                       ;
+	ld (l2092h+2),hl		;5de9	22 94 20 	" .     ; 
+	ret			;5dec	c9 	. 
 ```
-WR12 is lower byte = 0xbe, WR13 upper byte = 0x00. This means, 0x00be = 190 decimal = Time Constant.
 
-Is this value valid or pure nonsense (i.e. is my bus data analysis based on valid data or not) ?
+## Current status
+So, I have found function out80_a89f that kicks off SCC access. But I have no idea how this is done.
 
-Formula (SCC user manual page 168):<br>
-(Clock Frequency / (2 x Desired_Rate * BR_Clock_Period)) -2
+To summarize: SCC access is enabled by talking to port 80, by code from "other"(i.e. "main") CPU.
+It looks like some parameters are set up in RAM, see table above. These parameters may control what
+exactly is done with SCC chip. By talking to port 80, the Toshiba Z80 CPU is activated and executes Z80 code.
 
-E.g.: Desired_Rate = 1200, clock freq. = 7,3728 Mhz, 
-BR_Clock_Period = 1 (from examples in Internet).
+After the Toshiba CPU is activated, this CPU can access the SCC chip using port 21.
 
-Then, to have the value 190 valid for 1200 Baud, we need a clock frequency of 7.3728 Mhz/16
 
-The divider by 16 is selected as x16 clock mode in WR4. 
 
-Because the SCC is configured to read clock from PCLK pin, this pin should have the =7,3728 Mhz.
-Measured there, value is fine. So the value 190 is valid.
 
 ## Further reading
 

@@ -18486,19 +18486,20 @@ l5d75h:
 	ld (l208eh),hl		;5dc4	22 8e 20 	" .   
 	ret			;5dc7	c9 	. 
 
-	call l16e2h		;5dc8	cd e2 16 	. . . 
-	ld hl,(l2096h)		;5dcb	2a 96 20 	* .   
-	ld (l1dfch),hl		;5dce	22 fc 1d 	" . . 
-	ld hl,(l2098h)		;5dd1	2a 98 20 	* .   
-	ld (l1dfeh),hl		;5dd4	22 fe 1d 	" . . 
-	ld hl,l20ddh		;5dd7	21 dd 20 	! .   
+; POI-300 out80 function
+	call l16e2h		;5dc8	cd e2 16 	. . .           ;
+	ld hl,(l2096h)		;5dcb	2a 96 20 	* .         ; (l1dfch) := (l2096h)
+	ld (l1dfch),hl		;5dce	22 fc 1d 	" . .       ;
+	ld hl,(l2098h)		;5dd1	2a 98 20 	* .         ; (l1dfeh) := (l2098h)
+	ld (l1dfeh),hl		;5dd4	22 fe 1d 	" . .       ;
+	ld hl,l20ddh		;5dd7	21 dd 20 	! .         ; (l1dfah) := l20ddh address
 	ld (l1dfah),hl		;5dda	22 fa 1d 	" . . 
-	ld hl,l0400h		;5ddd	21 00 04 	! . . 
+	ld hl,l0400h		;5ddd	21 00 04 	! . .       ; (l1df8h) := l0400h addresss
 	ld (l1df8h),hl		;5de0	22 f8 1d 	" . . 
 	out (080h),a		;5de3	d3 80 	. . 
-	ld hl,(l2092h+2)		;5de5	2a 94 20 	* .   
-	inc hl			;5de8	23 	# 
-	ld (l2092h+2),hl		;5de9	22 94 20 	" .   
+	ld hl,(l2092h+2)		;5de5	2a 94 20 	* .     ; (l2092h+2) ++
+	inc hl			;5de8	23 	#                       ;
+	ld (l2092h+2),hl		;5de9	22 94 20 	" .     ;
 	ret			;5dec	c9 	. 
 
 	call l16e2h		;5ded	cd e2 16 	. . . 
