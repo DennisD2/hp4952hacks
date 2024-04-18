@@ -4393,13 +4393,13 @@ l1643h:
 	inc hl			;16dc	23 	# 
 	ld d,(hl)			;16dd	56 	V 
 	pop hl			;16de	e1 	. 
-	call sub_17fdh		;16df	cd fd 17 	. . . 
+	call sub_17fdh		;16df	cd fd 17 	. . .
 sub_16e2h:
-	ld a,h			;16e2	7c 	| 
-	or l			;16e3	b5 	. 
-	jp z,096ebh		;16e4	ca eb 96 	. . . 
-	ld hl,l0003h		;16e7	21 03 00 	! . . 
-	ret			;16ea	c9 	. 
+	ld a,h			;16e2	7c 	|                       ; hl==0 ?
+	or l			;16e3	b5 	.
+	jp z,096ebh		;16e4	ca eb 96 	. . .           ; yes, -> 096ebh
+	ld hl,l0003h		;16e7	21 03 00 	! . .       ; no, hl:=l0003h
+	ret			;16ea	c9 	.
 
 	ld hl,lfffeh+1		;16eb	21 ff ff 	! . . 
 	ret			;16ee	c9 	. 

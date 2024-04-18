@@ -4294,9 +4294,9 @@ sub_16afh:
 	ret			;16e1	c9 	. 
 
 l16e2h:
-	ld a,(0750ah)		;16e2	3a 0a 75 	: . u 
-	or a			;16e5	b7 	. 
-	ret z			;16e6	c8 	. 
+	ld a,(0750ah)		;16e2	3a 0a 75 	: . u       ; a:=(0750ah)
+	or a			;16e5	b7 	.                       ;
+	ret z			;16e6	c8 	.                       ; return a==0
 
 	ld a,(l1df8h)		;16e7	3a f8 1d 	: . . 
 	inc a			;16ea	3c 	< 

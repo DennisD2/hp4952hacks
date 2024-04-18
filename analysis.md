@@ -734,6 +734,38 @@ out280_a89f:
 Logic analysator trace, showing the loop:
 ![](doc/hp4952a-vt100-execute-out80-area.png)
 
+Memory setup before ```out (080h),a``` call:
+
+| Memory location | Meaning                                                             |
+|-----------------|---------------------------------------------------------------------|
+| 01dfah          | Start address of code part 0d400; there we have a jump: "jp 07804h" |
+| 01dfch          | Some address, values: 2x07800,                                      |
+| 01dfeh          | Maybe a size value. Values: 0800,                                   |
+| 01df9h          | Some "command"/parameter value? Values: 4,0                         |
+| 01df8h          | Some "command"/parameter value? Values: 0                           |
+| call 016e2h     | could be in U502 or U503. U502 is more realistic.                   |
+
+U502:
+```asm
+l0003h:
+	ld c,02bh		;0003	0e 2b 	. +                 ; is some value, 2b0e 
+
+sub_16e2h:
+	ld a,h			;16e2	7c 	|                       ; hl==0 ?
+	or l			;16e3	b5 	. 
+	jp z,096ebh		;16e4	ca eb 96 	. . .           ; yes, -> 096ebh ; where is 096ebh?
+	ld hl,l0003h    ;16e7	21 03 00 	! . .           ; no, hl:=l0003h
+	ret			    ;16ea	c9 	. 
+```
+
+U503:
+```asm
+l16e2h:
+	ld a,(0750ah)	;16e2	3a 0a 75 	: . u           ; a:=(0750ah)
+	or a			;16e5	b7 	.                       ;
+	ret z			;16e6	c8 	.                       ; return a==0
+```
+
 ### Verifying Time Constant value in WR12 and WR13
 In example above, we read these values from data bus:
 ```asm
