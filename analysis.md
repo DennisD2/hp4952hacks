@@ -858,13 +858,18 @@ l2092h:
 So, I have found function out80_a89f that kicks off SCC access. But I have no idea how this is done.
 
 To summarize: SCC access is enabled by talking to port 80, by code from "other"(i.e. "main") CPU.
-It looks like some parameters are set up in RAM, see table above. These parameters may control what
-exactly is done with SCC chip. By talking to port 80, the Toshiba Z80 CPU is activated and executes Z80 code.
+It looks like some parameters are set up in RAM before calling the out-function, see table above. These 
+parameters may control what exactly is done with SCC chip. By talking to port 80, the Toshiba Z80 CPU is 
+activated and executes Z80 code.
 
-After the Toshiba CPU is activated, this CPU can access the SCC chip using port 21.
+After the Toshiba CPU is activated, this CPU can access the SCC chip using port 21. 
 
+The code being executed by Toshiba Z80 CPU is not contained in any of the ROMs. At least not in unencrypted
+or un-obfuscated way. Either the code is there, but somehow unreadable (encrypted or so), or the code is nowhere
+but generated on the fly by main CPU. 
 
-
+The extreme complexity of the device, with 4 well-known CPUs and supposedly one custom CPU (PAL/GAL chip),
+makes it very hard to analyze what is going on in HP4952A.
 
 ## Further reading
 
