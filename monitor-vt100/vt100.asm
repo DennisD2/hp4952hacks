@@ -2849,7 +2849,7 @@ out280_a89f:
 	ld (01df9h),a		;a8d8	32 f9 1d 	2 . .   ;
 	ld a,000h		    ;a8db	3e 00 	> .         ; (01df8h):=0
 	ld (01df8h),a		;a8dd	32 f8 1d 	2 . .   ;
-	 call monitor ; no SCC access up to here
+	;call monitor ; no SCC access up to here
 	out (080h),a		;a8e0	d3 80 	. .         ; outputs a=0 to port 80
 	;call monitor ; SCC access done up to here
 	ret			        ;a8e2	c9 	.
