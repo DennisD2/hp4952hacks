@@ -1081,8 +1081,8 @@ sub_a87bh:
 	ld a,0aah		    ;a881	3e aa 	> .             ; a:=0xaa
 	ld (01df8h),a		;a883	32 f8 1d 	2 . .       ; (01df8h) := a
 	call 0112dh		    ;a886	cd 2d 11 	. - .       ; OS API call Patched to edah
-	; call monitor - no SCC access up to here
-	call out80_a89f		;a889	cd 9f a8 	. . .
+	; call monitor ; no SCC access up to here
+	call out280_a89f		;a889	cd 9f a8 	. . .
 	;call monitor ; SCC access done
 	ld a,001h		    ;a88c	3e 01 	> .             ; (ldff0h) := 1
 	ld (ldff0h),a		;a88e	32 f0 df 	2 . .       ;
@@ -1097,6 +1097,7 @@ waitforz_dff0_a897:
 	jr nz,$-5		    ;a89c	20 f9 	  .             ; -> loop_a897
 	ret			        ;a89e	c9 	.
 
+; SCC access initialization
     ; this does write 2x zero to port 80
 out80_a89f:
 	ld a,0ffh		    ;a89f	3e ff 	> .         ; (01df8h):=ff
@@ -2816,6 +2817,43 @@ if DISASS
     ; include disassembler source
     include "disassembler.asm"
 endif
+
+; free space here
+; SCC access initialization
+    ; this does write 2x zero to port 80
+out280_a89f:
+	ld a,0ffh		    ;a89f	3e ff 	> .         ; (01df8h):=ff
+	ld (01df8h),a		;a8a1	32 f8 1d 	2 . .   ;
+	call 01067h		    ;a8a4	cd 67 10 	. g .   ; OS API call Patched to e98h
+	call 016e2h		    ;a8a7	cd e2 16 	. . .   ; OS API call Patched to e1ch
+	; call monitor ; no SCC access up to here
+	ld hl,code_p_d400	;a8aa	21 00 d4 	! . .   ; (01dfah): := address of code part 0d400
+	ld (01dfah),hl		;a8ad	22 fa 1d 	" . .   ;
+	ld hl,07800h		;a8b0	21 00 78 	! . x   ; (01dfch) :=07800
+	ld (01dfch),hl		;a8b3	22 fc 1d 	" . .   ;
+	ld hl,00800h		;a8b6	21 00 08 	! . .   ; (01dfeh):= 00800
+	ld (01dfeh),hl		;a8b9	22 fe 1d 	" . .   ;
+	ld a,000h		    ;a8bc	3e 00 	> .         ; (01df9h):=0
+	ld (01df9h),a		;a8be	32 f9 1d 	2 . .   ;
+	ld a,000h		    ;a8c1	3e 00 	> .         ; (01df8h):=0
+	ld (01df8h),a		;a8c3	32 f8 1d 	2 . .   ;
+	out (080h),a		;a8c6	d3 80 	. .         ; outputs a=0 to port 80
+	; call monitor ; no SCC access up to here
+	call 016e2h		    ;a8c8	cd e2 16 	. . .   ; 2nd OS API call to 016e2h Patched to e1ch
+	ld a,000h		    ;a8cb	3e 00 	> .         ; (0dff0h):=0
+	ld (0dff0h),a		;a8cd	32 f0 df 	2 . .   ;
+	ld hl,07800h		;a8d0	21 00 78 	! . x   ;  (01dfah):=07800
+	ld (01dfah),hl		;a8d3	22 fa 1d 	" . .   ;
+	ld a,004h		    ;a8d6	3e 04 	> .         ; (01df9h):=4
+	ld (01df9h),a		;a8d8	32 f9 1d 	2 . .   ;
+	ld a,000h		    ;a8db	3e 00 	> .         ; (01df8h):=0
+	ld (01df8h),a		;a8dd	32 f8 1d 	2 . .   ;
+	; call monitor ; no SCC access up to here
+	out (080h),a		;a8e0	d3 80 	. .         ; outputs a=0 to port 80
+	call monitor ; SCC access done up to here
+	ret			        ;a8e2	c9 	.
+
+
 ;------------------------------------------------------------------
 ; c000 area
 ;------------------------------------------------------------------
