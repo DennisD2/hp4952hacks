@@ -872,5 +872,6 @@ The extreme complexity of the device, with 4 well-known CPUs and supposedly one 
 makes it very hard to analyze what is going on in HP4952A.
 
 ## Further reading
-
-* SCC/ESCC User Manual TBD
+* Sigrok decoder HowTo https://sigrok.org/wiki/Protocol_decoder_HOWTO 
+* my patched Z80 decoder, to work with wait states in FETCH cycle [](sigrok-z80-decoder). The files need to go
+  to /usr/local/share/libsigrokdecode/decoders/z80dd or wherever your decoders are located

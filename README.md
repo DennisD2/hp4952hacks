@@ -50,8 +50,14 @@ not have done their pathbreaking work before:
 
 Special information on used chips:
 * Toshiba TMPZ84C00A CPU [PDF](doc/3rdParty/tmpz84c00.pdf)
-* Z80 User Manual [PDF](doc/3rdParty/zilog-z80-user-manual-um0080.pdf)
+* Z80 User Manual [PDF](doc/3rdParty/zilog-z80-user-manual-um0080.pdf) and https://www.zilog.com/docs/z80/um0080.pdf
 
-SCC information
+SCC information:
 * SCC/ESCC User Manual [PDF](doc/3rdParty/zilog-scc_escc_user_manual_um.pdf)
 * Z80C30/Z85C30 CMOS SCC Serial Communications Controller [PDF](doc/3rdParty/zilog-z80c30-35-spec-ps0117.pdf)
+* SCC access with C, example https://hackaday.io/project/5233-z80-computer/log/19836-serial-io
+* Linux SCC driver source https://github.com/torvalds/linux/blob/master/drivers/tty/serial/ip22zilog.c
+
+Z80 programming:
+* Tips & Tricks https://rosettacode.org/wiki/Category:Z80_Assembly
+* 
