@@ -397,7 +397,7 @@ Some friendly guys even have written a Z80 decoder for sigrok/pulseview. This de
 bugs, but is even with bugs a great help in understanding what the HP4952A is doing.
 
 So I hooked up the logic analyzer to the HP4952A. Close to the Z80 (Toshiba TMP84C00)
-there is an Xtal with  7.3728Mhz. I suppose that this is part of clock oscillator
+there is an Xtal with 7.3728Mhz. I suppose that this is part of clock oscillator
 for the Z80. From logic analyzer I see roughly 400ns / 2.5Mhz for a full clock cycle.
 So this is somehow strange. 
 
@@ -870,6 +870,17 @@ but generated on the fly by main CPU.
 
 The extreme complexity of the device, with 4 well-known CPUs and supposedly one custom CPU (PAL/GAL chip),
 makes it very hard to analyze what is going on in HP4952A.
+
+## Interesting later finding
+The HP4951A, the predecessor version of 4952A, is controlled by a NSC800 CPU, which is software compatible
+with Z80. This brought me to the idea to check pins of the supposed PAL/GAL chip named
+"1820-4838" and to compare with NSC800 pin numbers. A short look at several pins
+of system bus (via large board connector J1) and pins of the chip show that this chip may be a NSC800. 
+So it looks like this chip is the main Z80 CPU, starting up and controlling the whole system. When doing data 
+processing, it kicks of the other, then Toshiba, Z80 CPU on the main board.
+
+This would also explain why there these two EEPROMs on main board and memory board have same (z80 code) content. The
+ROM id is 04952-10029.
 
 ## Further reading
 * Sigrok decoder HowTo https://sigrok.org/wiki/Protocol_decoder_HOWTO 
