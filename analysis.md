@@ -882,6 +882,11 @@ processing, it kicks of the other, then Toshiba, Z80 CPU on the main board.
 This would also explain why there these two EEPROMs on main board and memory board have same (z80 code) content. The
 ROM id is 04952-10029.
 
+Update: I measured most contacts of mysterious chip, they have same pin numbers as the NSC800. So I ordered a 
+NSC800 CPU, exact type is NSC-800N3I with 2.5MHz clock. And the cool thing is, after replacing the 1820-4838 
+custom chip with that off-the-shelf CPU, the HP4952a boots and behaves like before. I have not tested much so 
+far, but I would conclude that the 1820-4838 is simply a NSC800 with HP product number printed on its case.
+
 ## Further reading
 * Sigrok decoder HowTo https://sigrok.org/wiki/Protocol_decoder_HOWTO 
 * my patched Z80 decoder, to work with wait states in FETCH cycle [sigrok-z80-decoder](sigrok-z80-decoder). 
