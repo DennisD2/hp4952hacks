@@ -887,6 +887,20 @@ NSC800 CPU, exact type is NSC-800N3I with 2.5MHz clock. And the cool thing is, a
 custom chip with that off-the-shelf CPU, the HP4952a boots and behaves like before. I have not tested much so 
 far, but I would conclude that the 1820-4838 is simply a NSC800 with HP product number printed on its case.
 
+### Pins assingments Z80 vs. NSC800
+
+Z80:
+![](doc/z80-40pins.png)
+NSC800: 
+![](doc/nsc800-40pins.png)
+
+NSC800 differs slightly from Z80. So sigrok decoder for Z80 will not work. Based on existing code, a NSC800
+version needs to be developed.
+
+NSC800 S0 and S1 signal mapping
+
+![](doc/nsc800-s0s1-pins.png)
+
 ## Further reading
 * Sigrok decoder HowTo https://sigrok.org/wiki/Protocol_decoder_HOWTO 
 * my patched Z80 decoder, to work with wait states in FETCH cycle [sigrok-z80-decoder](sigrok-z80-decoder). 
