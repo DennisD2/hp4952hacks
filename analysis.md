@@ -887,7 +887,7 @@ NSC800 CPU, exact type is NSC-800N3I with 2.5MHz clock. And the cool thing is, a
 custom chip with that off-the-shelf CPU, the HP4952a boots and behaves like before. I have not tested much so 
 far, but I would conclude that the 1820-4838 is simply a NSC800 with HP product number printed on its case.
 
-### Pins assingments Z80 vs. NSC800
+### Pins assignments Z80 vs. NSC800
 
 Z80:
 ![](doc/z80-40pins.png)
